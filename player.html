@@ -74,8 +74,17 @@
       background: #000;
       display: block;
     }
+    #ytFrame {
+      width: 100%;
+      height: 56.25vw;
+      max-height: 56.25vw;
+      border: 0;
+      background: #000;
+      display: block;
+    }
     @media (min-width: 768px) {
       video { max-height: 480px; }
+      #ytFrame { height: 480px; max-height: 480px; }
     }
 
     /* Status Overlay */
@@ -251,6 +260,7 @@
 
   <div class="video-container">
     <video id="video" controls playsinline></video>
+    <iframe id="ytFrame" title="YouTube Live" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
     <div class="status-overlay" id="statusOverlay">
       <div class="spinner" id="spinner"></div>
       <div class="status-text" id="statusText">正在加载...</div>
@@ -306,7 +316,7 @@
   </div>
 
   <div class="footer-note">
-    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器使用 hls.js 播放。
+    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器使用 hls.js 播放。若为 YouTube 线路，将使用内嵌播放器。
   </div>
 
 <script>
@@ -343,6 +353,7 @@
   // ========== DOM ==========
   const $ = id => document.getElementById(id);
   const video = $('video');
+  const ytFrame = $('ytFrame');
   const channelName = $('channelName');
   const channelCategory = $('channelCategory');
   const playStatus = $('playStatus');
@@ -455,7 +466,46 @@
     }
     video.removeAttribute('src');
     try { video.load(); } catch {}
+    // Reset YouTube iframe
+    if (ytFrame) {
+      ytFrame.removeAttribute('src');
+      ytFrame.style.display = 'none';
+    }
+    video.style.display = '';
     isPlaying = false;
+  }
+
+  function parseYouTubeSpec(u) {
+    // Supported formats:
+    // youtube:channel:<CHANNEL_ID>
+    // youtube:video:<VIDEO_ID>
+    // youtube:playlist:<PLAYLIST_ID>
+    const m = String(u || '').match(/^youtube:(channel|video|playlist):([A-Za-z0-9_-]+)$/i);
+    if (!m) return null;
+    const kind = m[1].toLowerCase();
+    const id = m[2];
+    if (kind === 'channel') {
+      return {
+        kind,
+        id,
+        embedUrl: `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(id)}&autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1`,
+        display: `YouTube Live (channel:${id})`
+      };
+    }
+    if (kind === 'playlist') {
+      return {
+        kind,
+        id,
+        embedUrl: `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(id)}&autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1`,
+        display: `YouTube Playlist (${id})`
+      };
+    }
+    return {
+      kind,
+      id,
+      embedUrl: `https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1`,
+      display: `YouTube Video (${id})`
+    };
   }
 
   async function playSource(index) {
@@ -478,7 +528,32 @@
       return;
     }
 
-    urlDisplay.textContent = url;
+    const yt = parseYouTubeSpec(url);
+    urlDisplay.textContent = yt ? yt.display : url;
+
+    // YouTube Embed (works even when HLS is blocked by CORS). Note: Mainland China may block YouTube.
+    if (yt) {
+      showStatus('正在加载 YouTube 直播...');
+      // Switch UI
+      video.style.display = 'none';
+      ytFrame.style.display = '';
+
+      // Some browsers require user gesture for unmuted autoplay; if it fails, user can tap play in iframe.
+      ytFrame.src = yt.embedUrl;
+      ytFrame.onload = () => {
+        hideStatus();
+        isPlaying = true;
+        retryCount = 0;
+      };
+
+      // If YouTube is blocked, onload may still fire. Provide a quick hint in status area.
+      setTimeout(() => {
+        if (!isPlaying) {
+          showStatus('若长时间黑屏：可能网络屏蔽/地区限制，或当前频道暂无直播。', true);
+        }
+      }, 6000);
+      return;
+    }
 
     // HTTPS 页面下禁止 http 直播源（混合内容会直接失败）
     if (location.protocol === 'https:' && /^http:\/\//i.test(url)) {

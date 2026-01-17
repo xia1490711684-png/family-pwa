@@ -1,7 +1,9 @@
 {
-  "notice": "提示：仅内置公开、无需会员的 HLS(.m3u8) 源。若某些频道在你当前网络不可用，请在播放页切换线路，或在 channels.json 中替换为你有权观看的可用源。",
+  "notice": "提示：本列表仅整合公开、无需会员即可观看的来源（包含 HLS(.m3u8) 与 YouTube 内嵌直播）。部分频道可能因地区限制/版权/网络原因不可用；可在播放页切换线路，或在 channels.json 中替换为你有权观看的有效源。",
   "categories": [
-    "中文/港澳台",
+    "大陆/央媒",
+    "港澳台",
+    "新加坡/马来西亚",
     "新闻",
     "公共电视",
     "国际",
@@ -10,9 +12,189 @@
   ],
   "channels": [
     {
+      "id": "cctv_zh_intl_yt",
+      "name": "CCTV 中文国际（YouTube）",
+      "category": "大陆/央媒",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCnAsZ46UTeFEgwOEwMezngQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["央媒", "中文", "国际"],
+      "region": "CN/Global",
+      "order": 1
+    },
+    {
+      "id": "cctv_main_yt",
+      "name": "CCTV 中国中央电视台（YouTube）",
+      "category": "大陆/央媒",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCcLK3j-XWdGBnt5bR9NJHaQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["央媒", "中文"],
+      "region": "CN/Global",
+      "order": 2
+    },
+    {
+      "id": "cgtn_yt",
+      "name": "CGTN（YouTube）",
+      "category": "国际",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCgrNz-aDmcr2uuto8_DL2jg",
+          "priority": 1
+        }
+      ],
+      "tags": ["国际", "新闻"],
+      "region": "Global",
+      "order": 10
+    },
+    {
+      "id": "hoy_77_yt",
+      "name": "HOY 免费电视 77/78（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCutSfYmIwdDOb4Ba7ObcaAQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["香港", "中文"],
+      "region": "HK",
+      "order": 20
+    },
+    {
+      "id": "hoy_cable_news_yt",
+      "name": "HOY 资讯台×有线新闻（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UC_q7e5XYJB0JDGagcF0KW0w",
+          "priority": 1
+        }
+      ],
+      "tags": ["香港", "新闻", "中文"],
+      "region": "HK",
+      "order": 21
+    },
+    {
+      "id": "tvb_news_yt",
+      "name": "TVB NEWS（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UC_ifDTtFAcsj-wJ5JfM27CQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["香港", "新闻"],
+      "region": "HK",
+      "order": 22
+    },
+    {
+      "id": "pts_live_yt",
+      "name": "公视 PTS LIVE（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCXgIO9jJVsX5_2ideiSkfvA",
+          "priority": 1
+        }
+      ],
+      "tags": ["台湾", "公共电视"],
+      "region": "TW",
+      "order": 30
+    },
+    {
+      "id": "setn_news_yt",
+      "name": "三立新闻网 SETN（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UC2TuODJhC03pLgd6MpWP0iw",
+          "priority": 1
+        }
+      ],
+      "tags": ["台湾", "新闻"],
+      "region": "TW",
+      "order": 31
+    },
+    {
+      "id": "tvbs_news_yt",
+      "name": "TVBS NEWS（YouTube）",
+      "category": "港澳台",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UC5nwNW4KdC0SzrhF9BXEYOQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["台湾", "新闻"],
+      "region": "TW",
+      "order": 32
+    },
+    {
+      "id": "cna_yt",
+      "name": "CNA 新加坡（YouTube）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UC83jt4dlz1Gjl58fzQrrKZg",
+          "priority": 1
+        }
+      ],
+      "tags": ["新加坡", "新闻"],
+      "region": "SG",
+      "order": 1
+    },
+    {
+      "id": "8world_yt",
+      "name": "8world 8视界（YouTube）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UCUqUtr0w-K8W4AfpbHiYSaQ",
+          "priority": 1
+        }
+      ],
+      "tags": ["新加坡", "中文"],
+      "region": "SG",
+      "order": 2
+    },
+    {
+      "id": "8tv_my_yt",
+      "name": "8TV Malaysia（YouTube）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "YouTube 直播（频道直播）",
+          "url": "youtube:channel:UChfxNlr1LZlg5QwTwwNEU7Q",
+          "priority": 1
+        }
+      ],
+      "tags": ["马来西亚", "中文"],
+      "region": "MY",
+      "order": 3
+    },
+    {
       "id": "rthk_tv31",
       "name": "RTHK TV 31",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "Akamai HLS",
@@ -32,7 +214,7 @@
     {
       "id": "rthk_tv32",
       "name": "RTHK TV 32",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "Akamai HLS",
@@ -52,7 +234,7 @@
     {
       "id": "rthk_tv33",
       "name": "RTHK TV 33",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "Akamai HLS",
@@ -72,7 +254,7 @@
     {
       "id": "rthk_tv34",
       "name": "RTHK TV 34",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "Akamai HLS",
@@ -92,7 +274,7 @@
     {
       "id": "rthk_tv35",
       "name": "RTHK TV 35",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "Akamai HLS",
@@ -112,7 +294,7 @@
     {
       "id": "tvbrics_cn",
       "name": "TV BRICS 中文",
-      "category": "中文/港澳台",
+      "category": "港澳台",
       "sources": [
         {
           "label": "HLS",
