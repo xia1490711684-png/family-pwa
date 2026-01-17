@@ -1,715 +1,175 @@
 {
-  "notice": "提示：本列表仅整合公开、无需会员即可观看的来源（包含 HLS(.m3u8) 与 YouTube 内嵌直播）。部分频道可能因地区限制/版权/网络原因不可用；可在播放页切换线路，或在 channels.json 中替换为你有权观看的有效源。",
+  "notice": "提示：\n1) 由于浏览器跨域(CORS)/地区限制/HTTPS混合内容等原因，许多第三方直播源在网页里会失败。\n2) 本应用已支持『导入 m3u/m3u8 播放列表』『自动测速选线』『失败自动切线』，建议你导入自己有权观看的直播列表。\n3) 央视频道默认使用央视网官方直播页（web模式）打开；若页面禁止内嵌，会自动提示在新标签打开。\n\n仅添加你有权观看/转载的源。",
   "categories": [
-    "大陆/央媒",
+    "大陆/央媒（官方网页）",
     "港澳台",
     "新加坡/马来西亚",
-    "新闻",
     "公共电视",
+    "新闻",
     "国际",
     "科教/纪录",
-    "太空"
+    "太空",
+    "我的导入"
   ],
   "channels": [
     {
-      "id": "cctv_zh_intl_yt",
-      "name": "CCTV 中文国际（YouTube）",
-      "category": "大陆/央媒",
+      "id": "cctv13_web",
+      "name": "CCTV-13 新闻（央视网）",
+      "category": "大陆/央媒（官方网页）",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCnAsZ46UTeFEgwOEwMezngQ",
-          "priority": 1
-        }
+        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv13/m/", "priority": 1 }
       ],
-      "tags": ["央媒", "中文", "国际"],
-      "region": "CN/Global",
+      "tags": ["央视", "新闻", "中文"],
+      "region": "CN",
       "order": 1
     },
     {
-      "id": "cctv_main_yt",
-      "name": "CCTV 中国中央电视台（YouTube）",
-      "category": "大陆/央媒",
+      "id": "cctv1_web",
+      "name": "CCTV-1 综合（央视网）",
+      "category": "大陆/央媒（官方网页）",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCcLK3j-XWdGBnt5bR9NJHaQ",
-          "priority": 1
-        }
+        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv1/m/", "priority": 1 }
       ],
-      "tags": ["央媒", "中文"],
-      "region": "CN/Global",
+      "tags": ["央视", "综合", "中文"],
+      "region": "CN",
       "order": 2
     },
     {
-      "id": "cgtn_yt",
-      "name": "CGTN（YouTube）",
-      "category": "国际",
+      "id": "cctv4_web",
+      "name": "CCTV-4 中文国际（央视网）",
+      "category": "大陆/央媒（官方网页）",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCgrNz-aDmcr2uuto8_DL2jg",
-          "priority": 1
-        }
+        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv4/m/", "priority": 1 }
       ],
-      "tags": ["国际", "新闻"],
-      "region": "Global",
-      "order": 10
+      "tags": ["央视", "中文", "国际"],
+      "region": "CN/Global",
+      "order": 3
     },
     {
-      "id": "hoy_77_yt",
-      "name": "HOY 免费电视 77/78（YouTube）",
+      "id": "cgtn_web",
+      "name": "CGTN（France24式网页/可能跳转）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        { "label": "CGTN Live", "url": "web:https://www.cgtn.com/live/", "priority": 1 }
+      ],
+      "tags": ["新闻", "国际"],
+      "region": "Global",
+      "order": 9
+    },
+
+    {
+      "id": "rthk31",
+      "name": "香港电台 RTHK TV 31",
       "category": "港澳台",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCutSfYmIwdDOb4Ba7ObcaAQ",
-          "priority": 1
-        }
+        { "label": "HLS 主线路", "url": "https://rthktv31-live.akamaized.net/hls/live/2036818/RTHKTV31/master.m3u8", "priority": 1 }
       ],
-      "tags": ["香港", "中文"],
+      "tags": ["香港", "中文", "公共电视"],
       "region": "HK",
       "order": 20
     },
     {
-      "id": "hoy_cable_news_yt",
-      "name": "HOY 资讯台×有线新闻（YouTube）",
+      "id": "rthk32",
+      "name": "香港电台 RTHK TV 32",
       "category": "港澳台",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UC_q7e5XYJB0JDGagcF0KW0w",
-          "priority": 1
-        }
+        { "label": "HLS 主线路", "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8", "priority": 1 }
       ],
-      "tags": ["香港", "新闻", "中文"],
+      "tags": ["香港", "中文", "公共电视"],
       "region": "HK",
       "order": 21
     },
     {
-      "id": "tvb_news_yt",
-      "name": "TVB NEWS（YouTube）",
+      "id": "rthk33",
+      "name": "香港电台 RTHK TV 33",
       "category": "港澳台",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UC_ifDTtFAcsj-wJ5JfM27CQ",
-          "priority": 1
-        }
+        { "label": "HLS 主线路", "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8", "priority": 1 }
       ],
-      "tags": ["香港", "新闻"],
+      "tags": ["香港", "中文", "公共电视"],
       "region": "HK",
       "order": 22
     },
     {
-      "id": "pts_live_yt",
-      "name": "公视 PTS LIVE（YouTube）",
+      "id": "rthk34",
+      "name": "香港电台 RTHK TV 34",
       "category": "港澳台",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCXgIO9jJVsX5_2ideiSkfvA",
-          "priority": 1
-        }
+        { "label": "HLS 主线路", "url": "https://rthktv34-live.akamaized.net/hls/live/2101642/RTHKTV34/master.m3u8", "priority": 1 }
       ],
-      "tags": ["台湾", "公共电视"],
+      "tags": ["香港", "中文", "公共电视"],
+      "region": "HK",
+      "order": 23
+    },
+
+    {
+      "id": "pts_web",
+      "name": "台湾 公视（官网入口）",
+      "category": "港澳台",
+      "sources": [
+        { "label": "公视官网", "url": "web:https://www.pts.org.tw/", "priority": 1 },
+        { "label": "PTS+ 直播页", "url": "web:https://www.ptsplus.tv/streaming", "priority": 2 }
+      ],
+      "tags": ["台湾", "中文", "公共电视"],
       "region": "TW",
       "order": 30
     },
+
     {
-      "id": "setn_news_yt",
-      "name": "三立新闻网 SETN（YouTube）",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UC2TuODJhC03pLgd6MpWP0iw",
-          "priority": 1
-        }
-      ],
-      "tags": ["台湾", "新闻"],
-      "region": "TW",
-      "order": 31
-    },
-    {
-      "id": "tvbs_news_yt",
-      "name": "TVBS NEWS（YouTube）",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UC5nwNW4KdC0SzrhF9BXEYOQ",
-          "priority": 1
-        }
-      ],
-      "tags": ["台湾", "新闻"],
-      "region": "TW",
-      "order": 32
-    },
-    {
-      "id": "cna_yt",
-      "name": "CNA 新加坡（YouTube）",
+      "id": "8world_web",
+      "name": "新加坡 8world 新闻直播（官网入口）",
       "category": "新加坡/马来西亚",
       "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UC83jt4dlz1Gjl58fzQrrKZg",
-          "priority": 1
-        }
+        { "label": "8world Mobile Livestream", "url": "web:https://www.8world.com/mobile-livestream", "priority": 1 }
       ],
-      "tags": ["新加坡", "新闻"],
+      "tags": ["新加坡", "中文", "新闻"],
       "region": "SG",
-      "order": 1
-    },
-    {
-      "id": "8world_yt",
-      "name": "8world 8视界（YouTube）",
-      "category": "新加坡/马来西亚",
-      "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UCUqUtr0w-K8W4AfpbHiYSaQ",
-          "priority": 1
-        }
-      ],
-      "tags": ["新加坡", "中文"],
-      "region": "SG",
-      "order": 2
-    },
-    {
-      "id": "8tv_my_yt",
-      "name": "8TV Malaysia（YouTube）",
-      "category": "新加坡/马来西亚",
-      "sources": [
-        {
-          "label": "YouTube 直播（频道直播）",
-          "url": "youtube:channel:UChfxNlr1LZlg5QwTwwNEU7Q",
-          "priority": 1
-        }
-      ],
-      "tags": ["马来西亚", "中文"],
-      "region": "MY",
-      "order": 3
-    },
-    {
-      "id": "rthk_tv31",
-      "name": "RTHK TV 31",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "Akamai HLS",
-          "url": "https://rthktv31-live.akamaized.net/hls/live/2036818/RTHKTV31/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
-      "tags": [
-        "香港",
-        "公共电视",
-        "粤语/中文"
-      ],
-      "region": "HK",
-      "order": 10
-    },
-    {
-      "id": "rthk_tv32",
-      "name": "RTHK TV 32",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "Akamai HLS",
-          "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
-      "tags": [
-        "香港",
-        "公共电视",
-        "中文"
-      ],
-      "region": "HK",
-      "order": 11
-    },
-    {
-      "id": "rthk_tv33",
-      "name": "RTHK TV 33",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "Akamai HLS",
-          "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
-      "tags": [
-        "香港",
-        "公共电视",
-        "中文"
-      ],
-      "region": "HK",
-      "order": 12
-    },
-    {
-      "id": "rthk_tv34",
-      "name": "RTHK TV 34",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "Akamai HLS",
-          "url": "https://rthktv34-live.akamaized.net/hls/live/2101642/RTHKTV34/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
-      "tags": [
-        "香港",
-        "公共电视",
-        "中文"
-      ],
-      "region": "HK",
-      "order": 13
-    },
-    {
-      "id": "rthk_tv35",
-      "name": "RTHK TV 35",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "Akamai HLS",
-          "url": "https://rthktv35-live.akamaized.net/hls/live/2101643/RTHKTV35/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
-      "tags": [
-        "香港",
-        "公共电视",
-        "中文"
-      ],
-      "region": "HK",
-      "order": 14
-    },
-    {
-      "id": "tvbrics_cn",
-      "name": "TV BRICS 中文",
-      "category": "港澳台",
-      "sources": [
-        {
-          "label": "HLS",
-          "url": "https://brics.bonus-tv.ru/cdn/brics/chinese/playlist.m3u8",
-          "priority": 1
-        },
-        {
-          "label": "HLS 备用",
-          "url": "https://chibrics.mediacdn.ru/cdn/brics/chinese/playlist.m3u8",
-          "priority": 2
-        }
-      ],
-      "logo": "https://tvbrics.com/local/templates/main/img/tvbrics-logo.svg",
-      "tags": [
-        "中文",
-        "国际"
-      ],
-      "region": "INTL",
-      "order": 20
-    },
-    {
-      "id": "aljazeera_en",
-      "name": "Al Jazeera English",
-      "category": "新闻",
-      "sources": [
-        {
-          "label": "官方 HLS",
-          "url": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8",
-          "priority": 1
-        },
-        {
-          "label": "CloudFront 备用",
-          "url": "https://d3o9s87z8g0vqi.cloudfront.net/AlJazeeraEnglish.m3u8",
-          "priority": 2
-        }
-      ],
-      "logo": "https://www.aljazeera.com/favicon_aje.ico",
-      "tags": [
-        "新闻",
-        "国际"
-      ],
-      "region": "INTL",
-      "order": 31
-    },
-    {
-      "id": "cgtn_live",
-      "name": "CGTN Live",
-      "category": "新闻",
-      "sources": [
-        {
-          "label": "CGTN Live",
-          "url": "https://live.cgtn.com/1000/prog_index.m3u8",
-          "priority": 1
-        },
-        {
-          "label": "CGTN French",
-          "url": "https://news.cgtn.com/resource/live/french/cgtn-f.m3u8",
-          "priority": 2
-        }
-      ],
-      "logo": "https://www.cgtn.com/favicon.ico",
-      "tags": [
-        "新闻",
-        "国际"
-      ],
-      "region": "INTL",
-      "order": 41
-    },
-    {
-      "id": "bmc-infotv",
-      "name": "BMC Info TV (Belmont Media Center)",
-      "category": "公共电视",
-      "logo": "",
-      "tags": [
-        "公共电视",
-        "社区",
-        "美国"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (footprint.net)",
-          "url": "https://belmontmedia.secure.footprint.net/egress/bhandler/belmontmedia/streamc/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nhk_world",
-      "name": "NHK World Japan",
-      "category": "国际",
-      "sources": [
-        {
-          "label": "HLS",
-          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www3.nhk.or.jp/nhkworld/common/img/logo.png",
-      "tags": [
-        "新闻",
-        "日本"
-      ],
-      "region": "JP",
-      "order": 30
-    },
-    {
-      "id": "cgtn_doc",
-      "name": "CGTN Documentary",
-      "category": "科教/纪录",
-      "sources": [
-        {
-          "label": "CGTN Resource",
-          "url": "https://news.cgtn.com/resource/live/document/cgtn-doc.m3u8",
-          "priority": 1
-        }
-      ],
-      "logo": "https://www.cgtn.com/favicon.ico",
-      "tags": [
-        "纪录片",
-        "国际"
-      ],
-      "region": "INTL",
       "order": 40
     },
+
     {
-      "id": "iss_live",
-      "name": "ISS Live (可能受限)",
+      "id": "nhk_world",
+      "name": "NHK World-Japan（HLS）",
+      "category": "国际",
+      "sources": [
+        { "label": "HLS 主线路", "url": "https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8", "priority": 1 }
+      ],
+      "tags": ["新闻", "国际"],
+      "region": "Global",
+      "order": 80
+    },
+    {
+      "id": "france24_en_web",
+      "name": "France 24 English（官网入口）",
+      "category": "国际",
+      "sources": [
+        { "label": "France24 Live", "url": "web:https://www.france24.com/en/live", "priority": 1 }
+      ],
+      "tags": ["新闻", "国际"],
+      "region": "Global",
+      "order": 81
+    },
+    {
+      "id": "nasa_public",
+      "name": "NASA TV Public（HLS）",
       "category": "太空",
-      "sources": [],
-      "tags": [
-        "太空",
-        "ISS"
-      ],
-      "region": "SPACE",
-      "order": 50
-    },
-    {
-      "id": "aljazeera-en",
-      "name": "Al Jazeera English",
-      "category": "国际新闻",
-      "logo": "",
-      "tags": [
-        "新闻",
-        "Al Jazeera",
-        "英语"
-      ],
-      "region": "",
-      "disabled": false,
       "sources": [
-        {
-          "label": "线路1 (getaj.net)",
-          "url": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8",
-          "type": "hls",
-          "priority": 1
-        },
-        {
-          "label": "线路2 (CloudFront 备)",
-          "url": "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/al-jazeera-english/playlist.m3u8",
-          "type": "hls",
-          "priority": 2
-        }
-      ]
+        { "label": "HLS 主线路", "url": "https://nasa-i.akamaihd.net/hls/live/253565/NTV-Public/master.m3u8", "priority": 1 }
+      ],
+      "tags": ["NASA", "太空"],
+      "region": "Global",
+      "order": 90
     },
     {
-      "id": "dw-en",
-      "name": "DW English",
-      "category": "国际新闻",
-      "logo": "",
-      "tags": [
-        "新闻",
-        "DW",
-        "英语"
-      ],
-      "region": "DE",
-      "disabled": false,
+      "id": "classic_arts_showcase",
+      "name": "Classic Arts Showcase（HLS）",
+      "category": "科教/纪录",
       "sources": [
-        {
-          "label": "线路1 (master)",
-          "url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8",
-          "type": "hls",
-          "priority": 1
-        },
-        {
-          "label": "线路2 (index 备)",
-          "url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8",
-          "type": "hls",
-          "priority": 2
-        }
-      ]
-    },
-    {
-      "id": "france24-en",
-      "name": "France 24 English",
-      "category": "国际新闻",
-      "logo": "",
-      "tags": [
-        "新闻",
-        "France 24",
-        "英语"
+        { "label": "HLS 主线路", "url": "https://classicarts.akamaized.net/hls/live/1024257/CAS/master.m3u8", "priority": 1 }
       ],
-      "region": "FR",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (live.france24.com)",
-          "url": "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_500.m3u8",
-          "type": "hls",
-          "priority": 1
-        },
-        {
-          "label": "线路2 (Fastly 备)",
-          "url": "https://uvotv-aniview.global.ssl.fastly.net/hls/live/2120684/france24english/playlist.m3u8",
-          "type": "hls",
-          "priority": 2
-        }
-      ]
-    },
-    {
-      "id": "iss-live",
-      "name": "ISS Live (Ustream legacy)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "ISS",
-        "太空站",
-        "地球"
-      ],
-      "region": "",
-      "disabled": false,
-      "sources": []
-    },
-    {
-      "id": "nasa-media",
-      "name": "NASA TV - Media",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "发布会",
-        "发射"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa-media/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-public",
-      "name": "NASA TV - Public/Education",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "太空",
-        "科教"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa-public/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-4k-30",
-      "name": "NASA UHD 4K (30p)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "4K",
-        "UHD"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa4k/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-4k-60",
-      "name": "NASA UHD 4K (60p)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "4K",
-        "UHD",
-        "高码率"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa4k60/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nhk-world",
-      "name": "NHK WORLD-JAPAN",
-      "category": "日本",
-      "logo": "",
-      "tags": [
-        "NHK",
-        "日本",
-        "英语"
-      ],
-      "region": "JP",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (media-tyo master)",
-          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8",
-          "type": "hls",
-          "priority": 1
-        },
-        {
-          "label": "线路2 (o-master 备)",
-          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/o-master.m3u8",
-          "type": "hls",
-          "priority": 2
-        }
-      ]
-    },
-    {
-      "id": "test-bipbop",
-      "name": "测试流 - Apple BipBop",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "Apple"
-      ],
-      "region": "",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (Apple CDN)",
-          "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "test-bbb",
-      "name": "测试流 - Big Buck Bunny",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "动画"
-      ],
-      "region": "",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (Mux)",
-          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "test-sintel",
-      "name": "测试流 - Sintel (多线路示例)",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "多线路",
-        "电影"
-      ],
-      "region": "",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (主)",
-          "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        },
-        {
-          "label": "线路2 (备)",
-          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-          "type": "hls",
-          "priority": 2
-        }
-      ]
+      "tags": ["艺术", "纪录"],
+      "region": "Global",
+      "order": 95
     }
   ]
 }

@@ -30,7 +30,6 @@
       min-height: 100vh;
     }
 
-    /* Header */
     header {
       display: flex;
       align-items: center;
@@ -62,11 +61,7 @@
       text-overflow: ellipsis;
     }
 
-    /* Video Container */
-    .video-container {
-      background: #000;
-      position: relative;
-    }
+    .video-container { background: #000; position: relative; }
     video {
       width: 100%;
       height: auto;
@@ -74,20 +69,19 @@
       background: #000;
       display: block;
     }
-    #ytFrame {
+    iframe.embed {
       width: 100%;
       height: 56.25vw;
       max-height: 56.25vw;
       border: 0;
       background: #000;
-      display: block;
+      display: none;
     }
     @media (min-width: 768px) {
       video { max-height: 480px; }
-      #ytFrame { height: 480px; max-height: 480px; }
+      iframe.embed { height: 480px; max-height: 480px; }
     }
 
-    /* Status Overlay */
     .status-overlay {
       position: absolute;
       inset: 0;
@@ -104,13 +98,9 @@
       opacity: 0;
       pointer-events: none;
     }
-    .status-icon { font-size: 48px; }
-    .status-text { font-size: 14px; text-align: center; padding: 0 20px; }
+    .status-text { font-size: 14px; text-align: center; padding: 0 20px; line-height: 1.5; }
     .status-text.error { color: var(--danger); }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
       width: 40px;
       height: 40px;
@@ -120,13 +110,11 @@
       animation: spin 1s linear infinite;
     }
 
-    /* Controls Panel */
     .controls {
       padding: 16px;
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
     }
-
     .control-card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -134,31 +122,16 @@
       padding: 16px;
       margin-bottom: 12px;
     }
-
     .control-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
+    .control-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .control-value { font-size: 15px; font-weight: 500; }
 
-    .control-label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .control-value {
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    /* Source Selector */
-    .source-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
+    .source-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .source-btn {
       padding: 8px 16px;
       border-radius: 10px;
@@ -170,18 +143,9 @@
       transition: all 0.2s;
     }
     .source-btn:active { opacity: 0.7; }
-    .source-btn.active {
-      background: var(--accent-dim);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .source-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-    /* Action Buttons */
-    .action-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
+    .action-row { display: flex; gap: 10px; margin-top: 16px; }
     .action-btn {
       flex: 1;
       padding: 12px;
@@ -197,13 +161,8 @@
       gap: 6px;
     }
     .action-btn:active { opacity: 0.7; }
-    .action-btn.primary {
-      background: var(--accent-dim);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .action-btn.primary { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-    /* Error Details */
     .error-card {
       background: rgba(248, 113, 113, 0.1);
       border: 1px solid rgba(248, 113, 113, 0.3);
@@ -211,44 +170,18 @@
       padding: 16px;
       margin-bottom: 12px;
     }
-    .error-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--danger);
-      margin-bottom: 8px;
-    }
-    .error-msg {
-      font-size: 13px;
-      color: var(--muted);
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    .error-tips {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(248, 113, 113, 0.2);
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    .error-title { font-size: 14px; font-weight: 600; color: var(--danger); margin-bottom: 8px; }
+    .error-msg { font-size: 13px; color: var(--muted); white-space: pre-wrap; word-break: break-all; }
+    .error-tips { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(248, 113, 113, 0.2); font-size: 12px; color: var(--muted); line-height: 1.6; }
 
-    /* URL Display */
-    .url-display {
-      font-size: 12px;
-      color: var(--muted);
-      word-break: break-all;
-      padding: 10px;
-      background: var(--bg);
-      border-radius: 8px;
-      margin-top: 12px;
-    }
+    .url-display { font-size: 12px; color: var(--muted); word-break: break-all; padding: 10px; background: var(--bg); border-radius: 8px; margin-top: 12px; }
 
-    /* Footer Note */
-    .footer-note {
-      padding: 16px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
+    .footer-note { padding: 16px; text-align: center; font-size: 12px; color: var(--muted); }
+
+    .inline-link {
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -260,7 +193,9 @@
 
   <div class="video-container">
     <video id="video" controls playsinline></video>
-    <iframe id="ytFrame" title="YouTube Live" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <iframe class="embed" id="ytFrame" title="YouTube Live" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <iframe class="embed" id="webFrame" title="Web Live" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+
     <div class="status-overlay" id="statusOverlay">
       <div class="spinner" id="spinner"></div>
       <div class="status-text" id="statusText">正在加载...</div>
@@ -268,7 +203,6 @@
   </div>
 
   <div class="controls">
-    <!-- Channel Info -->
     <div class="control-card" id="infoCard">
       <div class="control-row">
         <div>
@@ -282,13 +216,11 @@
       </div>
     </div>
 
-    <!-- Source Selector -->
     <div class="control-card" id="sourceCard" style="display:none;">
-      <div class="control-label">选择线路</div>
+      <div class="control-label">选择线路（支持自动测速 / 自动切线）</div>
       <div class="source-list" id="sourceList"></div>
     </div>
 
-    <!-- Error Display -->
     <div class="error-card" id="errorCard" style="display:none;">
       <div class="error-title">⚠️ 播放失败</div>
       <div class="error-msg" id="errorMsg"></div>
@@ -297,33 +229,33 @@
         • 直播源已失效或下线<br>
         • 网络连接问题<br>
         • 跨域限制（CORS）<br>
-        • 服务器拒绝访问<br><br>
+        • HTTPS 页面加载 http 源会被拦截（混合内容）<br>
+        • 服务器拒绝访问/地区限制<br><br>
         <strong>建议操作：</strong><br>
-        • 尝试切换其他线路<br>
-        • 检查网络连接<br>
-        • 更换有效的直播源
+        • 让应用先自动测速选线（或手动切换线路）<br>
+        • 你也可以导入自己的 m3u/m3u8 播放列表<br>
+        • 优先使用 https 的 HLS 源或官方网页直播页
       </div>
     </div>
 
-    <!-- Actions -->
     <div class="action-row">
+      <button class="action-btn" id="speedBtn">⚡ 测速选线</button>
       <button class="action-btn" id="reloadBtn">🔄 重新加载</button>
-      <button class="action-btn" id="retryBtn" style="display:none;">⏭️ 尝试下一线路</button>
+      <button class="action-btn" id="retryBtn" style="display:none;">⏭️ 下一线路</button>
     </div>
 
-    <!-- URL Display -->
     <div class="url-display" id="urlDisplay">-</div>
   </div>
 
   <div class="footer-note">
-    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器使用 hls.js 播放。若为 YouTube 线路，将使用内嵌播放器。
+    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器将尝试使用 hls.js。\n
+    若为 <code>web:</code> 线路，会尝试内嵌网页；若网页禁止内嵌，会提示在新标签打开。
   </div>
 
 <script>
 (function() {
   'use strict';
 
-  // ========== Storage Helpers ==========
   const Storage = {
     get(key, def = null) {
       try {
@@ -336,24 +268,25 @@
     }
   };
 
-  // ========== Config ==========
   const MAX_RETRY = 3;
   const RETRY_DELAY = 2000;
-  const BAD_TTL_DAYS = 7; // 失败线路记录保留天数
+  const BAD_TTL_DAYS = 7;
   const BAD_TTL_MS = BAD_TTL_DAYS * 24 * 60 * 60 * 1000;
+  const PROBE_TIMEOUT_MS = 4200;
 
-  // ========== State ==========
   let channel = null;
   let sources = [];
   let currentSourceIndex = 0;
   let retryCount = 0;
   let hlsInstance = null;
   let isPlaying = false;
+  let manualSelected = false;
+  let probing = false;
 
-  // ========== DOM ==========
   const $ = id => document.getElementById(id);
   const video = $('video');
   const ytFrame = $('ytFrame');
+  const webFrame = $('webFrame');
   const channelName = $('channelName');
   const channelCategory = $('channelCategory');
   const playStatus = $('playStatus');
@@ -366,23 +299,25 @@
   const errorMsg = $('errorMsg');
   const reloadBtn = $('reloadBtn');
   const retryBtn = $('retryBtn');
+  const speedBtn = $('speedBtn');
   const urlDisplay = $('urlDisplay');
 
-  // ========== URL Params ==========
   const params = new URLSearchParams(location.search);
   const channelId = params.get('id');
-  // Legacy support
   const legacyName = params.get('name');
   const legacyUrl = params.get('url');
 
-  // ========== Status ==========
   function showStatus(text, isError = false) {
     statusOverlay.classList.remove('hidden');
     spinner.style.display = isError ? 'none' : '';
-    statusText.textContent = text;
+    statusText.innerHTML = text;
     statusText.classList.toggle('error', isError);
-    playStatus.textContent = text;
+    playStatus.textContent = stripTags(text);
     playStatus.style.color = isError ? 'var(--danger)' : '';
+  }
+
+  function stripTags(html) {
+    return String(html || '').replace(/<[^>]*>/g, '');
   }
 
   function hideStatus() {
@@ -401,34 +336,14 @@
     errorCard.style.display = 'none';
   }
 
-  // ========== Source Selector ==========
-  function renderSources() {
-    if (sources.length <= 1) {
-      sourceCard.style.display = 'none';
-      retryBtn.style.display = 'none';
-      return;
-    }
-
-    sourceCard.style.display = '';
-    retryBtn.style.display = '';
-
-    sourceList.innerHTML = sources.map((src, i) => {
-      const active = i === currentSourceIndex ? 'active' : '';
-      const bad = isUrlBad(src.url) ? ' ⚠️失效' : '';
-      const label = escapeHtml(src.label || `线路${i + 1}`) + bad;
-      return `<button class="source-btn ${active}" data-index="${i}">${label}</button>`;
-    }).join('');
-  }
-
   function escapeHtml(s) {
     return (s || '').replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
   }
 
-  function getBadMap() {
-    return Storage.get('tv_bad_sources', {});
-  }
+  // ===== Bad source map =====
+  function getBadMap() { return Storage.get('tv_bad_sources', {}); }
 
   function isUrlBad(url) {
     if (!url) return false;
@@ -458,28 +373,53 @@
     return fromIndex;
   }
 
-  // ========== Player ==========
+  // ===== Source selector render =====
+  function renderSources(extraHint = null) {
+    if (sources.length <= 1) {
+      sourceCard.style.display = 'none';
+      retryBtn.style.display = 'none';
+      return;
+    }
+
+    sourceCard.style.display = '';
+    retryBtn.style.display = '';
+
+    sourceList.innerHTML = sources.map((src, i) => {
+      const active = i === currentSourceIndex ? 'active' : '';
+      const bad = isUrlBad(src.url) ? ' ⚠️失效' : '';
+      const label = escapeHtml(src.label || `线路${i + 1}`) + bad;
+      return `<button class="source-btn ${active}" data-index="${i}">${label}</button>`;
+    }).join('');
+
+    if (extraHint) {
+      // optional future
+    }
+  }
+
+  // ===== Cleanup =====
   function cleanup() {
     if (hlsInstance) {
       try { hlsInstance.destroy(); } catch {}
       hlsInstance = null;
     }
+    try {
+      video.pause();
+    } catch {}
     video.removeAttribute('src');
     try { video.load(); } catch {}
-    // Reset YouTube iframe
-    if (ytFrame) {
-      ytFrame.removeAttribute('src');
-      ytFrame.style.display = 'none';
-    }
+
+    ytFrame.removeAttribute('src');
+    ytFrame.style.display = 'none';
+
+    webFrame.removeAttribute('src');
+    webFrame.style.display = 'none';
+
     video.style.display = '';
     isPlaying = false;
   }
 
+  // ===== Parse special source specs =====
   function parseYouTubeSpec(u) {
-    // Supported formats:
-    // youtube:channel:<CHANNEL_ID>
-    // youtube:video:<VIDEO_ID>
-    // youtube:playlist:<PLAYLIST_ID>
     const m = String(u || '').match(/^youtube:(channel|video|playlist):([A-Za-z0-9_-]+)$/i);
     if (!m) return null;
     const kind = m[1].toLowerCase();
@@ -508,10 +448,112 @@
     };
   }
 
+  function parseWebSpec(u) {
+    const m = String(u || '').match(/^web:(.+)$/i);
+    if (!m) return null;
+    const url = m[1].trim();
+    if (!/^https?:\/\//i.test(url)) return null;
+    return { url, display: url };
+  }
+
+  // ===== Probing (speed test) =====
+  function probeWithTempVideo(url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const t0 = performance.now();
+      const v = document.createElement('video');
+      v.muted = true;
+      v.playsInline = true;
+      v.preload = 'metadata';
+
+      let done = false;
+      const timer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        try { v.src = ''; } catch {}
+        reject(new Error('timeout'));
+      }, timeoutMs);
+
+      const cleanupEv = () => {
+        clearTimeout(timer);
+        v.onloadedmetadata = null;
+        v.oncanplay = null;
+        v.onerror = null;
+        try { v.src = ''; } catch {}
+      };
+
+      v.onloadedmetadata = () => {
+        if (done) return;
+        done = true;
+        cleanupEv();
+        resolve(performance.now() - t0);
+      };
+      v.oncanplay = () => {
+        if (done) return;
+        done = true;
+        cleanupEv();
+        resolve(performance.now() - t0);
+      };
+      v.onerror = () => {
+        if (done) return;
+        done = true;
+        cleanupEv();
+        reject(new Error('error'));
+      };
+
+      try {
+        v.src = url;
+        // Some browsers require calling load
+        v.load();
+      } catch (e) {
+        cleanupEv();
+        reject(e);
+      }
+    });
+  }
+
+  async function pickBestSourceIndex() {
+    if (!sources.length) return 0;
+    const candidates = sources
+      .map((s, i) => ({ s, i }))
+      .filter(x => !!x.s.url)
+      .filter(x => !isUrlBad(x.s.url));
+
+    const all = candidates.length ? candidates : sources.map((s, i) => ({ s, i }));
+
+    // Skip probing for youtube/web; they are not comparable with HLS
+    const probeTargets = all
+      .filter(x => !parseYouTubeSpec(x.s.url))
+      .filter(x => !parseWebSpec(x.s.url))
+      .slice(0, 6);
+
+    if (!probeTargets.length) return all[0].i;
+
+    probing = true;
+    showStatus('⚡ 正在测速选线...');
+
+    const results = await Promise.allSettled(
+      probeTargets.map(x => probeWithTempVideo(x.s.url, PROBE_TIMEOUT_MS))
+    );
+
+    probing = false;
+
+    let best = { i: all[0].i, ms: Infinity };
+    for (let k = 0; k < results.length; k++) {
+      const r = results[k];
+      if (r.status === 'fulfilled') {
+        const ms = r.value;
+        if (ms < best.ms) best = { i: probeTargets[k].i, ms };
+      }
+    }
+
+    return best.i;
+  }
+
+  // ===== Player core =====
   async function playSource(index) {
     cleanup();
     hideError();
-    
+
     if (index < 0 || index >= sources.length) {
       showError('无可用线路', '没有配置有效的播放源');
       return;
@@ -529,24 +571,21 @@
     }
 
     const yt = parseYouTubeSpec(url);
-    urlDisplay.textContent = yt ? yt.display : url;
+    const web = parseWebSpec(url);
 
-    // YouTube Embed (works even when HLS is blocked by CORS). Note: Mainland China may block YouTube.
+    urlDisplay.textContent = yt ? yt.display : (web ? web.display : url);
+
+    // youtube
     if (yt) {
       showStatus('正在加载 YouTube 直播...');
-      // Switch UI
       video.style.display = 'none';
       ytFrame.style.display = '';
-
-      // Some browsers require user gesture for unmuted autoplay; if it fails, user can tap play in iframe.
       ytFrame.src = yt.embedUrl;
       ytFrame.onload = () => {
         hideStatus();
         isPlaying = true;
         retryCount = 0;
       };
-
-      // If YouTube is blocked, onload may still fire. Provide a quick hint in status area.
       setTimeout(() => {
         if (!isPlaying) {
           showStatus('若长时间黑屏：可能网络屏蔽/地区限制，或当前频道暂无直播。', true);
@@ -555,7 +594,38 @@
       return;
     }
 
-    // HTTPS 页面下禁止 http 直播源（混合内容会直接失败）
+    // web
+    if (web) {
+      showStatus(`正在打开官方网页直播...<br><span class="inline-link" id="openNewTab">点击在新标签打开</span>`);
+      video.style.display = 'none';
+      webFrame.style.display = '';
+      webFrame.src = web.url;
+
+      // If the page forbids embedding, we may not get a useful error event; provide an escape hatch.
+      setTimeout(() => {
+        const a = document.getElementById('openNewTab');
+        if (a) a.onclick = () => window.open(web.url, '_blank');
+      }, 0);
+
+      // If the page loads, consider it success; user interacts inside.
+      webFrame.onload = () => {
+        hideStatus();
+        isPlaying = true;
+        retryCount = 0;
+      };
+
+      // If embed is blocked, iframe may stay blank; guide user.
+      setTimeout(() => {
+        if (!isPlaying) {
+          showStatus(`该页面可能禁止内嵌。<br><span class="inline-link" id="openNewTab2">点此在新标签打开</span>`, true);
+          const b = document.getElementById('openNewTab2');
+          if (b) b.onclick = () => window.open(web.url, '_blank');
+        }
+      }, 3500);
+      return;
+    }
+
+    // Mixed content
     if (location.protocol === 'https:' && /^http:\/\//i.test(url)) {
       markBad(url, 'Mixed Content (http on https)');
       showError('播放失败', '该直播源为 http，在 https 页面下会被浏览器拦截（混合内容）。请更换为 https 源。');
@@ -566,7 +636,6 @@
       return;
     }
 
-    // 自动跳过近期标记为失效的线路
     if (isUrlBad(url) && sources.length > 1) {
       const next = findNextGood(currentSourceIndex);
       if (next !== currentSourceIndex) {
@@ -581,7 +650,7 @@
     // Native HLS (Safari)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      
+
       video.onloadeddata = () => {
         hideStatus();
         isPlaying = true;
@@ -594,8 +663,7 @@
 
       try {
         await video.play();
-      } catch (e) {
-        // User interaction required, that's ok
+      } catch {
         hideStatus();
       }
       return;
@@ -629,7 +697,7 @@
     });
 
     hlsInstance.on(window.Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
+      if (data && data.fatal) {
         const errorType = data.type || 'UNKNOWN';
         const errorDetails = data.details || 'Unknown error';
         handlePlayError(`HLS 错误 (${errorType})`, errorDetails);
@@ -654,33 +722,31 @@
   function handlePlayError(title, details) {
     showError(title, details);
 
-    // Auto retry current source
     if (retryCount < MAX_RETRY) {
       retryCount++;
-      showStatus(`${title} - ${RETRY_DELAY/1000}秒后重试 (${retryCount}/${MAX_RETRY})...`, true);
+      showStatus(`${escapeHtml(title)} - ${RETRY_DELAY/1000}秒后重试 (${retryCount}/${MAX_RETRY})...`, true);
       setTimeout(() => {
         if (!isPlaying) playSource(currentSourceIndex);
       }, RETRY_DELAY);
       return;
     }
 
-    // Retries exhausted: record this source as bad
     try { markBad((sources[currentSourceIndex] || {}).url, details || title); } catch {}
 
-    // Try next good source if available
     if (sources.length > 1) {
       const next = findNextGood(currentSourceIndex);
       if (next !== currentSourceIndex) {
-        showStatus(`重试次数已用完，切换到下一线路...`, true);
+        showStatus('重试次数已用完，自动切换到下一线路...', true);
         setTimeout(() => {
           retryCount = 0;
+          manualSelected = false;
           playSource(next);
         }, RETRY_DELAY);
         return;
       }
     }
 
-    showStatus('重试次数已用完，请尝试切换线路或稍后再试。', true);
+    showStatus('重试次数已用完，请尝试手动切换线路或更换有效源。', true);
   }
 
   function loadHlsJs() {
@@ -694,9 +760,22 @@
     });
   }
 
-  // ========== Load Channel ==========
+  // ===== Channel loading with custom import merge =====
+  function getCustomChannels() {
+    return Storage.get('tv_custom_channels', []);
+  }
+
+  async function loadAllChannels() {
+    const res = await fetch('./channels.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const base = (data.channels || []);
+    const custom = getCustomChannels();
+    // Custom first so they override IDs if needed
+    return [...custom, ...base];
+  }
+
   async function loadChannel() {
-    // Legacy mode: direct URL
     if (legacyUrl && !channelId) {
       channel = {
         id: 'legacy',
@@ -716,12 +795,9 @@
 
     try {
       showStatus('加载频道信息...');
-      const res = await fetch('./channels.json');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      
-      channel = (data.channels || []).find(ch => ch.id === channelId);
-      
+      const all = await loadAllChannels();
+      channel = all.find(ch => ch.id === channelId);
+
       if (!channel) {
         showError('频道不存在', `找不到 ID 为 "${channelId}" 的频道`);
         channelName.textContent = '频道不存在';
@@ -735,14 +811,12 @@
     }
   }
 
-  function initPlayer() {
+  async function initPlayer() {
     channelName.textContent = channel.name || '未命名频道';
     document.title = channel.name || '播放中';
     channelCategory.textContent = channel.category || '未分类';
 
-    sources = (channel.sources || []).filter(s => s.url);
-    
-    // Sort by priority
+    sources = (channel.sources || []).filter(s => s && s.url);
     sources.sort((a, b) => (a.priority || 99) - (b.priority || 99));
 
     if (!sources.length) {
@@ -751,15 +825,27 @@
     }
 
     renderSources();
-    playSource(0);
+
+    // Auto speed-select on first entry when multiple sources and not user-selected
+    if (sources.length > 1) {
+      const best = await pickBestSourceIndex();
+      currentSourceIndex = best;
+      renderSources();
+      retryCount = 0;
+      manualSelected = false;
+      playSource(best);
+    } else {
+      playSource(0);
+    }
   }
 
-  // ========== Events ==========
+  // ===== Events =====
   sourceList.addEventListener('click', e => {
     const btn = e.target.closest('.source-btn');
     if (!btn) return;
     const index = parseInt(btn.dataset.index, 10);
     if (!isNaN(index) && index !== currentSourceIndex) {
+      manualSelected = true;
       retryCount = 0;
       playSource(index);
     }
@@ -773,22 +859,22 @@
   retryBtn.addEventListener('click', () => {
     retryCount = 0;
     const next = (currentSourceIndex + 1) % sources.length;
+    manualSelected = true;
     playSource(next);
   });
 
-  // Handle visibility change - pause/resume
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && video) {
-      // Optionally pause when hidden
-    }
+  speedBtn.addEventListener('click', async () => {
+    if (probing) return;
+    retryCount = 0;
+    const best = await pickBestSourceIndex();
+    manualSelected = true;
+    playSource(best);
   });
 
-  // ========== Service Worker ==========
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 
-  // ========== Init ==========
   loadChannel();
 })();
 </script>

@@ -31,7 +31,6 @@
       padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
-    /* Header */
     header {
       position: sticky;
       top: 0;
@@ -48,11 +47,8 @@
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    h1 { font-size: 20px; font-weight: 600; }
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
+    h1 { font-size: 18px; font-weight: 650; letter-spacing: .2px; }
+    .header-actions { display: flex; gap: 8px; }
     .icon-btn {
       width: 36px;
       height: 36px;
@@ -68,11 +64,7 @@
     }
     .icon-btn:active { opacity: 0.7; }
 
-    /* Search */
-    .search-row {
-      display: flex;
-      gap: 10px;
-    }
+    .search-row { display: flex; gap: 10px; }
     .search-input {
       flex: 1;
       padding: 10px 14px;
@@ -86,7 +78,6 @@
     .search-input::placeholder { color: var(--muted); }
     .search-input:focus { border-color: var(--accent); }
 
-    /* Category Filter */
     .filter-row {
       display: flex;
       gap: 8px;
@@ -100,28 +91,19 @@
     .filter-chip {
       flex-shrink: 0;
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 999px;
       border: 1px solid var(--line);
       background: var(--card);
       color: var(--muted);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
+      user-select: none;
     }
-    .filter-chip.active {
-      background: var(--accent-dim);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-    /* Main Content */
-    main {
-      padding: 0 16px 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    main { padding: 0 16px 24px; max-width: 1200px; margin: 0 auto; }
 
-    /* Notice */
     .notice {
       background: var(--card);
       border: 1px solid var(--line);
@@ -130,38 +112,26 @@
       margin: 16px 0;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.55;
+      white-space: pre-wrap;
     }
 
-    /* Section */
-    .section {
-      margin-top: 20px;
-    }
+    .section { margin-top: 18px; }
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
-    .section-title {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-    .section-action {
-      font-size: 12px;
-      color: var(--accent);
-      cursor: pointer;
-    }
+    .section-title { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .section-action { font-size: 12px; color: var(--accent); cursor: pointer; user-select:none; }
 
-    /* Channel Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
     }
 
-    /* Channel Card */
     .channel-card {
       display: flex;
       align-items: center;
@@ -174,14 +144,8 @@
       color: inherit;
       transition: all 0.2s;
     }
-    .channel-card:active {
-      transform: scale(0.98);
-      opacity: 0.9;
-    }
-    .channel-card.disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
+    .channel-card:active { transform: scale(0.98); opacity: 0.9; }
+    .channel-card.disabled { opacity: 0.5; pointer-events: none; }
 
     .channel-logo {
       width: 44px;
@@ -196,19 +160,12 @@
       flex-shrink: 0;
       overflow: hidden;
     }
-    .channel-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .channel-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-    .channel-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .channel-info { flex: 1; min-width: 0; }
     .channel-name {
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -222,12 +179,7 @@
       text-overflow: ellipsis;
     }
 
-    .channel-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+    .channel-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .fav-btn {
       width: 32px;
       height: 32px;
@@ -244,23 +196,17 @@
     .fav-btn.active { color: var(--warning); }
     .play-badge {
       padding: 6px 12px;
-      border-radius: 20px;
+      border-radius: 999px;
       border: 1px solid rgba(74, 222, 128, 0.3);
       color: var(--accent);
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 650;
     }
 
-    /* Empty State */
-    .empty {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--muted);
-    }
+    .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
     .empty-icon { font-size: 48px; margin-bottom: 16px; }
     .empty-text { font-size: 14px; line-height: 1.6; }
 
-    /* Footer */
     footer {
       padding: 20px 16px;
       border-top: 1px solid var(--line);
@@ -275,64 +221,125 @@
       border: 1px solid var(--line);
     }
 
-    /* Install Banner */
-    .install-banner {
-      display: none;
+    /* Modal */
+    .modal {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 16px;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0));
-      background: var(--card);
-      border-top: 1px solid var(--line);
-      z-index: 200;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      z-index: 999;
+      padding: 18px;
+      padding-top: calc(18px + env(safe-area-inset-top, 0));
+      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0));
     }
-    .install-banner.show { display: block; }
-    .install-content {
+    .modal.show { display: block; }
+    .modal-card {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    .modal-head {
       display: flex;
       align-items: center;
-      gap: 12px;
-      max-width: 600px;
-      margin: 0 auto;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17, 27, 46, .7);
     }
-    .install-text {
-      flex: 1;
-      font-size: 13px;
-    }
-    .install-btn {
-      padding: 10px 20px;
+    .modal-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .modal-close {
+      width: 34px;
+      height: 34px;
       border-radius: 10px;
-      border: none;
-      background: var(--accent);
-      color: #000;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .install-close {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
       border: 1px solid var(--line);
       background: transparent;
       color: var(--muted);
       cursor: pointer;
       font-size: 18px;
     }
+    .modal-body { padding: 16px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .field {
+      flex: 1;
+      min-width: 220px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .field label { display:block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      resize: vertical;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(11, 18, 32, 0.8);
+      color: var(--text);
+      padding: 10px;
+      font-size: 12px;
+      outline: none;
+    }
+    input[type="text"], input[type="url"] {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(11, 18, 32, 0.8);
+      color: var(--text);
+      padding: 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    input[type="file"] { width: 100%; color: var(--muted); }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      background: rgba(17, 27, 46, .7);
+    }
+    .btn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .btn:active { opacity: .7; }
+    .btn.primary { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .btn.danger { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.35); color: var(--danger); }
+
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 10px; white-space: pre-wrap; }
+
+    /* Desktop: slightly closer to “电视家” two-pane feel */
+    @media (min-width: 980px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+      header { padding-left: 22px; padding-right: 22px; }
+      main { padding-left: 22px; padding-right: 22px; }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="header-top">
-      <h1>📺 电视直播</h1>
+      <h1>电视直播</h1>
       <div class="header-actions">
+        <button class="icon-btn" id="importBtn" title="导入播放列表">➕</button>
         <button class="icon-btn" id="refreshBtn" title="刷新频道">🔄</button>
         <button class="icon-btn" id="clearBadBtn" title="清理失效记录">🧹</button>
       </div>
     </div>
     <div class="search-row">
-      <input type="search" class="search-input" id="searchInput" placeholder="搜索频道、分类、关键词...">
+      <input type="search" class="search-input" id="searchInput" placeholder="搜索频道 / 分类 / 关键词...">
     </div>
     <div class="filter-row" id="filterRow">
       <button class="filter-chip active" data-category="all">全部</button>
@@ -345,14 +352,41 @@
   </main>
 
   <footer>
-    说明：本工具只负责播放 <code>.m3u8</code>（HLS）链接。请仅添加你有权观看/转载的直播源。
+    说明：本工具支持播放 <code>.m3u8</code>（HLS）与打开官方直播网页（web）。请仅导入你有权观看/转载的直播源。
   </footer>
 
-  <div class="install-banner" id="installBanner">
-    <div class="install-content">
-      <div class="install-text">添加到主屏幕，获得更好体验</div>
-      <button class="install-btn" id="installBtn">安装</button>
-      <button class="install-close" id="installClose">×</button>
+  <!-- Import Modal -->
+  <div class="modal" id="importModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div class="modal-title">导入播放列表（m3u / m3u8）</div>
+        <button class="modal-close" id="importClose" title="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="field">
+            <label>方式 A：粘贴 M3U 内容</label>
+            <textarea id="m3uText" placeholder="#EXTM3U\n#EXTINF:-1 group-title=\"我的导入\",CCTV-13\nhttps://.../index.m3u8\n..."></textarea>
+          </div>
+          <div class="field">
+            <label>方式 B：选择本地 m3u/m3u8 文件</label>
+            <input id="m3uFile" type="file" accept=".m3u,.m3u8,text/plain" />
+            <div style="height:12px"></div>
+            <label>方式 C：从 URL 拉取（需要该 URL 允许跨域 CORS）</label>
+            <input id="m3uUrl" type="url" placeholder="https://example.com/list.m3u" />
+            <div class="hint" id="importHint">建议：优先导入你自己维护的订阅源（自建/官方/授权）。网页环境下，很多非官方源会因 CORS 或 HTTPS 混合内容而失败。
+
+导入后会自动合并同名频道的多线路，并支持：收藏 / 搜索 / 最近观看 / 自动测速选线 / 失败自动切线。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn primary" id="doImport">导入并保存</button>
+        <button class="btn" id="exportM3U">导出我的导入</button>
+        <button class="btn danger" id="clearImport">清空我的导入</button>
+        <div style="flex:1"></div>
+        <button class="btn" id="close2">关闭</button>
+      </div>
     </div>
   </div>
 
@@ -370,13 +404,21 @@
     },
     set(key, val) {
       try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    },
+    del(key) {
+      try { localStorage.removeItem(key); } catch {}
     }
   };
 
+  const KEY_CUSTOM = 'tv_custom_channels';
+  const KEY_FAV = 'tv_favorites';
+  const KEY_RECENT = 'tv_recent';
+
   // ========== State ==========
   let channelsData = { notice: '', categories: [], channels: [] };
-  let favorites = Storage.get('tv_favorites', []);
-  let recentIds = Storage.get('tv_recent', []);
+  let favorites = Storage.get(KEY_FAV, []);
+  let recentIds = Storage.get(KEY_RECENT, []);
+  let customChannels = Storage.get(KEY_CUSTOM, []);
   let currentCategory = 'all';
   let searchTerm = '';
 
@@ -388,15 +430,26 @@
   const notice = $('notice');
   const refreshBtn = $('refreshBtn');
   const clearBadBtn = $('clearBadBtn');
-  const installBanner = $('installBanner');
-  const installBtn = $('installBtn');
-  const installClose = $('installClose');
+  const importBtn = $('importBtn');
+  const importModal = $('importModal');
+  const importClose = $('importClose');
+  const close2 = $('close2');
+  const doImport = $('doImport');
+  const exportM3U = $('exportM3U');
+  const clearImport = $('clearImport');
+  const m3uText = $('m3uText');
+  const m3uFile = $('m3uFile');
+  const m3uUrl = $('m3uUrl');
 
   // ========== Utils ==========
   function escapeHtml(s) {
     return (s || '').replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  function normalizeText(s) {
+    return String(s || '').trim();
   }
 
   function matchSearch(ch, term) {
@@ -408,17 +461,147 @@
       ...(ch.tags || []),
       ch.region || ''
     ];
-    return fields.some(f => f.toLowerCase().includes(t));
+    return fields.some(f => String(f).toLowerCase().includes(t));
+  }
+
+  function safeId(input) {
+    const base = String(input || 'channel').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '_').replace(/^_+|_+$/g, '');
+    const rand = Math.random().toString(16).slice(2, 8);
+    return `custom_${base}_${rand}`;
+  }
+
+  // ========== M3U Parser ==========
+  function parseM3U(text) {
+    const lines = String(text || '').replace(/\r/g, '').split('\n');
+    const items = [];
+    let cur = null;
+
+    for (let raw of lines) {
+      const line = raw.trim();
+      if (!line) continue;
+      if (line.startsWith('#EXTM3U')) continue;
+
+      if (line.startsWith('#EXTINF')) {
+        // Example: #EXTINF:-1 tvg-name="xxx" group-title="News",Channel Name
+        const comma = line.indexOf(',');
+        const meta = comma >= 0 ? line.slice(0, comma) : line;
+        const name = comma >= 0 ? line.slice(comma + 1).trim() : '';
+        const attrs = {};
+        const re = /(\w+(?:-\w+)*)="([^"]*)"/g;
+        let m;
+        while ((m = re.exec(meta)) !== null) {
+          attrs[m[1]] = m[2];
+        }
+        cur = {
+          name: attrs['tvg-name'] || name || '未命名',
+          logo: attrs['tvg-logo'] || '',
+          group: attrs['group-title'] || '我的导入',
+          url: ''
+        };
+        continue;
+      }
+
+      if (line.startsWith('#')) {
+        // ignore other tags
+        continue;
+      }
+
+      // url line
+      if (cur) {
+        cur.url = line;
+        items.push(cur);
+        cur = null;
+      } else {
+        // bare url line without EXTINF
+        items.push({ name: '未命名', logo: '', group: '我的导入', url: line });
+      }
+    }
+
+    // merge same name+group into multi-sources
+    const map = new Map();
+    for (const it of items) {
+      const key = `${it.group}__${it.name}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          id: safeId(it.name),
+          name: normalizeText(it.name) || '未命名',
+          category: normalizeText(it.group) || '我的导入',
+          logo: it.logo || '',
+          sources: [],
+          tags: ['导入'],
+          region: 'custom',
+          order: 9999
+        });
+      }
+      const ch = map.get(key);
+      const n = ch.sources.length + 1;
+      ch.sources.push({ label: `线路${n}`, url: it.url, priority: n });
+      if (!ch.logo && it.logo) ch.logo = it.logo;
+    }
+
+    return Array.from(map.values());
+  }
+
+  function exportM3UText(channels) {
+    const lines = ['#EXTM3U'];
+    for (const ch of (channels || [])) {
+      const group = ch.category || '我的导入';
+      const logo = ch.logo || '';
+      const name = ch.name || '未命名';
+      for (const src of (ch.sources || [])) {
+        const url = src.url;
+        if (!url) continue;
+        const attrs = [];
+        if (logo) attrs.push(`tvg-logo="${logo}"`);
+        if (group) attrs.push(`group-title="${group}"`);
+        attrs.push(`tvg-name="${name}"`);
+        lines.push(`#EXTINF:-1 ${attrs.join(' ')},${name}`);
+        lines.push(url);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  function downloadText(filename, text) {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 0);
+  }
+
+  // ========== Merge Channels ==========
+  function getMergedData(baseData) {
+    const merged = {
+      notice: baseData.notice || '',
+      categories: Array.isArray(baseData.categories) ? baseData.categories.slice() : [],
+      channels: Array.isArray(baseData.channels) ? baseData.channels.slice() : []
+    };
+
+    // prepend custom channels
+    if (Array.isArray(customChannels) && customChannels.length) {
+      for (const ch of customChannels) {
+        merged.channels.unshift(ch);
+        if (ch.category && !merged.categories.includes(ch.category)) merged.categories.push(ch.category);
+      }
+    }
+
+    // ensure "我的导入" exists
+    if (!merged.categories.includes('我的导入')) merged.categories.push('我的导入');
+
+    return merged;
   }
 
   // ========== Render ==========
   function renderFilters() {
     const cats = ['all', ...(channelsData.categories || [])];
-    // Add any category from channels that's not in the list
     channelsData.channels.forEach(ch => {
-      if (ch.category && !cats.includes(ch.category)) {
-        cats.push(ch.category);
-      }
+      if (ch.category && !cats.includes(ch.category)) cats.push(ch.category);
     });
 
     filterRow.innerHTML = cats.map(cat => {
@@ -442,11 +625,11 @@
     const hasSource = ch.sources && ch.sources.length > 0 && ch.sources[0].url;
     const disabled = !hasSource ? 'disabled' : '';
     const sourceCount = ch.sources ? ch.sources.length : 0;
-    const metaText = sourceCount > 1 
+    const metaText = sourceCount > 1
       ? `${ch.category || '未分类'} · ${sourceCount}条线路`
       : (ch.category || '未分类');
 
-    const logoContent = ch.logo 
+    const logoContent = ch.logo
       ? `<img src="${escapeHtml(ch.logo)}" alt="" onerror="this.parentElement.textContent='📺'">`
       : '📺';
 
@@ -482,26 +665,22 @@
 
   function render() {
     const filtered = getFilteredChannels();
-    
-    // Favorites (only when showing all and no search)
+
     const favChannels = !searchTerm && currentCategory === 'all'
       ? channelsData.channels.filter(ch => favorites.includes(ch.id) && !ch.disabled)
       : [];
 
-    // Recent (only when showing all and no search)
     const recentChannels = !searchTerm && currentCategory === 'all'
-      ? recentIds.slice(0, 5)
+      ? recentIds.slice(0, 8)
           .map(id => channelsData.channels.find(ch => ch.id === id))
           .filter(ch => ch && !ch.disabled && !favorites.includes(ch.id))
       : [];
 
-    // Grouped by category
     const grouped = new Map();
     filtered.forEach(ch => {
-      // Skip if already in favorites or recent
       if (favChannels.some(f => f.id === ch.id)) return;
       if (recentChannels.some(r => r.id === ch.id)) return;
-      
+
       const cat = ch.category || '未分组';
       if (!grouped.has(cat)) grouped.set(cat, []);
       grouped.get(cat).push(ch);
@@ -509,16 +688,14 @@
 
     let html = '';
 
-    // Favorites section
     if (favChannels.length) {
       html += renderSection('⭐ 收藏', favChannels, { key: 'clearFav', label: '清空' }, true);
     }
 
-    // Recent section
     if (recentChannels.length) {
       html += renderSection('🕐 最近观看', recentChannels, { key: 'clearRecent', label: '清空' }, true);
     }
-    // Category groups (respect categories order in channels.json)
+
     const catOrder = new Map();
     (channelsData.categories || []).forEach((c, i) => catOrder.set(c, i));
     const sortedCats = Array.from(grouped.keys()).sort((a, b) => {
@@ -527,21 +704,20 @@
       if (ai !== bi) return ai - bi;
       return String(a).localeCompare(String(b), 'zh-Hans-CN');
     });
+
     for (const cat of sortedCats) {
       const chs = grouped.get(cat) || [];
-      // Keep stable order; if channel has explicit order, sort by it
       chs.sort((x, y) => (x.order ?? 9999) - (y.order ?? 9999));
       html += renderSection(cat, chs);
     }
 
-    // Empty state
     if (!favChannels.length && !recentChannels.length && !grouped.size) {
       html = `
         <div class="empty">
           <div class="empty-icon">📡</div>
           <div class="empty-text">
             ${searchTerm ? '没有找到匹配的频道' : '暂无频道'}<br>
-            编辑 <code>channels.json</code> 添加你的 HLS 直播源
+            点击右上角 ➕ 导入你的 m3u/m3u8 播放列表
           </div>
         </div>
       `;
@@ -551,21 +727,33 @@
   }
 
   // ========== Events ==========
+  function toggleFavorite(id) {
+    const idx = favorites.indexOf(id);
+    if (idx >= 0) favorites.splice(idx, 1);
+    else favorites.unshift(id);
+    Storage.set(KEY_FAV, favorites);
+    render();
+  }
+
+  function addToRecent(id) {
+    recentIds = recentIds.filter(x => x !== id);
+    recentIds.unshift(id);
+    if (recentIds.length > 25) recentIds = recentIds.slice(0, 25);
+    Storage.set(KEY_RECENT, recentIds);
+  }
+
   function handleCardClick(e) {
     const card = e.target.closest('.channel-card');
     if (!card || card.classList.contains('disabled')) return;
 
-    // Check if clicked on fav button
     const favBtn = e.target.closest('.fav-btn');
     if (favBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const id = favBtn.dataset.fav;
-      toggleFavorite(id);
+      toggleFavorite(favBtn.dataset.fav);
       return;
     }
 
-    // Navigate to player
     const id = card.dataset.id;
     if (id) {
       addToRecent(id);
@@ -586,35 +774,117 @@
     if (action === 'clearFav') {
       if (confirm('确定清空所有收藏？')) {
         favorites = [];
-        Storage.set('tv_favorites', favorites);
+        Storage.set(KEY_FAV, favorites);
         render();
       }
     } else if (action === 'clearRecent') {
       if (confirm('确定清空最近观看？')) {
         recentIds = [];
-        Storage.set('tv_recent', recentIds);
+        Storage.set(KEY_RECENT, recentIds);
         render();
       }
     }
   }
 
-  function toggleFavorite(id) {
-    const idx = favorites.indexOf(id);
-    if (idx >= 0) {
-      favorites.splice(idx, 1);
-    } else {
-      favorites.unshift(id);
-    }
-    Storage.set('tv_favorites', favorites);
-    render();
+  // ========== Modal ==========
+  function openModal() {
+    importModal.classList.add('show');
+    importModal.setAttribute('aria-hidden', 'false');
+  }
+  function closeModal() {
+    importModal.classList.remove('show');
+    importModal.setAttribute('aria-hidden', 'true');
   }
 
-  function addToRecent(id) {
-    recentIds = recentIds.filter(x => x !== id);
-    recentIds.unshift(id);
-    if (recentIds.length > 20) recentIds = recentIds.slice(0, 20);
-    Storage.set('tv_recent', recentIds);
+  importBtn.addEventListener('click', openModal);
+  importClose.addEventListener('click', closeModal);
+  close2.addEventListener('click', closeModal);
+  importModal.addEventListener('click', (e) => {
+    if (e.target === importModal) closeModal();
+  });
+
+  // Load file into textarea
+  m3uFile.addEventListener('change', async () => {
+    const f = m3uFile.files && m3uFile.files[0];
+    if (!f) return;
+    try {
+      const txt = await f.text();
+      m3uText.value = txt;
+    } catch {
+      alert('读取文件失败。');
+    }
+  });
+
+  async function fetchText(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.text();
   }
+
+  doImport.addEventListener('click', async () => {
+    try {
+      let txt = normalizeText(m3uText.value);
+      const url = normalizeText(m3uUrl.value);
+      if (!txt && url) {
+        txt = await fetchText(url);
+      }
+      if (!txt) {
+        alert('请粘贴内容、选择文件或填写可访问的 URL。');
+        return;
+      }
+
+      const imported = parseM3U(txt);
+      if (!imported.length) {
+        alert('没有解析到任何频道（请确认是 m3u/m3u8 格式）。');
+        return;
+      }
+
+      // Merge into customChannels: merge by (name+category)
+      const keyOf = (c) => `${c.category || ''}__${c.name || ''}`;
+      const map = new Map();
+      (customChannels || []).forEach(c => map.set(keyOf(c), c));
+
+      for (const c of imported) {
+        const k = keyOf(c);
+        if (!map.has(k)) {
+          map.set(k, c);
+        } else {
+          // merge sources
+          const exist = map.get(k);
+          const urls = new Set((exist.sources || []).map(s => s.url));
+          for (const s of (c.sources || [])) {
+            if (s.url && !urls.has(s.url)) {
+              exist.sources = exist.sources || [];
+              exist.sources.push({ label: `线路${exist.sources.length + 1}`, url: s.url, priority: exist.sources.length + 1 });
+              urls.add(s.url);
+            }
+          }
+          if (!exist.logo && c.logo) exist.logo = c.logo;
+        }
+      }
+
+      customChannels = Array.from(map.values());
+      Storage.set(KEY_CUSTOM, customChannels);
+      alert(`导入完成：${imported.length} 个频道（已合并去重）`);
+      await loadChannels(true);
+      closeModal();
+    } catch (e) {
+      alert('导入失败：' + (e && e.message ? e.message : String(e)));
+    }
+  });
+
+  exportM3U.addEventListener('click', () => {
+    const txt = exportM3UText(customChannels || []);
+    downloadText('my_import.m3u', txt);
+  });
+
+  clearImport.addEventListener('click', async () => {
+    if (!confirm('确定清空“我的导入”？（不会影响收藏/最近）')) return;
+    customChannels = [];
+    Storage.del(KEY_CUSTOM);
+    await loadChannels(true);
+    alert('已清空。');
+  });
 
   // ========== Load Data ==========
   async function loadChannels(bust = false) {
@@ -622,13 +892,11 @@
       const url = './channels.json' + (bust ? `?t=${Date.now()}` : '');
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      channelsData = await res.json();
-      
-      // Normalize
-      if (!channelsData.channels) channelsData.channels = [];
-      if (!channelsData.categories) channelsData.categories = [];
+      const base = await res.json();
 
-      // Show notice
+      customChannels = Storage.get(KEY_CUSTOM, []);
+      channelsData = getMergedData(base);
+
       if (channelsData.notice) {
         notice.style.display = '';
         notice.textContent = channelsData.notice;
@@ -652,26 +920,6 @@
       `;
     }
   }
-
-  // ========== PWA Install ==========
-  let deferredPrompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBanner.classList.add('show');
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    installBanner.classList.remove('show');
-  });
-
-  installClose.addEventListener('click', () => {
-    installBanner.classList.remove('show');
-  });
 
   // ========== Service Worker ==========
   if ('serviceWorker' in navigator) {
