@@ -313,9 +313,24 @@
 (function() {
   'use strict';
 
+  // ========== Storage Helpers ==========
+  const Storage = {
+    get(key, def = null) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : def;
+      } catch { return def; }
+    },
+    set(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    }
+  };
+
   // ========== Config ==========
   const MAX_RETRY = 3;
   const RETRY_DELAY = 2000;
+  const BAD_TTL_DAYS = 7; // 失败线路记录保留天数
+  const BAD_TTL_MS = BAD_TTL_DAYS * 24 * 60 * 60 * 1000;
 
   // ========== State ==========
   let channel = null;
@@ -388,7 +403,9 @@
 
     sourceList.innerHTML = sources.map((src, i) => {
       const active = i === currentSourceIndex ? 'active' : '';
-      return `<button class="source-btn ${active}" data-index="${i}">${escapeHtml(src.label || `线路${i + 1}`)}</button>`;
+      const bad = isUrlBad(src.url) ? ' ⚠️失效' : '';
+      const label = escapeHtml(src.label || `线路${i + 1}`) + bad;
+      return `<button class="source-btn ${active}" data-index="${i}">${label}</button>`;
     }).join('');
   }
 
@@ -396,6 +413,38 @@
     return (s || '').replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  function getBadMap() {
+    return Storage.get('tv_bad_sources', {});
+  }
+
+  function isUrlBad(url) {
+    if (!url) return false;
+    const m = getBadMap();
+    const it = m[url];
+    if (!it || !it.ts) return false;
+    const age = Date.now() - it.ts;
+    if (age > BAD_TTL_MS) return false;
+    return true;
+  }
+
+  function markBad(url, reason) {
+    if (!url) return;
+    const m = getBadMap();
+    const prev = m[url] || {};
+    m[url] = { ts: Date.now(), count: (prev.count || 0) + 1, reason: String(reason || prev.reason || '') };
+    Storage.set('tv_bad_sources', m);
+  }
+
+  function findNextGood(fromIndex) {
+    if (!sources.length) return -1;
+    for (let step = 1; step <= sources.length; step++) {
+      const i = (fromIndex + step) % sources.length;
+      const u = (sources[i] || {}).url;
+      if (!isUrlBad(u)) return i;
+    }
+    return fromIndex;
   }
 
   // ========== Player ==========
@@ -430,6 +479,28 @@
     }
 
     urlDisplay.textContent = url;
+
+    // HTTPS 页面下禁止 http 直播源（混合内容会直接失败）
+    if (location.protocol === 'https:' && /^http:\/\//i.test(url)) {
+      markBad(url, 'Mixed Content (http on https)');
+      showError('播放失败', '该直播源为 http，在 https 页面下会被浏览器拦截（混合内容）。请更换为 https 源。');
+      const next = findNextGood(currentSourceIndex);
+      if (next !== currentSourceIndex) {
+        setTimeout(() => { retryCount = 0; playSource(next); }, 600);
+      }
+      return;
+    }
+
+    // 自动跳过近期标记为失效的线路
+    if (isUrlBad(url) && sources.length > 1) {
+      const next = findNextGood(currentSourceIndex);
+      if (next !== currentSourceIndex) {
+        showStatus('该线路近期失败，已自动跳过，正在尝试下一线路...', true);
+        setTimeout(() => { retryCount = 0; playSource(next); }, 600);
+        return;
+      }
+    }
+
     showStatus('正在连接...');
 
     // Native HLS (Safari)
@@ -507,22 +578,34 @@
 
   function handlePlayError(title, details) {
     showError(title, details);
-    
-    // Auto retry
+
+    // Auto retry current source
     if (retryCount < MAX_RETRY) {
       retryCount++;
       showStatus(`${title} - ${RETRY_DELAY/1000}秒后重试 (${retryCount}/${MAX_RETRY})...`, true);
       setTimeout(() => {
         if (!isPlaying) playSource(currentSourceIndex);
       }, RETRY_DELAY);
-    } else if (sources.length > 1 && currentSourceIndex < sources.length - 1) {
-      // Try next source
-      showStatus(`重试次数已用完，切换到下一线路...`, true);
-      setTimeout(() => {
-        retryCount = 0;
-        playSource(currentSourceIndex + 1);
-      }, RETRY_DELAY);
+      return;
     }
+
+    // Retries exhausted: record this source as bad
+    try { markBad((sources[currentSourceIndex] || {}).url, details || title); } catch {}
+
+    // Try next good source if available
+    if (sources.length > 1) {
+      const next = findNextGood(currentSourceIndex);
+      if (next !== currentSourceIndex) {
+        showStatus(`重试次数已用完，切换到下一线路...`, true);
+        setTimeout(() => {
+          retryCount = 0;
+          playSource(next);
+        }, RETRY_DELAY);
+        return;
+      }
+    }
+
+    showStatus('重试次数已用完，请尝试切换线路或稍后再试。', true);
   }
 
   function loadHlsJs() {

@@ -328,6 +328,7 @@
       <h1>📺 电视直播</h1>
       <div class="header-actions">
         <button class="icon-btn" id="refreshBtn" title="刷新频道">🔄</button>
+        <button class="icon-btn" id="clearBadBtn" title="清理失效记录">🧹</button>
       </div>
     </div>
     <div class="search-row">
@@ -386,6 +387,7 @@
   const content = $('content');
   const notice = $('notice');
   const refreshBtn = $('refreshBtn');
+  const clearBadBtn = $('clearBadBtn');
   const installBanner = $('installBanner');
   const installBtn = $('installBtn');
   const installClose = $('installClose');
@@ -516,9 +518,19 @@
     if (recentChannels.length) {
       html += renderSection('🕐 最近观看', recentChannels, { key: 'clearRecent', label: '清空' }, true);
     }
-
-    // Category groups
-    for (const [cat, chs] of grouped.entries()) {
+    // Category groups (respect categories order in channels.json)
+    const catOrder = new Map();
+    (channelsData.categories || []).forEach((c, i) => catOrder.set(c, i));
+    const sortedCats = Array.from(grouped.keys()).sort((a, b) => {
+      const ai = catOrder.has(a) ? catOrder.get(a) : 9999;
+      const bi = catOrder.has(b) ? catOrder.get(b) : 9999;
+      if (ai !== bi) return ai - bi;
+      return String(a).localeCompare(String(b), 'zh-Hans-CN');
+    });
+    for (const cat of sortedCats) {
+      const chs = grouped.get(cat) || [];
+      // Keep stable order; if channel has explicit order, sort by it
+      chs.sort((x, y) => (x.order ?? 9999) - (y.order ?? 9999));
       html += renderSection(cat, chs);
     }
 
@@ -676,6 +688,13 @@
   content.addEventListener('click', handleCardClick);
   content.addEventListener('click', handleSectionAction);
   refreshBtn.addEventListener('click', () => loadChannels(true));
+
+  clearBadBtn.addEventListener('click', () => {
+    if (confirm('确定清理“失效线路”记录？清理后会重新尝试所有线路。')) {
+      try { localStorage.removeItem('tv_bad_sources'); } catch {}
+      alert('已清理。');
+    }
+  });
 
   loadChannels(false);
 })();

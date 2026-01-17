@@ -1,188 +1,256 @@
 {
-  "notice": "已内置一批【官方/公开可免费收看】的 HLS 直播源（不需要会员）。部分源可能会因地区限制、CORS 或官方调整而失效；若失效，请用‘重新加载/切换线路’或替换为你有权使用的源。",
+  "notice": "提示：仅内置公开、无需会员的 HLS(.m3u8) 源。若某些频道在你当前网络不可用，请在播放页切换线路，或在 channels.json 中替换为你有权观看的可用源。",
   "categories": [
-    "测试",
-    "科教/太空",
-    "国际新闻",
-    "日本",
-    "公共电视"
+    "中文/港澳台",
+    "新闻",
+    "公共电视",
+    "国际",
+    "科教/纪录",
+    "太空"
   ],
   "channels": [
     {
-      "id": "test-bbb",
-      "name": "测试流 - Big Buck Bunny",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "动画"
-      ],
-      "region": "",
-      "disabled": false,
+      "id": "rthk_tv31",
+      "name": "RTHK TV 31",
+      "category": "中文/港澳台",
       "sources": [
         {
-          "label": "线路1 (Mux)",
-          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-          "type": "hls",
+          "label": "Akamai HLS",
+          "url": "https://rthktv31-live.akamaized.net/hls/live/2036818/RTHKTV31/master.m3u8",
           "priority": 1
         }
-      ]
+      ],
+      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
+      "tags": [
+        "香港",
+        "公共电视",
+        "粤语/中文"
+      ],
+      "region": "HK",
+      "order": 10
     },
     {
-      "id": "test-bipbop",
-      "name": "测试流 - Apple BipBop",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "Apple"
-      ],
-      "region": "",
-      "disabled": false,
+      "id": "rthk_tv32",
+      "name": "RTHK TV 32",
+      "category": "中文/港澳台",
       "sources": [
         {
-          "label": "线路1 (Apple CDN)",
-          "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8",
-          "type": "hls",
+          "label": "Akamai HLS",
+          "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8",
           "priority": 1
         }
-      ]
+      ],
+      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
+      "tags": [
+        "香港",
+        "公共电视",
+        "中文"
+      ],
+      "region": "HK",
+      "order": 11
     },
     {
-      "id": "test-sintel",
-      "name": "测试流 - Sintel (多线路示例)",
-      "category": "测试",
-      "logo": "",
-      "tags": [
-        "测试",
-        "示例",
-        "多线路",
-        "电影"
-      ],
-      "region": "",
-      "disabled": false,
+      "id": "rthk_tv33",
+      "name": "RTHK TV 33",
+      "category": "中文/港澳台",
       "sources": [
         {
-          "label": "线路1 (主)",
-          "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-          "type": "hls",
+          "label": "Akamai HLS",
+          "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8",
+          "priority": 1
+        }
+      ],
+      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
+      "tags": [
+        "香港",
+        "公共电视",
+        "中文"
+      ],
+      "region": "HK",
+      "order": 12
+    },
+    {
+      "id": "rthk_tv34",
+      "name": "RTHK TV 34",
+      "category": "中文/港澳台",
+      "sources": [
+        {
+          "label": "Akamai HLS",
+          "url": "https://rthktv34-live.akamaized.net/hls/live/2101642/RTHKTV34/master.m3u8",
+          "priority": 1
+        }
+      ],
+      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
+      "tags": [
+        "香港",
+        "公共电视",
+        "中文"
+      ],
+      "region": "HK",
+      "order": 13
+    },
+    {
+      "id": "rthk_tv35",
+      "name": "RTHK TV 35",
+      "category": "中文/港澳台",
+      "sources": [
+        {
+          "label": "Akamai HLS",
+          "url": "https://rthktv35-live.akamaized.net/hls/live/2101643/RTHKTV35/master.m3u8",
+          "priority": 1
+        }
+      ],
+      "logo": "https://www.rthk.hk/tv/assets/logo/rthklogo.png",
+      "tags": [
+        "香港",
+        "公共电视",
+        "中文"
+      ],
+      "region": "HK",
+      "order": 14
+    },
+    {
+      "id": "tvbrics_cn",
+      "name": "TV BRICS 中文",
+      "category": "中文/港澳台",
+      "sources": [
+        {
+          "label": "HLS",
+          "url": "https://brics.bonus-tv.ru/cdn/brics/chinese/playlist.m3u8",
           "priority": 1
         },
         {
-          "label": "线路2 (备)",
-          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-          "type": "hls",
+          "label": "HLS 备用",
+          "url": "https://chibrics.mediacdn.ru/cdn/brics/chinese/playlist.m3u8",
           "priority": 2
         }
+      ],
+      "logo": "https://tvbrics.com/local/templates/main/img/tvbrics-logo.svg",
+      "tags": [
+        "中文",
+        "国际"
+      ],
+      "region": "INTL",
+      "order": 20
+    },
+    {
+      "id": "aljazeera_en",
+      "name": "Al Jazeera English",
+      "category": "新闻",
+      "sources": [
+        {
+          "label": "官方 HLS",
+          "url": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8",
+          "priority": 1
+        },
+        {
+          "label": "CloudFront 备用",
+          "url": "https://d3o9s87z8g0vqi.cloudfront.net/AlJazeeraEnglish.m3u8",
+          "priority": 2
+        }
+      ],
+      "logo": "https://www.aljazeera.com/favicon_aje.ico",
+      "tags": [
+        "新闻",
+        "国际"
+      ],
+      "region": "INTL",
+      "order": 31
+    },
+    {
+      "id": "cgtn_live",
+      "name": "CGTN Live",
+      "category": "新闻",
+      "sources": [
+        {
+          "label": "CGTN Live",
+          "url": "https://live.cgtn.com/1000/prog_index.m3u8",
+          "priority": 1
+        },
+        {
+          "label": "CGTN French",
+          "url": "https://news.cgtn.com/resource/live/french/cgtn-f.m3u8",
+          "priority": 2
+        }
+      ],
+      "logo": "https://www.cgtn.com/favicon.ico",
+      "tags": [
+        "新闻",
+        "国际"
+      ],
+      "region": "INTL",
+      "order": 41
+    },
+    {
+      "id": "bmc-infotv",
+      "name": "BMC Info TV (Belmont Media Center)",
+      "category": "公共电视",
+      "logo": "",
+      "tags": [
+        "公共电视",
+        "社区",
+        "美国"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (footprint.net)",
+          "url": "https://belmontmedia.secure.footprint.net/egress/bhandler/belmontmedia/streamc/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
       ]
     },
     {
-      "id": "nasa-public",
-      "name": "NASA TV - Public/Education",
-      "category": "科教/太空",
-      "logo": "",
+      "id": "nhk_world",
+      "name": "NHK World Japan",
+      "category": "国际",
+      "sources": [
+        {
+          "label": "HLS",
+          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8",
+          "priority": 1
+        }
+      ],
+      "logo": "https://www3.nhk.or.jp/nhkworld/common/img/logo.png",
       "tags": [
-        "NASA",
+        "新闻",
+        "日本"
+      ],
+      "region": "JP",
+      "order": 30
+    },
+    {
+      "id": "cgtn_doc",
+      "name": "CGTN Documentary",
+      "category": "科教/纪录",
+      "sources": [
+        {
+          "label": "CGTN Resource",
+          "url": "https://news.cgtn.com/resource/live/document/cgtn-doc.m3u8",
+          "priority": 1
+        }
+      ],
+      "logo": "https://www.cgtn.com/favicon.ico",
+      "tags": [
+        "纪录片",
+        "国际"
+      ],
+      "region": "INTL",
+      "order": 40
+    },
+    {
+      "id": "iss_live",
+      "name": "ISS Live (可能受限)",
+      "category": "太空",
+      "sources": [],
+      "tags": [
         "太空",
-        "科教"
+        "ISS"
       ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa-public/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-media",
-      "name": "NASA TV - Media",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "发布会",
-        "发射"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa-media/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-4k-30",
-      "name": "NASA UHD 4K (30p)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "4K",
-        "UHD"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa4k/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "nasa-4k-60",
-      "name": "NASA UHD 4K (60p)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "NASA",
-        "4K",
-        "UHD",
-        "高码率"
-      ],
-      "region": "US",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (endpnt.com)",
-          "url": "https://endpnt.com/hls/nasa4k60/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
-    },
-    {
-      "id": "iss-live",
-      "name": "ISS Live (Ustream legacy)",
-      "category": "科教/太空",
-      "logo": "",
-      "tags": [
-        "ISS",
-        "太空站",
-        "地球"
-      ],
-      "region": "",
-      "disabled": false,
-      "sources": [
-        {
-          "label": "线路1 (Ustream)",
-          "url": "http://iphone-streaming.ustream.tv/uhls/9408562/streams/live/iphone/playlist.m3u8",
-          "type": "hls",
-          "priority": 1
-        }
-      ]
+      "region": "SPACE",
+      "order": 50
     },
     {
       "id": "aljazeera-en",
@@ -266,6 +334,105 @@
       ]
     },
     {
+      "id": "iss-live",
+      "name": "ISS Live (Ustream legacy)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "ISS",
+        "太空站",
+        "地球"
+      ],
+      "region": "",
+      "disabled": false,
+      "sources": []
+    },
+    {
+      "id": "nasa-media",
+      "name": "NASA TV - Media",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "发布会",
+        "发射"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa-media/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-public",
+      "name": "NASA TV - Public/Education",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "太空",
+        "科教"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa-public/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-4k-30",
+      "name": "NASA UHD 4K (30p)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "4K",
+        "UHD"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa4k/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-4k-60",
+      "name": "NASA UHD 4K (60p)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "4K",
+        "UHD",
+        "高码率"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa4k60/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
       "id": "nhk-world",
       "name": "NHK WORLD-JAPAN",
       "category": "日本",
@@ -293,23 +460,72 @@
       ]
     },
     {
-      "id": "bmc-infotv",
-      "name": "BMC Info TV (Belmont Media Center)",
-      "category": "公共电视",
+      "id": "test-bipbop",
+      "name": "测试流 - Apple BipBop",
+      "category": "测试",
       "logo": "",
       "tags": [
-        "公共电视",
-        "社区",
-        "美国"
+        "测试",
+        "示例",
+        "Apple"
       ],
-      "region": "US",
+      "region": "",
       "disabled": false,
       "sources": [
         {
-          "label": "线路1 (footprint.net)",
-          "url": "https://belmontmedia.secure.footprint.net/egress/bhandler/belmontmedia/streamc/playlist.m3u8",
+          "label": "线路1 (Apple CDN)",
+          "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8",
           "type": "hls",
           "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "test-bbb",
+      "name": "测试流 - Big Buck Bunny",
+      "category": "测试",
+      "logo": "",
+      "tags": [
+        "测试",
+        "示例",
+        "动画"
+      ],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (Mux)",
+          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "test-sintel",
+      "name": "测试流 - Sintel (多线路示例)",
+      "category": "测试",
+      "logo": "",
+      "tags": [
+        "测试",
+        "示例",
+        "多线路",
+        "电影"
+      ],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (主)",
+          "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (备)",
+          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          "type": "hls",
+          "priority": 2
         }
       ]
     }
