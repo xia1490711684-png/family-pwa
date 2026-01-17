@@ -1,0 +1,18 @@
+{
+  "name": "家庭成长系统",
+  "short_name": "家庭成长",
+  "description": "家庭成长积分与任务系统（PWA）",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b5fff",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
