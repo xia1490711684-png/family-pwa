@@ -1,15 +1,63 @@
 {
   "notice": "仅添加你有权观看/转载的直播源（例如你自己购买/授权的 IPTV/HLS 或公开授权流）。下面是用于测试的公开示例流。",
+  "categories": ["测试", "央视", "卫视", "少儿", "体育", "财经", "纪录片", "地方"],
   "channels": [
     {
-      "name": "测试流 - Big Buck Bunny (HLS)",
-      "group": "测试",
-      "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+      "id": "test-bbb",
+      "name": "测试流 - Big Buck Bunny",
+      "category": "测试",
+      "logo": "",
+      "tags": ["测试", "示例", "动画"],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (Mux)",
+          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
     },
     {
-      "name": "测试流 - Apple BipBop (HLS)",
-      "group": "测试",
-      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8"
+      "id": "test-bipbop",
+      "name": "测试流 - Apple BipBop",
+      "category": "测试",
+      "logo": "",
+      "tags": ["测试", "示例", "Apple"],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (Apple CDN)",
+          "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "test-sintel",
+      "name": "测试流 - Sintel (多线路示例)",
+      "category": "测试",
+      "logo": "",
+      "tags": ["测试", "示例", "多线路", "电影"],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (主)",
+          "url": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (备)",
+          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          "type": "hls",
+          "priority": 2
+        }
+      ]
     }
   ]
 }

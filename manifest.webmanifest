@@ -1,14 +1,26 @@
 {
-  "name": "全球电视直播 (PWA)",
+  "name": "电视直播",
   "short_name": "电视直播",
-  "description": "频道列表 + 搜索 + HLS 播放（请仅添加你有权观看/转载的直播源）",
+  "description": "HLS 直播源播放器",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b1220",
   "theme_color": "#0b1220",
+  "orientation": "any",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
-  ]
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "utilities"]
 }

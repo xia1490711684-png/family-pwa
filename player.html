@@ -1,153 +1,638 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0b1220" />
-  <title>播放</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>播放中</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
   <style>
-    :root{--bg:#0b1220;--card:#111b2e;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;}
-    *{box-sizing:border-box}
-    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,\"Helvetica Neue\",Arial; background:var(--bg); color:var(--text);}
-    header{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08); position:sticky; top:0; background:var(--bg);}
-    a.btn{display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.08); color:var(--text); text-decoration:none}
-    .title{font-size:16px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    main{max-width:1000px; margin:0 auto; padding:16px;}
-    .card{background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:12px;}
-    video{width:100%; height:auto; background:#000; border-radius:12px;}
-    .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-top:10px}
-    .muted{color:var(--muted); font-size:13px}
-    input{flex:1; min-width:200px; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.2); color:var(--text)}
-    button{padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.08); color:var(--text); cursor:pointer}
-    button.primary{background:rgba(34,197,94,0.18); border-color:rgba(34,197,94,0.35)}
-    .err{margin-top:10px; color:#fca5a5; font-size:13px; white-space:pre-wrap;}
+    :root {
+      --bg: #0b1220;
+      --card: #111b2e;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.15);
+      --line: #1e293b;
+      --danger: #f87171;
+      --warning: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: #000; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      padding-top: calc(12px + env(safe-area-inset-top, 0));
+      background: rgba(11, 18, 32, 0.95);
+      border-bottom: 1px solid var(--line);
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-btn:active { opacity: 0.7; }
+    .header-title {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Video Container */
+    .video-container {
+      background: #000;
+      position: relative;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      max-height: 56.25vw;
+      background: #000;
+      display: block;
+    }
+    @media (min-width: 768px) {
+      video { max-height: 480px; }
+    }
+
+    /* Status Overlay */
+    .status-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      color: var(--text);
+      gap: 12px;
+      transition: opacity 0.3s;
+    }
+    .status-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .status-icon { font-size: 48px; }
+    .status-text { font-size: 14px; text-align: center; padding: 0 20px; }
+    .status-text.error { color: var(--danger); }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    /* Controls Panel */
+    .controls {
+      padding: 16px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .control-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .control-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .control-value {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* Source Selector */
+    .source-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .source-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .source-btn:active { opacity: 0.7; }
+    .source-btn.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .action-btn:active { opacity: 0.7; }
+    .action-btn.primary {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Error Details */
+    .error-card {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .error-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--danger);
+      margin-bottom: 8px;
+    }
+    .error-msg {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .error-tips {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(248, 113, 113, 0.2);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* URL Display */
+    .url-display {
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-all;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    /* Footer Note */
+    .footer-note {
+      padding: 16px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
   <header>
-    <a class="btn" href="./">← 返回</a>
-    <div class="title" id="t">播放</div>
+    <a class="back-btn" href="./">← 返回</a>
+    <div class="header-title" id="channelName">加载中...</div>
   </header>
-  <main>
-    <div class="card">
-      <video id="v" controls playsinline></video>
-      <div class="row">
-        <div class="muted" id="u"></div>
-        <button class="primary" id="reload">重新加载</button>
-      </div>
-      <div class="muted" style="margin-top:10px;">
-        说明：Safari（iPhone/iPad/Mac）原生支持 HLS（m3u8）。其他浏览器会尝试使用 hls.js。
-      </div>
-      <div class="err" id="err" hidden></div>
+
+  <div class="video-container">
+    <video id="video" controls playsinline></video>
+    <div class="status-overlay" id="statusOverlay">
+      <div class="spinner" id="spinner"></div>
+      <div class="status-text" id="statusText">正在加载...</div>
     </div>
-  </main>
+  </div>
+
+  <div class="controls">
+    <!-- Channel Info -->
+    <div class="control-card" id="infoCard">
+      <div class="control-row">
+        <div>
+          <div class="control-label">分类</div>
+          <div class="control-value" id="channelCategory">-</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="control-label">状态</div>
+          <div class="control-value" id="playStatus">准备中</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source Selector -->
+    <div class="control-card" id="sourceCard" style="display:none;">
+      <div class="control-label">选择线路</div>
+      <div class="source-list" id="sourceList"></div>
+    </div>
+
+    <!-- Error Display -->
+    <div class="error-card" id="errorCard" style="display:none;">
+      <div class="error-title">⚠️ 播放失败</div>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="error-tips">
+        <strong>可能的原因：</strong><br>
+        • 直播源已失效或下线<br>
+        • 网络连接问题<br>
+        • 跨域限制（CORS）<br>
+        • 服务器拒绝访问<br><br>
+        <strong>建议操作：</strong><br>
+        • 尝试切换其他线路<br>
+        • 检查网络连接<br>
+        • 更换有效的直播源
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="action-btn" id="reloadBtn">🔄 重新加载</button>
+      <button class="action-btn" id="retryBtn" style="display:none;">⏭️ 尝试下一线路</button>
+    </div>
+
+    <!-- URL Display -->
+    <div class="url-display" id="urlDisplay">-</div>
+  </div>
+
+  <div class="footer-note">
+    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器使用 hls.js 播放。
+  </div>
 
 <script>
-  const qs = new URLSearchParams(location.search);
-  const name = qs.get('name') || '播放';
-  const url = qs.get('url') || '';
-  const t = document.getElementById('t');
-  const u = document.getElementById('u');
-  const v = document.getElementById('v');
-  const err = document.getElementById('err');
+(function() {
+  'use strict';
 
-  t.textContent = name;
-  document.title = name;
-  u.textContent = url ? ('源：' + url) : '未提供播放源';
+  // ========== Config ==========
+  const MAX_RETRY = 3;
+  const RETRY_DELAY = 2000;
 
+  // ========== State ==========
+  let channel = null;
+  let sources = [];
+  let currentSourceIndex = 0;
+  let retryCount = 0;
   let hlsInstance = null;
+  let isPlaying = false;
 
-  function showErr(msg){
-    err.hidden = false;
-    err.textContent = msg;
-  }
-  function clearErr(){
-    err.hidden = true;
-    err.textContent = '';
+  // ========== DOM ==========
+  const $ = id => document.getElementById(id);
+  const video = $('video');
+  const channelName = $('channelName');
+  const channelCategory = $('channelCategory');
+  const playStatus = $('playStatus');
+  const statusOverlay = $('statusOverlay');
+  const spinner = $('spinner');
+  const statusText = $('statusText');
+  const sourceCard = $('sourceCard');
+  const sourceList = $('sourceList');
+  const errorCard = $('errorCard');
+  const errorMsg = $('errorMsg');
+  const reloadBtn = $('reloadBtn');
+  const retryBtn = $('retryBtn');
+  const urlDisplay = $('urlDisplay');
+
+  // ========== URL Params ==========
+  const params = new URLSearchParams(location.search);
+  const channelId = params.get('id');
+  // Legacy support
+  const legacyName = params.get('name');
+  const legacyUrl = params.get('url');
+
+  // ========== Status ==========
+  function showStatus(text, isError = false) {
+    statusOverlay.classList.remove('hidden');
+    spinner.style.display = isError ? 'none' : '';
+    statusText.textContent = text;
+    statusText.classList.toggle('error', isError);
+    playStatus.textContent = text;
+    playStatus.style.color = isError ? 'var(--danger)' : '';
   }
 
-  function cleanup(){
-    if(hlsInstance){
-      try{hlsInstance.destroy();}catch(e){}
-      hlsInstance = null;
-    }
-    v.removeAttribute('src');
-    try{v.load();}catch(e){}
+  function hideStatus() {
+    statusOverlay.classList.add('hidden');
+    playStatus.textContent = '播放中';
+    playStatus.style.color = 'var(--accent)';
   }
 
-  async function loadHls(){
-    clearErr();
-    cleanup();
-    if(!url){
-      showErr('没有 url 参数。请从频道列表进入，或手动补全：player.html?url=...');
+  function showError(title, details) {
+    errorCard.style.display = '';
+    errorMsg.textContent = details;
+    showStatus(title, true);
+  }
+
+  function hideError() {
+    errorCard.style.display = 'none';
+  }
+
+  // ========== Source Selector ==========
+  function renderSources() {
+    if (sources.length <= 1) {
+      sourceCard.style.display = 'none';
+      retryBtn.style.display = 'none';
       return;
     }
 
+    sourceCard.style.display = '';
+    retryBtn.style.display = '';
+
+    sourceList.innerHTML = sources.map((src, i) => {
+      const active = i === currentSourceIndex ? 'active' : '';
+      return `<button class="source-btn ${active}" data-index="${i}">${escapeHtml(src.label || `线路${i + 1}`)}</button>`;
+    }).join('');
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ========== Player ==========
+  function cleanup() {
+    if (hlsInstance) {
+      try { hlsInstance.destroy(); } catch {}
+      hlsInstance = null;
+    }
+    video.removeAttribute('src');
+    try { video.load(); } catch {}
+    isPlaying = false;
+  }
+
+  async function playSource(index) {
+    cleanup();
+    hideError();
+    
+    if (index < 0 || index >= sources.length) {
+      showError('无可用线路', '没有配置有效的播放源');
+      return;
+    }
+
+    currentSourceIndex = index;
+    renderSources();
+
+    const source = sources[index];
+    const url = source.url;
+
+    if (!url) {
+      showError('播放地址为空', '请检查频道配置');
+      return;
+    }
+
+    urlDisplay.textContent = url;
+    showStatus('正在连接...');
+
     // Native HLS (Safari)
-    if(v.canPlayType('application/vnd.apple.mpegurl')){
-      v.src = url;
-      try{ await v.play(); } catch(e){}
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      
+      video.onloadeddata = () => {
+        hideStatus();
+        isPlaying = true;
+        retryCount = 0;
+      };
+
+      video.onerror = () => {
+        handlePlayError('视频加载失败', getVideoError(video.error));
+      };
+
+      try {
+        await video.play();
+      } catch (e) {
+        // User interaction required, that's ok
+        hideStatus();
+      }
       return;
     }
 
     // hls.js fallback
-    await injectHlsJs();
-    if(!window.Hls){
-      showErr('当前浏览器不支持 HLS，且 hls.js 加载失败。');
+    await loadHlsJs();
+
+    if (!window.Hls) {
+      showError('播放器加载失败', '无法加载 hls.js 库');
       return;
     }
 
-    if(!window.Hls.isSupported()){
-      showErr('hls.js 判断当前环境不支持 MSE/HLS。建议使用 Safari。');
+    if (!window.Hls.isSupported()) {
+      showError('浏览器不支持', '当前浏览器不支持 HLS 播放，建议使用 Safari');
       return;
     }
 
     hlsInstance = new window.Hls({
       enableWorker: true,
-      lowLatencyMode: true
+      lowLatencyMode: true,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60
+    });
+
+    hlsInstance.on(window.Hls.Events.MANIFEST_PARSED, () => {
+      hideStatus();
+      isPlaying = true;
+      retryCount = 0;
+      video.play().catch(() => {});
     });
 
     hlsInstance.on(window.Hls.Events.ERROR, (event, data) => {
-      // 尽量给出可读提示
-      const details = [
-        'HLS 错误：' + (data?.type || ''),
-        '原因：' + (data?.details || ''),
-        'fatal=' + (data?.fatal ? 'true' : 'false')
-      ].join('\n');
-      if(data?.fatal){
-        showErr(details + '\n\n建议：检查 m3u8 是否可公开访问；或换 Safari；或更换稳定源。');
+      if (data.fatal) {
+        const errorType = data.type || 'UNKNOWN';
+        const errorDetails = data.details || 'Unknown error';
+        handlePlayError(`HLS 错误 (${errorType})`, errorDetails);
       }
     });
 
     hlsInstance.loadSource(url);
-    hlsInstance.attachMedia(v);
+    hlsInstance.attachMedia(video);
   }
 
-  function injectHlsJs(){
-    return new Promise((resolve) => {
-      if(window.Hls){ return resolve(); }
+  function getVideoError(error) {
+    if (!error) return '未知错误';
+    const codes = {
+      1: 'MEDIA_ERR_ABORTED - 播放被中止',
+      2: 'MEDIA_ERR_NETWORK - 网络错误',
+      3: 'MEDIA_ERR_DECODE - 解码错误',
+      4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - 格式不支持'
+    };
+    return codes[error.code] || `错误代码: ${error.code}`;
+  }
+
+  function handlePlayError(title, details) {
+    showError(title, details);
+    
+    // Auto retry
+    if (retryCount < MAX_RETRY) {
+      retryCount++;
+      showStatus(`${title} - ${RETRY_DELAY/1000}秒后重试 (${retryCount}/${MAX_RETRY})...`, true);
+      setTimeout(() => {
+        if (!isPlaying) playSource(currentSourceIndex);
+      }, RETRY_DELAY);
+    } else if (sources.length > 1 && currentSourceIndex < sources.length - 1) {
+      // Try next source
+      showStatus(`重试次数已用完，切换到下一线路...`, true);
+      setTimeout(() => {
+        retryCount = 0;
+        playSource(currentSourceIndex + 1);
+      }, RETRY_DELAY);
+    }
+  }
+
+  function loadHlsJs() {
+    return new Promise(resolve => {
+      if (window.Hls) return resolve();
       const s = document.createElement('script');
-      // CDN: jsDelivr
       s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js';
-      s.onload = () => resolve();
-      s.onerror = () => resolve();
+      s.onload = resolve;
+      s.onerror = resolve;
       document.head.appendChild(s);
     });
   }
 
-  document.getElementById('reload').addEventListener('click', loadHls);
+  // ========== Load Channel ==========
+  async function loadChannel() {
+    // Legacy mode: direct URL
+    if (legacyUrl && !channelId) {
+      channel = {
+        id: 'legacy',
+        name: legacyName || '播放',
+        category: '',
+        sources: [{ label: '默认', url: legacyUrl }]
+      };
+      initPlayer();
+      return;
+    }
 
-  // Autoload
-  loadHls();
+    if (!channelId) {
+      showError('参数错误', '缺少频道 ID，请从频道列表进入');
+      channelName.textContent = '参数错误';
+      return;
+    }
 
-  // Register SW
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    try {
+      showStatus('加载频道信息...');
+      const res = await fetch('./channels.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      
+      channel = (data.channels || []).find(ch => ch.id === channelId);
+      
+      if (!channel) {
+        showError('频道不存在', `找不到 ID 为 "${channelId}" 的频道`);
+        channelName.textContent = '频道不存在';
+        return;
+      }
+
+      initPlayer();
+    } catch (err) {
+      showError('加载失败', err.message);
+      channelName.textContent = '加载失败';
+    }
   }
+
+  function initPlayer() {
+    channelName.textContent = channel.name || '未命名频道';
+    document.title = channel.name || '播放中';
+    channelCategory.textContent = channel.category || '未分类';
+
+    sources = (channel.sources || []).filter(s => s.url);
+    
+    // Sort by priority
+    sources.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+    if (!sources.length) {
+      showError('无播放源', '该频道没有配置有效的播放地址');
+      return;
+    }
+
+    renderSources();
+    playSource(0);
+  }
+
+  // ========== Events ==========
+  sourceList.addEventListener('click', e => {
+    const btn = e.target.closest('.source-btn');
+    if (!btn) return;
+    const index = parseInt(btn.dataset.index, 10);
+    if (!isNaN(index) && index !== currentSourceIndex) {
+      retryCount = 0;
+      playSource(index);
+    }
+  });
+
+  reloadBtn.addEventListener('click', () => {
+    retryCount = 0;
+    playSource(currentSourceIndex);
+  });
+
+  retryBtn.addEventListener('click', () => {
+    retryCount = 0;
+    const next = (currentSourceIndex + 1) % sources.length;
+    playSource(next);
+  });
+
+  // Handle visibility change - pause/resume
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && video) {
+      // Optionally pause when hidden
+    }
+  });
+
+  // ========== Service Worker ==========
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // ========== Init ==========
+  loadChannel();
+})();
 </script>
 </body>
 </html>
