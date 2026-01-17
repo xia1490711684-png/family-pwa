@@ -145,9 +145,10 @@
     .source-btn:active { opacity: 0.7; }
     .source-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-    .action-row { display: flex; gap: 10px; margin-top: 16px; }
+    .action-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .action-btn {
-      flex: 1;
+      flex: 1 1 45%;
+      min-width: 160px;
       padding: 12px;
       border-radius: 12px;
       border: 1px solid var(--line);
@@ -242,14 +243,16 @@
       <button class="action-btn" id="speedBtn">⚡ 测速选线</button>
       <button class="action-btn" id="reloadBtn">🔄 重新加载</button>
       <button class="action-btn" id="retryBtn" style="display:none;">⏭️ 下一线路</button>
+      <button class="action-btn" id="openTabBtn">🌐 新标签打开</button>
+      <button class="action-btn" id="openBrowserBtn">🌐 本页打开（返回可回）</button>
     </div>
 
     <div class="url-display" id="urlDisplay">-</div>
   </div>
 
   <div class="footer-note">
-    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器将尝试使用 hls.js。\n
-    若为 <code>web:</code> 线路，会尝试内嵌网页；若网页禁止内嵌，会提示在新标签打开。
+    Safari（iPhone/iPad/Mac）原生支持 HLS；其他浏览器会尝试使用 hls.js。
+    如果某条线路在播放器内无法播放（CORS/地区/防盗链/格式等），可点击下方“新标签打开”或“本页打开（返回可回）”，以浏览器方式打开原链接/原网页，然后用浏览器返回回到频道列表继续切换。
   </div>
 
 <script>
@@ -300,6 +303,8 @@
   const reloadBtn = $('reloadBtn');
   const retryBtn = $('retryBtn');
   const speedBtn = $('speedBtn');
+  const openTabBtn = $('openTabBtn');
+  const openBrowserBtn = $('openBrowserBtn');
   const urlDisplay = $('urlDisplay');
 
   const params = new URLSearchParams(location.search);
@@ -869,6 +874,40 @@
     const best = await pickBestSourceIndex();
     manualSelected = true;
     playSource(best);
+  });
+
+
+
+  function getOpenTargetUrl() {
+    if (!sources.length) return null;
+    const src = sources[currentSourceIndex] || {};
+    const u = src.url || '';
+
+    const yt = parseYouTubeSpec(u);
+    if (yt) {
+      // For users who can access YouTube, open the native page.
+      if (yt.kind === 'channel') return 'https://www.youtube.com/channel/' + yt.id + '/live';
+      if (yt.kind === 'playlist') return 'https://www.youtube.com/playlist?list=' + yt.id;
+      return 'https://www.youtube.com/watch?v=' + yt.id;
+    }
+
+    const web = parseWebSpec(u);
+    if (web) return web.url;
+
+    return u || null;
+  }
+
+  openTabBtn.addEventListener('click', () => {
+    const t = getOpenTargetUrl();
+    if (!t) return;
+    window.open(t, '_blank');
+  });
+
+  openBrowserBtn.addEventListener('click', () => {
+    const t = getOpenTargetUrl();
+    if (!t) return;
+    // Open in the same tab (like a browser). Use Back to return.
+    location.href = t;
   });
 
   if ('serviceWorker' in navigator) {

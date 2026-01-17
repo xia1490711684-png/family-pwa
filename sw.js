@@ -1,6 +1,6 @@
 /**
  * Service Worker for 电视直播 PWA
- * Version: 4.0.0
+ * Version: 5.0.0
  * 
  * 缓存策略：
  * - Shell 文件 (HTML/CSS/JS/图标): Cache-First
@@ -8,7 +8,7 @@
  * - 外部资源 (hls.js CDN): Network-First with Cache Fallback
  */
 
-const CACHE_VERSION = 'tv-pwa-v4';
+const CACHE_VERSION = 'tv-pwa-v5';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 
