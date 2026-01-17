@@ -1,13 +1,23 @@
 {
-  "notice": "仅添加你有权观看/转载的直播源（例如你自己购买/授权的 IPTV/HLS 或公开授权流）。下面是用于测试的公开示例流。",
-  "categories": ["测试", "央视", "卫视", "少儿", "体育", "财经", "纪录片", "地方"],
+  "notice": "已内置一批【官方/公开可免费收看】的 HLS 直播源（不需要会员）。部分源可能会因地区限制、CORS 或官方调整而失效；若失效，请用‘重新加载/切换线路’或替换为你有权使用的源。",
+  "categories": [
+    "测试",
+    "科教/太空",
+    "国际新闻",
+    "日本",
+    "公共电视"
+  ],
   "channels": [
     {
       "id": "test-bbb",
       "name": "测试流 - Big Buck Bunny",
       "category": "测试",
       "logo": "",
-      "tags": ["测试", "示例", "动画"],
+      "tags": [
+        "测试",
+        "示例",
+        "动画"
+      ],
       "region": "",
       "disabled": false,
       "sources": [
@@ -24,7 +34,11 @@
       "name": "测试流 - Apple BipBop",
       "category": "测试",
       "logo": "",
-      "tags": ["测试", "示例", "Apple"],
+      "tags": [
+        "测试",
+        "示例",
+        "Apple"
+      ],
       "region": "",
       "disabled": false,
       "sources": [
@@ -41,7 +55,12 @@
       "name": "测试流 - Sintel (多线路示例)",
       "category": "测试",
       "logo": "",
-      "tags": ["测试", "示例", "多线路", "电影"],
+      "tags": [
+        "测试",
+        "示例",
+        "多线路",
+        "电影"
+      ],
       "region": "",
       "disabled": false,
       "sources": [
@@ -56,6 +75,241 @@
           "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
           "type": "hls",
           "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "nasa-public",
+      "name": "NASA TV - Public/Education",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "太空",
+        "科教"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa-public/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-media",
+      "name": "NASA TV - Media",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "发布会",
+        "发射"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa-media/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-4k-30",
+      "name": "NASA UHD 4K (30p)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "4K",
+        "UHD"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa4k/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "nasa-4k-60",
+      "name": "NASA UHD 4K (60p)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "NASA",
+        "4K",
+        "UHD",
+        "高码率"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (endpnt.com)",
+          "url": "https://endpnt.com/hls/nasa4k60/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "iss-live",
+      "name": "ISS Live (Ustream legacy)",
+      "category": "科教/太空",
+      "logo": "",
+      "tags": [
+        "ISS",
+        "太空站",
+        "地球"
+      ],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (Ustream)",
+          "url": "http://iphone-streaming.ustream.tv/uhls/9408562/streams/live/iphone/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "aljazeera-en",
+      "name": "Al Jazeera English",
+      "category": "国际新闻",
+      "logo": "",
+      "tags": [
+        "新闻",
+        "Al Jazeera",
+        "英语"
+      ],
+      "region": "",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (getaj.net)",
+          "url": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (CloudFront 备)",
+          "url": "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/al-jazeera-english/playlist.m3u8",
+          "type": "hls",
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "dw-en",
+      "name": "DW English",
+      "category": "国际新闻",
+      "logo": "",
+      "tags": [
+        "新闻",
+        "DW",
+        "英语"
+      ],
+      "region": "DE",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (master)",
+          "url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (index 备)",
+          "url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8",
+          "type": "hls",
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "france24-en",
+      "name": "France 24 English",
+      "category": "国际新闻",
+      "logo": "",
+      "tags": [
+        "新闻",
+        "France 24",
+        "英语"
+      ],
+      "region": "FR",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (live.france24.com)",
+          "url": "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_500.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (Fastly 备)",
+          "url": "https://uvotv-aniview.global.ssl.fastly.net/hls/live/2120684/france24english/playlist.m3u8",
+          "type": "hls",
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "nhk-world",
+      "name": "NHK WORLD-JAPAN",
+      "category": "日本",
+      "logo": "",
+      "tags": [
+        "NHK",
+        "日本",
+        "英语"
+      ],
+      "region": "JP",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (media-tyo master)",
+          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8",
+          "type": "hls",
+          "priority": 1
+        },
+        {
+          "label": "线路2 (o-master 备)",
+          "url": "https://media-tyo.hls.nhkworld.jp/hls/w/live/o-master.m3u8",
+          "type": "hls",
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "id": "bmc-infotv",
+      "name": "BMC Info TV (Belmont Media Center)",
+      "category": "公共电视",
+      "logo": "",
+      "tags": [
+        "公共电视",
+        "社区",
+        "美国"
+      ],
+      "region": "US",
+      "disabled": false,
+      "sources": [
+        {
+          "label": "线路1 (footprint.net)",
+          "url": "https://belmontmedia.secure.footprint.net/egress/bhandler/belmontmedia/streamc/playlist.m3u8",
+          "type": "hls",
+          "priority": 1
         }
       ]
     }
