@@ -10,942 +10,898 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <style>
-    :root {
-      --bg: #0b1220;
-      --card: #111b2e;
-      --muted: #94a3b8;
-      --text: #e5e7eb;
-      --accent: #4ade80;
-      --accent-dim: rgba(74, 222, 128, 0.15);
-      --line: #1e293b;
-      --danger: #f87171;
-      --warning: #fbbf24;
+    :root{
+      --bg:#0b1220;--panel:#0f172a;--card:#111b2e;--muted:#94a3b8;--text:#e5e7eb;
+      --accent:#4ade80;--accent-dim:rgba(74,222,128,.14);--line:#1e293b;--danger:#f87171;--warning:#fbbf24;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { background: var(--bg); }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--text)}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;}
 
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(11, 18, 32, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--line);
-      padding: 16px 16px 12px;
+    /* Top bar */
+    header{
+      position:sticky;top:0;z-index:1000;
+      background:rgba(11,18,32,.92);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--line);
+      padding:12px 14px calc(12px + env(safe-area-inset-top, 0));
     }
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    h1 { font-size: 18px; font-weight: 650; letter-spacing: .2px; }
-    .header-actions { display: flex; gap: 8px; }
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: var(--card);
-      color: var(--text);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-    .icon-btn:active { opacity: 0.7; }
+    .topbar{display:flex;align-items:center;gap:10px}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .brand h1{font-size:16px;font-weight:750;letter-spacing:.2px;white-space:nowrap}
+    .brand .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar .grow{flex:1}
 
-    .search-row { display: flex; gap: 10px; }
-    .search-input {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(15, 23, 42, 0.8);
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
+    .search{
+      width:min(520px,100%);
+      display:flex;align-items:center;gap:10px;
+      background:rgba(15,23,42,.76);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:8px 10px;
     }
-    .search-input::placeholder { color: var(--muted); }
-    .search-input:focus { border-color: var(--accent); }
+    .search input{
+      flex:1;border:none;background:transparent;color:var(--text);
+      font-size:14px;outline:none;
+    }
+    .search input::placeholder{color:var(--muted)}
 
-    .filter-row {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 12px 16px;
-      margin: 0 -16px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+    .btn{
+      height:36px;padding:0 12px;border-radius:10px;
+      border:1px solid var(--line);background:var(--card);
+      color:var(--text);cursor:pointer;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      font-size:13px;user-select:none;
     }
-    .filter-row::-webkit-scrollbar { display: none; }
-    .filter-chip {
-      flex-shrink: 0;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: var(--card);
-      color: var(--muted);
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      user-select: none;
-    }
-    .filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .btn:active{opacity:.75}
+    .btn.primary{background:var(--accent-dim);border-color:rgba(74,222,128,.4);color:var(--accent)}
+    .btn.icon{width:36px;padding:0}
 
-    main { padding: 0 16px 24px; max-width: 1200px; margin: 0 auto; }
+    /* Layout */
+    .app{
+      height:calc(100% - 60px);
+      display:flex;
+      overflow:hidden;
+    }
+    .side{
+      width:360px;min-width:320px;max-width:420px;
+      border-right:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(17,27,46,.65), rgba(17,27,46,.2));
+      display:flex;flex-direction:column;
+    }
+    .side-head{padding:14px;border-bottom:1px solid var(--line)}
+    .chips{display:flex;gap:8px;overflow:auto;padding-top:12px;scrollbar-width:none}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(15,23,42,.6);color:var(--muted);font-size:12px;cursor:pointer}
+    .chip.active{background:var(--accent-dim);border-color:rgba(74,222,128,.6);color:var(--accent)}
 
-    .notice {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin: 16px 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-    }
+    .channel-list{flex:1;overflow:auto;padding:10px 10px 18px}
+    .group-title{font-size:12px;color:var(--muted);font-weight:700;margin:10px 6px}
 
-    .section { margin-top: 18px; }
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
+    .item{
+      display:flex;align-items:center;gap:12px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(15,23,42,.55);
+      margin:8px 4px;
+      cursor:pointer;
+      transition:transform .12s,opacity .12s;
     }
-    .section-title { font-size: 13px; color: var(--muted); font-weight: 600; }
-    .section-action { font-size: 12px; color: var(--accent); cursor: pointer; user-select:none; }
+    .item:active{transform:scale(.99);opacity:.88}
+    .logo{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(15,23,42,.75);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto}
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .meta{flex:1;min-width:0}
+    .name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .desc{margin-top:4px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+    .tag{font-size:11px;color:var(--muted);border:1px solid rgba(148,163,184,.25);padding:2px 8px;border-radius:999px}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
-    }
+    .item-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex:0 0 auto}
+    .fav{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:rgba(11,18,32,.65);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .fav.active{color:var(--warning)}
+    .open{padding:6px 10px;border-radius:999px;border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.08);color:var(--accent);font-size:12px;font-weight:750}
 
-    .channel-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.2s;
-    }
-    .channel-card:active { transform: scale(0.98); opacity: 0.9; }
-    .channel-card.disabled { opacity: 0.5; pointer-events: none; }
+    /* Workspace */
+    .work{flex:1;display:flex;flex-direction:column;min-width:0;background:radial-gradient(1000px 600px at 30% -10%, rgba(74,222,128,.09), transparent 55%), var(--bg)}
 
-    .channel-logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      overflow: hidden;
+    .tabbar{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      overflow:auto;scrollbar-width:none;
     }
-    .channel-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .tabbar::-webkit-scrollbar{display:none}
 
-    .channel-info { flex: 1; min-width: 0; }
-    .channel-name {
-      font-size: 15px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 4px;
+    .tab{
+      flex:0 0 auto;
+      display:flex;align-items:center;gap:8px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(17,27,46,.55);
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+      max-width:340px;
     }
-    .channel-meta {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .tab.active{background:rgba(74,222,128,.10);border-color:rgba(74,222,128,.35);color:var(--text)}
+    .tab .dot{width:8px;height:8px;border-radius:999px;background:rgba(148,163,184,.55)}
+    .tab.active .dot{background:var(--accent)}
+    .tab .tname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .tab .x{width:22px;height:22px;border-radius:8px;border:1px solid var(--line);background:rgba(11,18,32,.55);color:var(--muted);display:flex;align-items:center;justify-content:center}
+    .tab .x:active{opacity:.7}
 
-    .channel-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .fav-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .work-body{flex:1;position:relative;overflow:hidden}
+    .frame{
+      position:absolute;inset:0;
+      width:100%;height:100%;border:0;
+      background:#000;
+      display:none;
     }
-    .fav-btn.active { color: var(--warning); }
-    .play-badge {
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 650;
-    }
+    .frame.active{display:block}
 
-    .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
-    .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-text { font-size: 14px; line-height: 1.6; }
+    .empty{
+      height:100%;display:flex;align-items:center;justify-content:center;
+      color:var(--muted);padding:24px;text-align:center;line-height:1.7;
+    }
+    .empty .box{
+      max-width:560px;
+      border:1px solid var(--line);
+      background:rgba(17,27,46,.35);
+      border-radius:16px;
+      padding:18px 16px;
+      box-shadow:var(--shadow);
+    }
+    .empty .title{color:var(--text);font-weight:800;margin-bottom:10px}
 
-    footer {
-      padding: 20px 16px;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
+    /* Drawer for mobile */
+    .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:1200}
+    .drawer-backdrop.show{display:block}
+    .drawer{
+      position:fixed;top:0;bottom:0;left:0;
+      width:min(92vw, 420px);
+      background:var(--panel);
+      border-right:1px solid var(--line);
+      transform:translateX(-102%);
+      transition:transform .22s ease;
+      z-index:1300;
+      display:flex;flex-direction:column;
+      box-shadow:var(--shadow);
     }
-    footer code {
-      background: rgba(15, 23, 42, 0.8);
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid var(--line);
-    }
+    .drawer.show{transform:translateX(0)}
+    .drawer header{position:sticky;top:0;background:rgba(15,23,42,.92);border-bottom:1px solid var(--line);padding:12px 12px calc(12px + env(safe-area-inset-top,0))}
 
     /* Modal */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      display: none;
-      z-index: 999;
-      padding: 18px;
-      padding-top: calc(18px + env(safe-area-inset-top, 0));
-      padding-bottom: calc(18px + env(safe-area-inset-bottom, 0));
-    }
-    .modal.show { display: block; }
-    .modal-card {
-      max-width: 860px;
-      margin: 0 auto;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-    }
-    .modal-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(17, 27, 46, .7);
-    }
-    .modal-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .modal-close {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 18px;
-    }
-    .modal-body { padding: 16px; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .field {
-      flex: 1;
-      min-width: 220px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .field label { display:block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-    textarea {
-      width: 100%;
-      min-height: 160px;
-      resize: vertical;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: rgba(11, 18, 32, 0.8);
-      color: var(--text);
-      padding: 10px;
-      font-size: 12px;
-      outline: none;
-    }
-    input[type="text"], input[type="url"] {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: rgba(11, 18, 32, 0.8);
-      color: var(--text);
-      padding: 10px;
-      font-size: 13px;
-      outline: none;
-    }
-    input[type="file"] { width: 100%; color: var(--muted); }
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;z-index:2000;padding:18px}
+    .modal-backdrop.show{display:flex}
+    .modal{width:min(720px, 100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 14px;border-bottom:1px solid var(--line)}
+    .modal-title{font-size:14px;font-weight:800}
+    .modal-body{padding:14px}
+    textarea{width:100%;min-height:210px;resize:vertical;border-radius:14px;border:1px solid var(--line);background:rgba(11,18,32,.7);color:var(--text);padding:12px;font-size:13px;outline:none}
+    textarea:focus{border-color:rgba(74,222,128,.55)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.6;white-space:pre-wrap}
 
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 14px 16px;
-      border-top: 1px solid var(--line);
-      background: rgba(17, 27, 46, .7);
-    }
-    .btn {
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--bg);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 650;
-    }
-    .btn:active { opacity: .7; }
-    .btn.primary { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-    .btn.danger { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.35); color: var(--danger); }
-
-    .hint { color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 10px; white-space: pre-wrap; }
-
-    /* Desktop: slightly closer to “电视家” two-pane feel */
-    @media (min-width: 980px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
-      header { padding-left: 22px; padding-right: 22px; }
-      main { padding-left: 22px; padding-right: 22px; }
+    /* Responsive */
+    @media (max-width: 980px){
+      .app{height:calc(100% - 60px)}
+      .side{display:none}
+      .work{width:100%}
+      .brand .sub{display:none}
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-top">
-      <h1>电视直播</h1>
-      <div class="header-actions">
-        <button class="icon-btn" id="importBtn" title="导入播放列表">➕</button>
-        <button class="icon-btn" id="refreshBtn" title="刷新频道">🔄</button>
-        <button class="icon-btn" id="clearBadBtn" title="清理失效记录">🧹</button>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <button class="btn icon" id="openDrawerBtn" title="频道">≡</button>
+      <div style="min-width:0">
+        <h1>电视直播</h1>
+        <div class="sub" id="subline">中文优先 · 多标签切换 · 支持导入</div>
       </div>
     </div>
-    <div class="search-row">
-      <input type="search" class="search-input" id="searchInput" placeholder="搜索频道 / 分类 / 关键词...">
+
+    <div class="grow"></div>
+
+    <div class="search" aria-label="搜索频道">
+      <span style="color:var(--muted);font-size:14px">⌕</span>
+      <input id="searchInput" placeholder="搜索频道 / 分类" autocomplete="off" />
     </div>
-    <div class="filter-row" id="filterRow">
-      <button class="filter-chip active" data-category="all">全部</button>
+
+    <button class="btn" id="favViewBtn" title="只看收藏">★ 收藏</button>
+    <button class="btn" id="recentViewBtn" title="最近播放">⏱ 最近</button>
+    <button class="btn primary" id="importBtn" title="导入播放列表">＋ 导入</button>
+    <button class="btn" id="clearBadBtn" title="清理失效记录">🧹</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="side" id="sidePane">
+    <div class="side-head">
+      <div class="chips" id="chips"></div>
     </div>
-  </header>
+    <div class="channel-list" id="channelList"></div>
+  </aside>
 
-  <main>
-    <div class="notice" id="notice" style="display:none;"></div>
-    <div id="content"></div>
-  </main>
-
-  <footer>
-    说明：本工具支持播放 <code>.m3u8</code>（HLS）与打开官方直播网页（web）。请仅导入你有权观看/转载的直播源。
-  </footer>
-
-  <!-- Import Modal -->
-  <div class="modal" id="importModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true">
-      <div class="modal-head">
-        <div class="modal-title">导入播放列表（m3u / m3u8）</div>
-        <button class="modal-close" id="importClose" title="关闭">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="field">
-            <label>方式 A：粘贴 M3U 内容</label>
-            <textarea id="m3uText" placeholder="#EXTM3U\n#EXTINF:-1 group-title=\"我的导入\",CCTV-13\nhttps://.../index.m3u8\n..."></textarea>
-          </div>
-          <div class="field">
-            <label>方式 B：选择本地 m3u/m3u8 文件</label>
-            <input id="m3uFile" type="file" accept=".m3u,.m3u8,text/plain" />
-            <div style="height:12px"></div>
-            <label>方式 C：从 URL 拉取（需要该 URL 允许跨域 CORS）</label>
-            <input id="m3uUrl" type="url" placeholder="https://example.com/list.m3u" />
-            <div class="hint" id="importHint">建议：优先导入你自己维护的订阅源（自建/官方/授权）。网页环境下，很多非官方源会因 CORS 或 HTTPS 混合内容而失败。
-
-导入后会自动合并同名频道的多线路，并支持：收藏 / 搜索 / 最近观看 / 自动测速选线 / 失败自动切线。</div>
-          </div>
+  <section class="work">
+    <div class="tabbar" id="tabBar"></div>
+    <div class="work-body" id="workBody">
+      <div class="empty" id="emptyState">
+        <div class="box">
+          <div class="title">像电视家一样“随开随关、随时切换”</div>
+          <div>从左侧选择频道，会在这里以“标签页”方式打开。你可以同时打开多个直播/网页，随时切换、关闭。</div>
+          <div style="margin-top:10px">提示：很多频道更适合用“官方网页方式”打开（不走内置播放器），本应用会自动兜底并提供外部打开。</div>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn primary" id="doImport">导入并保存</button>
-        <button class="btn" id="exportM3U">导出我的导入</button>
-        <button class="btn danger" id="clearImport">清空我的导入</button>
-        <div style="flex:1"></div>
-        <button class="btn" id="close2">关闭</button>
+    </div>
+  </section>
+</div>
+
+<!-- Mobile drawer -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <header>
+    <div class="topbar" style="padding:0">
+      <div class="brand" style="gap:8px">
+        <button class="btn icon" id="closeDrawerBtn" title="关闭">←</button>
+        <div style="min-width:0">
+          <h1 style="font-size:15px">频道列表</h1>
+          <div class="sub" style="display:block">中文优先 · 支持导入</div>
+        </div>
       </div>
+      <div class="grow"></div>
+    </div>
+  </header>
+  <div class="side-head">
+    <div class="chips" id="chipsMobile"></div>
+  </div>
+  <div class="channel-list" id="channelListMobile"></div>
+</div>
+
+<!-- Import modal -->
+<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="导入播放列表">
+    <div class="modal-head">
+      <div class="modal-title">导入播放列表（m3u / m3u8）</div>
+      <button class="btn icon" id="closeModalBtn" title="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint">说明：本工具支持播放 <code>.m3u8</code>（HLS）与打开官方直播网页（web）。
+请仅导入你有权观看/转载的直播源。
+
+导入后将自动合并同名频道的多线路，并支持：收藏 / 搜索 / 最近 / 多标签切换 / 自动测速 / 失败自动切线。</div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="pickFileBtn">选择 m3u 文件</button>
+        <input type="file" id="fileInput" accept=".m3u,.m3u8,.txt" style="display:none" />
+        <button class="btn" id="loadFromUrlBtn">从订阅 URL 加载</button>
+        <button class="btn" id="exportM3UBtn">导出我的导入</button>
+        <button class="btn" id="clearImportBtn" style="border-color:rgba(248,113,113,.35);color:var(--danger)">清空导入</button>
+      </div>
+      <textarea id="m3uText" placeholder="#EXTM3U\n#EXTINF:-1 group-title=\"我的导入\",频道名称\nhttps://.../index.m3u8\n#EXTINF:-1 group-title=\"我的导入\",CCTV-13（网页）\nweb:https://tv.cctv.com/live/cctv13/m/\n"></textarea>
+      <div class="row">
+        <button class="btn primary" id="doImportBtn">导入并保存</button>
+      </div>
+      <div class="hint" id="importHint">建议：如果你遇到大量“播不了”，优先导入“官方直播网页”链接（用 <code>web:</code> 前缀），并用本应用的多标签方式打开；
+如果是 m3u8 源，请尽量使用 https，并为同一频道配置 2–3 条不同线路。</div>
     </div>
   </div>
+</div>
 
 <script>
-(function() {
-  'use strict';
+  // -------------------- Storage keys --------------------
+  const KEY_FAV = 'tv_favorites_v2';
+  const KEY_RECENT = 'tv_recent_v2';
+  const KEY_IMPORTED = 'tv_imported_v2';
+  const KEY_OPEN = 'tv_open_tabs_v1';
+  const KEY_BAD = 'tv_bad_sources_v1';
 
-  // ========== Storage Helpers ==========
-  const Storage = {
-    get(key, def = null) {
-      try {
-        const v = localStorage.getItem(key);
-        return v ? JSON.parse(v) : def;
-      } catch { return def; }
-    },
-    set(key, val) {
-      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
-    },
-    del(key) {
-      try { localStorage.removeItem(key); } catch {}
-    }
-  };
-
-  const KEY_CUSTOM = 'tv_custom_channels';
-  const KEY_FAV = 'tv_favorites';
-  const KEY_RECENT = 'tv_recent';
-
-  // ========== State ==========
-  let channelsData = { notice: '', categories: [], channels: [] };
-  let favorites = Storage.get(KEY_FAV, []);
-  let recentIds = Storage.get(KEY_RECENT, []);
-  let customChannels = Storage.get(KEY_CUSTOM, []);
-  let currentCategory = 'all';
+  // -------------------- State --------------------
+  let baseData = null;
+  let categories = [];
+  let currentCategory = '全部';
+  let onlyFav = false;
+  let onlyRecent = false;
   let searchTerm = '';
+  let favSet = new Set(loadJSON(KEY_FAV, []));
+  let recentList = loadJSON(KEY_RECENT, []);
+  let importedData = loadJSON(KEY_IMPORTED, { channels: [] });
+  let openTabs = loadJSON(KEY_OPEN, []); // [{sid,name,logo,category,ts}]
 
-  // ========== DOM ==========
-  const $ = id => document.getElementById(id);
-  const searchInput = $('searchInput');
-  const filterRow = $('filterRow');
-  const content = $('content');
-  const notice = $('notice');
-  const refreshBtn = $('refreshBtn');
-  const clearBadBtn = $('clearBadBtn');
-  const importBtn = $('importBtn');
-  const importModal = $('importModal');
-  const importClose = $('importClose');
-  const close2 = $('close2');
-  const doImport = $('doImport');
-  const exportM3U = $('exportM3U');
-  const clearImport = $('clearImport');
-  const m3uText = $('m3uText');
-  const m3uFile = $('m3uFile');
-  const m3uUrl = $('m3uUrl');
+  // -------------------- DOM --------------------
+  const chips = document.getElementById('chips');
+  const chipsMobile = document.getElementById('chipsMobile');
+  const channelList = document.getElementById('channelList');
+  const channelListMobile = document.getElementById('channelListMobile');
+  const searchInput = document.getElementById('searchInput');
+  const favViewBtn = document.getElementById('favViewBtn');
+  const recentViewBtn = document.getElementById('recentViewBtn');
+  const importBtn = document.getElementById('importBtn');
+  const clearBadBtn = document.getElementById('clearBadBtn');
+  const tabBar = document.getElementById('tabBar');
+  const workBody = document.getElementById('workBody');
+  const emptyState = document.getElementById('emptyState');
 
-  // ========== Utils ==========
-  function escapeHtml(s) {
-    return (s || '').replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
+  const drawer = document.getElementById('drawer');
+  const drawerBackdrop = document.getElementById('drawerBackdrop');
+  const openDrawerBtn = document.getElementById('openDrawerBtn');
+  const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const pickFileBtn = document.getElementById('pickFileBtn');
+  const fileInput = document.getElementById('fileInput');
+  const loadFromUrlBtn = document.getElementById('loadFromUrlBtn');
+  const exportM3UBtn = document.getElementById('exportM3UBtn');
+  const clearImportBtn = document.getElementById('clearImportBtn');
+  const m3uText = document.getElementById('m3uText');
+  const doImportBtn = document.getElementById('doImportBtn');
+
+  // -------------------- Utilities --------------------
+  function loadJSON(key, fallback){
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch{ return fallback; }
+  }
+  function saveJSON(key, obj){
+    localStorage.setItem(key, JSON.stringify(obj));
+  }
+  function esc(str){
+    return String(str||'').replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function hashId(s){
+    let h=2166136261; s=String(s||'');
+    for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return 'c'+(h>>>0).toString(16);
   }
 
-  function normalizeText(s) {
-    return String(s || '').trim();
+  function normalizeSource(url){
+    const u = String(url||'').trim();
+    if (!u) return null;
+    if (u.startsWith('web:')) return { type: 'web', url: u.slice(4).trim() };
+    if (u.startsWith('youtube:')) return { type: 'youtube', url: u };
+    if (u.endsWith('.m3u8') || u.includes('.m3u8?')) return { type: 'hls', url: u };
+    // fallback: treat as web
+    return { type: 'web', url: u };
   }
 
-  function matchSearch(ch, term) {
-    if (!term) return true;
-    const t = term.toLowerCase();
-    const fields = [
-      ch.name || '',
-      ch.category || '',
-      ...(ch.tags || []),
-      ch.region || ''
-    ];
-    return fields.some(f => String(f).toLowerCase().includes(t));
+  function addToRecent(ch){
+    const item = { id: ch.id, name: ch.name, logo: ch.logo || '', category: ch.category || ch.group || '', ts: Date.now() };
+    recentList = recentList.filter(x => x.id !== item.id);
+    recentList.unshift(item);
+    recentList = recentList.slice(0, 60);
+    saveJSON(KEY_RECENT, recentList);
   }
 
-  function safeId(input) {
-    const base = String(input || 'channel').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '_').replace(/^_+|_+$/g, '');
-    const rand = Math.random().toString(16).slice(2, 8);
-    return `custom_${base}_${rand}`;
+  function toggleFav(id){
+    if (favSet.has(id)) favSet.delete(id); else favSet.add(id);
+    saveJSON(KEY_FAV, Array.from(favSet));
   }
 
-  // ========== M3U Parser ==========
-  function parseM3U(text) {
-    const lines = String(text || '').replace(/\r/g, '').split('\n');
-    const items = [];
-    let cur = null;
+  // -------------------- Data loading --------------------
+  async function loadBase(){
+    const res = await fetch('./channels.json', { cache: 'no-store' });
+    baseData = await res.json();
+    mergeData();
+  }
 
-    for (let raw of lines) {
-      const line = raw.trim();
-      if (!line) continue;
-      if (line.startsWith('#EXTM3U')) continue;
+  function mergeData(){
+    const all = [];
 
-      if (line.startsWith('#EXTINF')) {
-        // Example: #EXTINF:-1 tvg-name="xxx" group-title="News",Channel Name
+    // built-in
+    for (const cat of (baseData?.categories || [])){
+      for (const ch of (cat.channels || [])){
+        const sources = (ch.sources || []).map(s => normalizeSource(s.url || s)).filter(Boolean);
+        all.push({
+          id: ch.id || hashId((ch.name||'') + '|' + (cat.name||'')),
+          name: ch.name,
+          category: cat.name,
+          group: cat.name,
+          logo: ch.logo || '',
+          desc: ch.desc || '',
+          sources
+        });
+      }
+    }
+
+    // imported
+    for (const ch of (importedData?.channels || [])){
+      const sources = (ch.sources || []).map(s => normalizeSource(s.url || s)).filter(Boolean);
+      all.push({
+        id: ch.id || hashId('imp|' + (ch.name||'')),
+        name: ch.name,
+        category: ch.group || '我的导入',
+        group: ch.group || '我的导入',
+        logo: ch.logo || '',
+        desc: ch.desc || '',
+        sources
+      });
+    }
+
+    // categories list
+    const catSet = new Set();
+    for (const ch of all) catSet.add(ch.group);
+    categories = ['全部', ...Array.from(catSet)];
+
+    // store flattened
+    window.__ALL_CHANNELS__ = all;
+
+    renderAll();
+    hydrateTabs();
+  }
+
+  // -------------------- Rendering --------------------
+  function renderChips(){
+    const make = (container) => {
+      container.innerHTML = categories.map(c => `<div class="chip ${c===currentCategory?'active':''}" data-cat="${esc(c)}">${esc(c)}</div>`).join('');
+      container.querySelectorAll('.chip').forEach(el => {
+        el.addEventListener('click', () => {
+          currentCategory = el.dataset.cat;
+          onlyRecent = false;
+          onlyFav = false;
+          syncViewButtons();
+          renderAll();
+        });
+      });
+    };
+    make(chips);
+    make(chipsMobile);
+  }
+
+  function syncViewButtons(){
+    favViewBtn.classList.toggle('primary', onlyFav);
+    recentViewBtn.classList.toggle('primary', onlyRecent);
+  }
+
+  function filteredChannels(){
+    let list = window.__ALL_CHANNELS__ || [];
+    if (currentCategory !== '全部') list = list.filter(c => c.group === currentCategory);
+    if (onlyFav) list = list.filter(c => favSet.has(c.id));
+    if (onlyRecent) {
+      const set = new Set(recentList.map(x => x.id));
+      list = list.filter(c => set.has(c.id)).sort((a,b) => (recentList.findIndex(x=>x.id===a.id)) - (recentList.findIndex(x=>x.id===b.id)));
+    }
+    if (searchTerm){
+      const q = searchTerm.toLowerCase();
+      list = list.filter(c => (c.name||'').toLowerCase().includes(q) || (c.group||'').toLowerCase().includes(q));
+    }
+    return list;
+  }
+
+  function renderChannelList(container){
+    const list = filteredChannels();
+    if (!list.length){
+      container.innerHTML = `<div class="empty"><div class="box"><div class="title">暂无匹配频道</div><div>可尝试：取消筛选、切换分类、或导入你的 m3u 播放列表。</div></div></div>`;
+      return;
+    }
+
+    // group by group
+    const map = new Map();
+    for (const ch of list){
+      const k = ch.group || '其他';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k).push(ch);
+    }
+
+    const groups = Array.from(map.keys());
+    container.innerHTML = groups.map(g => {
+      const items = map.get(g).map(ch => {
+        const isFav = favSet.has(ch.id);
+        const t = [];
+        if (ch.sources?.some(s=>s.type==='hls')) t.push('HLS');
+        if (ch.sources?.some(s=>s.type==='web')) t.push('网页');
+        return `
+          <div class="item" data-id="${esc(ch.id)}">
+            <div class="logo">${ch.logo ? `<img src="${esc(ch.logo)}" alt="">` : '📺'}</div>
+            <div class="meta">
+              <div class="name">${esc(ch.name)}</div>
+              <div class="desc">${esc(ch.desc || g)}</div>
+              <div class="tags">${t.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+            </div>
+            <div class="item-actions">
+              <button class="fav ${isFav?'active':''}" data-fav="${esc(ch.id)}" title="收藏">★</button>
+              <div class="open">打开</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return `<div class="group"><div class="group-title">${esc(g)}</div>${items}</div>`;
+    }).join('');
+
+    container.querySelectorAll('[data-fav]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFav(btn.dataset.fav);
+        renderAll();
+      });
+    });
+
+    container.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        const ch = (window.__ALL_CHANNELS__||[]).find(x=>x.id===id);
+        if (!ch) return;
+        openChannelAsTab(ch);
+        addToRecent(ch);
+        renderAll();
+        closeDrawer();
+      });
+    });
+  }
+
+  function renderAll(){
+    renderChips();
+    renderChannelList(channelList);
+    renderChannelList(channelListMobile);
+    renderTabs();
+  }
+
+  // -------------------- Tabs / Workspace --------------------
+  function ensureFrame(sid){
+    let f = document.getElementById('frame_'+sid);
+    if (f) return f;
+    f = document.createElement('iframe');
+    f.className = 'frame';
+    f.id = 'frame_'+sid;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.referrerPolicy = 'no-referrer';
+    f.src = './player.html?sid=' + encodeURIComponent(sid);
+    workBody.appendChild(f);
+    return f;
+  }
+
+  function selectTab(sid){
+    // activate tab
+    openTabs.forEach(t => t.active = (t.sid === sid));
+    saveJSON(KEY_OPEN, openTabs);
+
+    // show frame
+    for (const t of openTabs){
+      const f = ensureFrame(t.sid);
+      f.classList.toggle('active', t.sid === sid);
+    }
+    emptyState.style.display = openTabs.length ? 'none' : 'flex';
+    renderTabs();
+  }
+
+  function renderTabs(){
+    if (!openTabs.length){
+      tabBar.innerHTML = `<div class="tab" style="opacity:.6;cursor:default"><span class="dot"></span><span class="tname">未打开频道</span></div>`;
+      emptyState.style.display = 'flex';
+      // hide any frames
+      workBody.querySelectorAll('.frame').forEach(f=>f.remove());
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    tabBar.innerHTML = openTabs.map(t => {
+      return `
+        <div class="tab ${t.active?'active':''}" data-sid="${esc(t.sid)}">
+          <span class="dot"></span>
+          <span class="tname">${esc(t.name)}</span>
+          <span class="x" data-close="${esc(t.sid)}">×</span>
+        </div>
+      `;
+    }).join('');
+
+    tabBar.querySelectorAll('.tab').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const sid = el.dataset.sid;
+        if (!sid) return;
+        // close click
+        const close = e.target?.dataset?.close;
+        if (close){
+          e.stopPropagation();
+          closeTab(close);
+          return;
+        }
+        selectTab(sid);
+      });
+    });
+
+    // ensure frames exist
+    for (const t of openTabs){
+      ensureFrame(t.sid);
+    }
+  }
+
+  function closeTab(sid){
+    const idx = openTabs.findIndex(t=>t.sid===sid);
+    if (idx < 0) return;
+    openTabs.splice(idx,1);
+    saveJSON(KEY_OPEN, openTabs);
+    // remove frame
+    const f = document.getElementById('frame_'+sid);
+    if (f) f.remove();
+    // remove channel cache
+    try{ localStorage.removeItem('tv_channel_' + sid); }catch{}
+
+    // select another
+    if (openTabs.length){
+      const next = openTabs[Math.max(0, idx-1)] || openTabs[0];
+      next.active = true;
+      selectTab(next.sid);
+    } else {
+      renderTabs();
+    }
+  }
+
+  function hydrateTabs(){
+    // Ensure at least one active
+    if (openTabs.length && !openTabs.some(t=>t.active)) openTabs[0].active = true;
+    saveJSON(KEY_OPEN, openTabs);
+
+    // create frames
+    for (const t of openTabs){
+      ensureFrame(t.sid);
+    }
+    const active = openTabs.find(t=>t.active);
+    if (active) selectTab(active.sid); else renderTabs();
+  }
+
+  function openChannelAsTab(ch){
+    // sid must be unique per open instance. If channel already open, just focus.
+    const existing = openTabs.find(t => t.cid === ch.id);
+    if (existing){
+      selectTab(existing.sid);
+      return;
+    }
+
+    const sid = 's_' + hashId(ch.id + '|' + Date.now());
+    const tab = { sid, cid: ch.id, name: ch.name, logo: ch.logo || '', category: ch.group || '', ts: Date.now(), active: true };
+
+    // deactivate others
+    openTabs.forEach(t => t.active = false);
+    openTabs.unshift(tab);
+    saveJSON(KEY_OPEN, openTabs);
+
+    // store channel for player
+    const payload = {
+      sid,
+      id: ch.id,
+      name: ch.name,
+      category: ch.group || '',
+      logo: ch.logo || '',
+      desc: ch.desc || '',
+      sources: ch.sources || []
+    };
+    saveJSON('tv_channel_' + sid, payload);
+
+    ensureFrame(sid);
+    selectTab(sid);
+  }
+
+  // -------------------- Drawer --------------------
+  function openDrawer(){
+    drawerBackdrop.classList.add('show');
+    drawer.classList.add('show');
+  }
+  function closeDrawer(){
+    drawerBackdrop.classList.remove('show');
+    drawer.classList.remove('show');
+  }
+
+  // -------------------- Import / Export --------------------
+  function openModal(){
+    modalBackdrop.classList.add('show');
+    modalBackdrop.setAttribute('aria-hidden','false');
+  }
+  function closeModal(){
+    modalBackdrop.classList.remove('show');
+    modalBackdrop.setAttribute('aria-hidden','true');
+  }
+
+  function parseM3U(text){
+    const lines = String(text||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const out = [];
+    let current = null;
+
+    const attrRe = /(\w+(?:-\w+)*)="([^"]*)"/g;
+
+    for (const line of lines){
+      if (line.startsWith('#EXTINF')){
         const comma = line.indexOf(',');
         const meta = comma >= 0 ? line.slice(0, comma) : line;
-        const name = comma >= 0 ? line.slice(comma + 1).trim() : '';
+        const name = comma >= 0 ? line.slice(comma+1).trim() : '';
+
         const attrs = {};
-        const re = /(\w+(?:-\w+)*)="([^"]*)"/g;
         let m;
-        while ((m = re.exec(meta)) !== null) {
+        while ((m = attrRe.exec(meta))){
           attrs[m[1]] = m[2];
         }
-        cur = {
-          name: attrs['tvg-name'] || name || '未命名',
-          logo: attrs['tvg-logo'] || '',
+
+        current = {
+          name: name || attrs['tvg-name'] || '未命名',
           group: attrs['group-title'] || '我的导入',
-          url: ''
+          logo: attrs['tvg-logo'] || '',
+          sources: []
         };
         continue;
       }
 
-      if (line.startsWith('#')) {
-        // ignore other tags
-        continue;
-      }
+      if (line.startsWith('#')) continue;
 
       // url line
-      if (cur) {
-        cur.url = line;
-        items.push(cur);
-        cur = null;
-      } else {
-        // bare url line without EXTINF
-        items.push({ name: '未命名', logo: '', group: '我的导入', url: line });
+      if (current){
+        const src = normalizeSource(line);
+        if (src) current.sources.push(src);
+        out.push(current);
+        current = null;
       }
     }
+    return out;
+  }
 
-    // merge same name+group into multi-sources
+  function mergeImported(channels){
     const map = new Map();
-    for (const it of items) {
-      const key = `${it.group}__${it.name}`;
-      if (!map.has(key)) {
-        map.set(key, {
-          id: safeId(it.name),
-          name: normalizeText(it.name) || '未命名',
-          category: normalizeText(it.group) || '我的导入',
-          logo: it.logo || '',
-          sources: [],
-          tags: ['导入'],
-          region: 'custom',
-          order: 9999
+    for (const ch of (importedData.channels || [])){
+      map.set(ch.name, ch);
+    }
+    for (const ch of channels){
+      const existing = map.get(ch.name);
+      if (!existing){
+        map.set(ch.name, {
+          id: hashId('imp|' + ch.name),
+          name: ch.name,
+          group: ch.group || '我的导入',
+          logo: ch.logo || '',
+          sources: ch.sources || []
         });
+      } else {
+        // merge sources unique
+        const seen = new Set((existing.sources||[]).map(s => (s.type||'') + '|' + (s.url||'')));
+        for (const s of (ch.sources||[])){
+          const key = (s.type||'') + '|' + (s.url||'');
+          if (!seen.has(key)){
+            existing.sources.push(s);
+            seen.add(key);
+          }
+        }
+        if (!existing.logo && ch.logo) existing.logo = ch.logo;
+        if (!existing.group && ch.group) existing.group = ch.group;
       }
-      const ch = map.get(key);
-      const n = ch.sources.length + 1;
-      ch.sources.push({ label: `线路${n}`, url: it.url, priority: n });
-      if (!ch.logo && it.logo) ch.logo = it.logo;
     }
-
-    return Array.from(map.values());
+    importedData.channels = Array.from(map.values());
+    saveJSON(KEY_IMPORTED, importedData);
   }
 
-  function exportM3UText(channels) {
-    const lines = ['#EXTM3U'];
-    for (const ch of (channels || [])) {
-      const group = ch.category || '我的导入';
+  function exportImportedAsM3U(){
+    const chans = importedData.channels || [];
+    let text = '#EXTM3U\n';
+    for (const ch of chans){
+      const group = ch.group || '我的导入';
       const logo = ch.logo || '';
-      const name = ch.name || '未命名';
-      for (const src of (ch.sources || [])) {
-        const url = src.url;
-        if (!url) continue;
-        const attrs = [];
-        if (logo) attrs.push(`tvg-logo="${logo}"`);
-        if (group) attrs.push(`group-title="${group}"`);
-        attrs.push(`tvg-name="${name}"`);
-        lines.push(`#EXTINF:-1 ${attrs.join(' ')},${name}`);
-        lines.push(url);
+      // each channel line per source
+      for (const s of (ch.sources||[])){
+        const url = s.type === 'web' ? ('web:' + s.url) : (s.type === 'youtube' ? s.url : s.url);
+        text += `#EXTINF:-1 group-title="${group}" tvg-logo="${logo}",${ch.name}\n${url}\n`;
       }
     }
-    return lines.join('\n');
-  }
-
-  function downloadText(filename, text) {
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
+    a.download = 'my_imported.m3u';
     a.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(a.href);
-      a.remove();
-    }, 0);
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
   }
 
-  // ========== Merge Channels ==========
-  function getMergedData(baseData) {
-    const merged = {
-      notice: baseData.notice || '',
-      categories: Array.isArray(baseData.categories) ? baseData.categories.slice() : [],
-      channels: Array.isArray(baseData.channels) ? baseData.channels.slice() : []
-    };
-
-    // prepend custom channels
-    if (Array.isArray(customChannels) && customChannels.length) {
-      for (const ch of customChannels) {
-        merged.channels.unshift(ch);
-        if (ch.category && !merged.categories.includes(ch.category)) merged.categories.push(ch.category);
-      }
-    }
-
-    // ensure "我的导入" exists
-    if (!merged.categories.includes('我的导入')) merged.categories.push('我的导入');
-
-    return merged;
-  }
-
-  // ========== Render ==========
-  function renderFilters() {
-    const cats = ['all', ...(channelsData.categories || [])];
-    channelsData.channels.forEach(ch => {
-      if (ch.category && !cats.includes(ch.category)) cats.push(ch.category);
-    });
-
-    filterRow.innerHTML = cats.map(cat => {
-      const label = cat === 'all' ? '全部' : cat;
-      const active = currentCategory === cat ? 'active' : '';
-      return `<button class="filter-chip ${active}" data-category="${escapeHtml(cat)}">${escapeHtml(label)}</button>`;
-    }).join('');
-  }
-
-  function getFilteredChannels() {
-    return channelsData.channels.filter(ch => {
-      if (ch.disabled) return false;
-      if (currentCategory !== 'all' && ch.category !== currentCategory) return false;
-      if (!matchSearch(ch, searchTerm)) return false;
-      return true;
-    });
-  }
-
-  function renderChannelCard(ch, showFav = true) {
-    const isFav = favorites.includes(ch.id);
-    const hasSource = ch.sources && ch.sources.length > 0 && ch.sources[0].url;
-    const disabled = !hasSource ? 'disabled' : '';
-    const sourceCount = ch.sources ? ch.sources.length : 0;
-    const metaText = sourceCount > 1
-      ? `${ch.category || '未分类'} · ${sourceCount}条线路`
-      : (ch.category || '未分类');
-
-    const logoContent = ch.logo
-      ? `<img src="${escapeHtml(ch.logo)}" alt="" onerror="this.parentElement.textContent='📺'">`
-      : '📺';
-
-    return `
-      <div class="channel-card ${disabled}" data-id="${escapeHtml(ch.id)}">
-        <div class="channel-logo">${logoContent}</div>
-        <div class="channel-info">
-          <div class="channel-name">${escapeHtml(ch.name)}</div>
-          <div class="channel-meta">${escapeHtml(metaText)}</div>
-        </div>
-        <div class="channel-actions">
-          ${showFav ? `<button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${escapeHtml(ch.id)}" title="${isFav ? '取消收藏' : '收藏'}">${isFav ? '★' : '☆'}</button>` : ''}
-          <span class="play-badge">${hasSource ? '播放' : '无源'}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderSection(title, channels, action = null, showFav = true) {
-    if (!channels.length) return '';
-    return `
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">${escapeHtml(title)}（${channels.length}）</span>
-          ${action ? `<span class="section-action" data-action="${action.key}">${action.label}</span>` : ''}
-        </div>
-        <div class="grid">
-          ${channels.map(ch => renderChannelCard(ch, showFav)).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  function render() {
-    const filtered = getFilteredChannels();
-
-    const favChannels = !searchTerm && currentCategory === 'all'
-      ? channelsData.channels.filter(ch => favorites.includes(ch.id) && !ch.disabled)
-      : [];
-
-    const recentChannels = !searchTerm && currentCategory === 'all'
-      ? recentIds.slice(0, 8)
-          .map(id => channelsData.channels.find(ch => ch.id === id))
-          .filter(ch => ch && !ch.disabled && !favorites.includes(ch.id))
-      : [];
-
-    const grouped = new Map();
-    filtered.forEach(ch => {
-      if (favChannels.some(f => f.id === ch.id)) return;
-      if (recentChannels.some(r => r.id === ch.id)) return;
-
-      const cat = ch.category || '未分组';
-      if (!grouped.has(cat)) grouped.set(cat, []);
-      grouped.get(cat).push(ch);
-    });
-
-    let html = '';
-
-    if (favChannels.length) {
-      html += renderSection('⭐ 收藏', favChannels, { key: 'clearFav', label: '清空' }, true);
-    }
-
-    if (recentChannels.length) {
-      html += renderSection('🕐 最近观看', recentChannels, { key: 'clearRecent', label: '清空' }, true);
-    }
-
-    const catOrder = new Map();
-    (channelsData.categories || []).forEach((c, i) => catOrder.set(c, i));
-    const sortedCats = Array.from(grouped.keys()).sort((a, b) => {
-      const ai = catOrder.has(a) ? catOrder.get(a) : 9999;
-      const bi = catOrder.has(b) ? catOrder.get(b) : 9999;
-      if (ai !== bi) return ai - bi;
-      return String(a).localeCompare(String(b), 'zh-Hans-CN');
-    });
-
-    for (const cat of sortedCats) {
-      const chs = grouped.get(cat) || [];
-      chs.sort((x, y) => (x.order ?? 9999) - (y.order ?? 9999));
-      html += renderSection(cat, chs);
-    }
-
-    if (!favChannels.length && !recentChannels.length && !grouped.size) {
-      html = `
-        <div class="empty">
-          <div class="empty-icon">📡</div>
-          <div class="empty-text">
-            ${searchTerm ? '没有找到匹配的频道' : '暂无频道'}<br>
-            点击右上角 ➕ 导入你的 m3u/m3u8 播放列表
-          </div>
-        </div>
-      `;
-    }
-
-    content.innerHTML = html;
-  }
-
-  // ========== Events ==========
-  function toggleFavorite(id) {
-    const idx = favorites.indexOf(id);
-    if (idx >= 0) favorites.splice(idx, 1);
-    else favorites.unshift(id);
-    Storage.set(KEY_FAV, favorites);
-    render();
-  }
-
-  function addToRecent(id) {
-    recentIds = recentIds.filter(x => x !== id);
-    recentIds.unshift(id);
-    if (recentIds.length > 25) recentIds = recentIds.slice(0, 25);
-    Storage.set(KEY_RECENT, recentIds);
-  }
-
-  function handleCardClick(e) {
-    const card = e.target.closest('.channel-card');
-    if (!card || card.classList.contains('disabled')) return;
-
-    const favBtn = e.target.closest('.fav-btn');
-    if (favBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleFavorite(favBtn.dataset.fav);
-      return;
-    }
-
-    const id = card.dataset.id;
-    if (id) {
-      addToRecent(id);
-      window.location.href = `player.html?id=${encodeURIComponent(id)}`;
-    }
-  }
-
-  function handleFilterClick(e) {
-    const chip = e.target.closest('.filter-chip');
-    if (!chip) return;
-    currentCategory = chip.dataset.category;
-    renderFilters();
-    render();
-  }
-
-  function handleSectionAction(e) {
-    const action = e.target.dataset.action;
-    if (action === 'clearFav') {
-      if (confirm('确定清空所有收藏？')) {
-        favorites = [];
-        Storage.set(KEY_FAV, favorites);
-        render();
-      }
-    } else if (action === 'clearRecent') {
-      if (confirm('确定清空最近观看？')) {
-        recentIds = [];
-        Storage.set(KEY_RECENT, recentIds);
-        render();
-      }
-    }
-  }
-
-  // ========== Modal ==========
-  function openModal() {
-    importModal.classList.add('show');
-    importModal.setAttribute('aria-hidden', 'false');
-  }
-  function closeModal() {
-    importModal.classList.remove('show');
-    importModal.setAttribute('aria-hidden', 'true');
-  }
-
-  importBtn.addEventListener('click', openModal);
-  importClose.addEventListener('click', closeModal);
-  close2.addEventListener('click', closeModal);
-  importModal.addEventListener('click', (e) => {
-    if (e.target === importModal) closeModal();
-  });
-
-  // Load file into textarea
-  m3uFile.addEventListener('change', async () => {
-    const f = m3uFile.files && m3uFile.files[0];
-    if (!f) return;
-    try {
-      const txt = await f.text();
-      m3uText.value = txt;
-    } catch {
-      alert('读取文件失败。');
-    }
-  });
-
-  async function fetchText(url) {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.text();
-  }
-
-  doImport.addEventListener('click', async () => {
-    try {
-      let txt = normalizeText(m3uText.value);
-      const url = normalizeText(m3uUrl.value);
-      if (!txt && url) {
-        txt = await fetchText(url);
-      }
-      if (!txt) {
-        alert('请粘贴内容、选择文件或填写可访问的 URL。');
-        return;
-      }
-
-      const imported = parseM3U(txt);
-      if (!imported.length) {
-        alert('没有解析到任何频道（请确认是 m3u/m3u8 格式）。');
-        return;
-      }
-
-      // Merge into customChannels: merge by (name+category)
-      const keyOf = (c) => `${c.category || ''}__${c.name || ''}`;
-      const map = new Map();
-      (customChannels || []).forEach(c => map.set(keyOf(c), c));
-
-      for (const c of imported) {
-        const k = keyOf(c);
-        if (!map.has(k)) {
-          map.set(k, c);
-        } else {
-          // merge sources
-          const exist = map.get(k);
-          const urls = new Set((exist.sources || []).map(s => s.url));
-          for (const s of (c.sources || [])) {
-            if (s.url && !urls.has(s.url)) {
-              exist.sources = exist.sources || [];
-              exist.sources.push({ label: `线路${exist.sources.length + 1}`, url: s.url, priority: exist.sources.length + 1 });
-              urls.add(s.url);
-            }
-          }
-          if (!exist.logo && c.logo) exist.logo = c.logo;
-        }
-      }
-
-      customChannels = Array.from(map.values());
-      Storage.set(KEY_CUSTOM, customChannels);
-      alert(`导入完成：${imported.length} 个频道（已合并去重）`);
-      await loadChannels(true);
-      closeModal();
-    } catch (e) {
-      alert('导入失败：' + (e && e.message ? e.message : String(e)));
-    }
-  });
-
-  exportM3U.addEventListener('click', () => {
-    const txt = exportM3UText(customChannels || []);
-    downloadText('my_import.m3u', txt);
-  });
-
-  clearImport.addEventListener('click', async () => {
-    if (!confirm('确定清空“我的导入”？（不会影响收藏/最近）')) return;
-    customChannels = [];
-    Storage.del(KEY_CUSTOM);
-    await loadChannels(true);
-    alert('已清空。');
-  });
-
-  // ========== Load Data ==========
-  async function loadChannels(bust = false) {
-    try {
-      const url = './channels.json' + (bust ? `?t=${Date.now()}` : '');
+  async function loadM3UFromUrl(){
+    const url = prompt('输入订阅 URL（返回内容应为 m3u 文本）');
+    if (!url) return;
+    try{
       const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const base = await res.json();
-
-      customChannels = Storage.get(KEY_CUSTOM, []);
-      channelsData = getMergedData(base);
-
-      if (channelsData.notice) {
-        notice.style.display = '';
-        notice.textContent = channelsData.notice;
-      } else {
-        notice.style.display = 'none';
-      }
-
-      renderFilters();
-      render();
-    } catch (err) {
-      notice.style.display = '';
-      notice.textContent = '频道列表加载失败：' + err.message;
-      content.innerHTML = `
-        <div class="empty">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-text">
-            无法加载频道列表<br>
-            请确认 channels.json 文件存在且格式正确
-          </div>
-        </div>
-      `;
+      const txt = await res.text();
+      m3uText.value = txt;
+    } catch (e){
+      alert('加载失败：' + (e?.message || e));
     }
   }
 
-  // ========== Service Worker ==========
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
-
-  // ========== Init ==========
+  // -------------------- Events --------------------
   searchInput.addEventListener('input', () => {
     searchTerm = searchInput.value.trim();
-    render();
+    renderAll();
   });
 
-  filterRow.addEventListener('click', handleFilterClick);
-  content.addEventListener('click', handleCardClick);
-  content.addEventListener('click', handleSectionAction);
-  refreshBtn.addEventListener('click', () => loadChannels(true));
+  favViewBtn.addEventListener('click', () => {
+    onlyFav = !onlyFav;
+    onlyRecent = false;
+    syncViewButtons();
+    renderAll();
+  });
+
+  recentViewBtn.addEventListener('click', () => {
+    onlyRecent = !onlyRecent;
+    onlyFav = false;
+    syncViewButtons();
+    renderAll();
+  });
+
+  importBtn.addEventListener('click', openModal);
+  closeModalBtn.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e)=>{ if (e.target === modalBackdrop) closeModal(); });
+
+  pickFileBtn.addEventListener('click', ()=>fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files?.[0];
+    if (!f) return;
+    const txt = await f.text();
+    m3uText.value = txt;
+    fileInput.value = '';
+  });
+
+  loadFromUrlBtn.addEventListener('click', loadM3UFromUrl);
+
+  doImportBtn.addEventListener('click', () => {
+    const txt = m3uText.value;
+    const parsed = parseM3U(txt);
+    if (!parsed.length){
+      alert('未解析到有效频道。请确认 m3u 格式是否正确。');
+      return;
+    }
+    mergeImported(parsed);
+    mergeData();
+    closeModal();
+    alert('已导入并保存：' + parsed.length + ' 条记录（同名频道已自动合并多线路）');
+  });
+
+  exportM3UBtn.addEventListener('click', exportImportedAsM3U);
+
+  clearImportBtn.addEventListener('click', () => {
+    if (!confirm('确定清空“我的导入”？')) return;
+    importedData = { channels: [] };
+    saveJSON(KEY_IMPORTED, importedData);
+    mergeData();
+  });
 
   clearBadBtn.addEventListener('click', () => {
-    if (confirm('确定清理“失效线路”记录？清理后会重新尝试所有线路。')) {
-      try { localStorage.removeItem('tv_bad_sources'); } catch {}
-      alert('已清理。');
+    if (!confirm('清理近期失效记录？清理后会重新尝试所有线路。')) return;
+    localStorage.removeItem(KEY_BAD);
+    alert('已清理。');
+  });
+
+  openDrawerBtn.addEventListener('click', openDrawer);
+  closeDrawerBtn.addEventListener('click', closeDrawer);
+  drawerBackdrop.addEventListener('click', closeDrawer);
+
+  // Messages from player frames
+  window.addEventListener('message', (ev) => {
+    const msg = ev.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'closeTab' && msg.sid){
+      closeTab(msg.sid);
+    }
+    if (msg.type === 'focusTab' && msg.sid){
+      selectTab(msg.sid);
+    }
+    if (msg.type === 'openedExternal' && msg.sid){
+      // keep tab, just mark active
+      selectTab(msg.sid);
+    }
+    if (msg.type === 'openDrawer') {
+      openDrawer();
+      if (msg.sid) selectTab(msg.sid);
     }
   });
 
-  loadChannels(false);
-})();
+  // -------------------- Service worker --------------------
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    });
+  }
+
+  // Boot
+  (async () => {
+    try{
+      await loadBase();
+      syncViewButtons();
+    } catch (e){
+      console.error(e);
+      channelList.innerHTML = `<div class="empty"><div class="box"><div class="title">加载失败</div><div>无法加载 channels.json，请检查部署是否完整。</div></div></div>`;
+    }
+  })();
 </script>
 </body>
 </html>

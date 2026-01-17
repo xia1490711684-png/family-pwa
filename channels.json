@@ -13,13 +13,40 @@
   ],
   "channels": [
     {
+      "id": "cctv_live_hub",
+      "name": "央视直播大全（频道列表）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视直播大全",
+          "url": "web:https://tv.cctv.com/live/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "央视",
+        "中文",
+        "入口"
+      ],
+      "region": "CN",
+      "order": 0
+    },
+    {
       "id": "cctv13_web",
       "name": "CCTV-13 新闻（央视网）",
       "category": "大陆/央媒（官方网页）",
       "sources": [
-        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv13/m/", "priority": 1 }
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv13/m/",
+          "priority": 1
+        }
       ],
-      "tags": ["央视", "新闻", "中文"],
+      "tags": [
+        "央视",
+        "新闻",
+        "中文"
+      ],
       "region": "CN",
       "order": 1
     },
@@ -28,9 +55,17 @@
       "name": "CCTV-1 综合（央视网）",
       "category": "大陆/央媒（官方网页）",
       "sources": [
-        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv1/m/", "priority": 1 }
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv1/m/",
+          "priority": 1
+        }
       ],
-      "tags": ["央视", "综合", "中文"],
+      "tags": [
+        "央视",
+        "综合",
+        "中文"
+      ],
       "region": "CN",
       "order": 2
     },
@@ -39,32 +74,244 @@
       "name": "CCTV-4 中文国际（央视网）",
       "category": "大陆/央媒（官方网页）",
       "sources": [
-        { "label": "央视网直播页", "url": "web:https://tv.cctv.com/live/cctv4/m/", "priority": 1 }
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv4/m/",
+          "priority": 1
+        }
       ],
-      "tags": ["央视", "中文", "国际"],
+      "tags": [
+        "央视",
+        "中文",
+        "国际"
+      ],
       "region": "CN/Global",
       "order": 3
+    },
+    {
+      "id": "cctv2_web",
+      "name": "CCTV-2 财经（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv2/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "财经",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 4
+    },
+    {
+      "id": "cctv3_web",
+      "name": "CCTV-3 综艺（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv3/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "综艺",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 5
+    },
+    {
+      "id": "cctv5_web",
+      "name": "CCTV-5 体育（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv5/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "体育",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 6
+    },
+    {
+      "id": "cctv6_web",
+      "name": "CCTV-6 电影（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv6/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "电影",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 7
+    },
+    {
+      "id": "cctv8_web",
+      "name": "CCTV-8 电视剧（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv8/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "电视剧",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 8
+    },
+    {
+      "id": "cctv9_web",
+      "name": "CCTV-9 纪录（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv9/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "纪录",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 9
     },
     {
       "id": "cgtn_web",
       "name": "CGTN（France24式网页/可能跳转）",
       "category": "大陆/央媒（官方网页）",
       "sources": [
-        { "label": "CGTN Live", "url": "web:https://www.cgtn.com/live/", "priority": 1 }
+        {
+          "label": "CGTN Live",
+          "url": "web:https://www.cgtn.com/live/",
+          "priority": 1
+        }
       ],
-      "tags": ["新闻", "国际"],
+      "tags": [
+        "新闻",
+        "国际"
+      ],
       "region": "Global",
       "order": 9
     },
-
+    {
+      "id": "cctv10_web",
+      "name": "CCTV-10 科教（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv10/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "科教",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 10
+    },
+    {
+      "id": "cctv12_web",
+      "name": "CCTV-12 社会与法（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv12/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "法治",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 11
+    },
+    {
+      "id": "cctv15_web",
+      "name": "CCTV-15 音乐（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv15/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "音乐",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 12
+    },
+    {
+      "id": "cctv17_web",
+      "name": "CCTV-17 农业农村（央视网）",
+      "category": "大陆/央媒（官方网页）",
+      "sources": [
+        {
+          "label": "央视网直播页",
+          "url": "web:https://tv.cctv.com/live/cctv17/m/",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "农业",
+        "央视",
+        "中文"
+      ],
+      "region": "CN",
+      "order": 13
+    },
     {
       "id": "rthk31",
       "name": "香港电台 RTHK TV 31",
       "category": "港澳台",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://rthktv31-live.akamaized.net/hls/live/2036818/RTHKTV31/master.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://rthktv31-live.akamaized.net/hls/live/2036818/RTHKTV31/master.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["香港", "中文", "公共电视"],
+      "tags": [
+        "香港",
+        "中文",
+        "公共电视"
+      ],
       "region": "HK",
       "order": 20
     },
@@ -73,9 +320,17 @@
       "name": "香港电台 RTHK TV 32",
       "category": "港澳台",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://rthktv32-live.akamaized.net/hls/live/2036819/RTHKTV32/master.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["香港", "中文", "公共电视"],
+      "tags": [
+        "香港",
+        "中文",
+        "公共电视"
+      ],
       "region": "HK",
       "order": 21
     },
@@ -84,9 +339,17 @@
       "name": "香港电台 RTHK TV 33",
       "category": "港澳台",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/master.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["香港", "中文", "公共电视"],
+      "tags": [
+        "香港",
+        "中文",
+        "公共电视"
+      ],
       "region": "HK",
       "order": 22
     },
@@ -95,46 +358,133 @@
       "name": "香港电台 RTHK TV 34",
       "category": "港澳台",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://rthktv34-live.akamaized.net/hls/live/2101642/RTHKTV34/master.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://rthktv34-live.akamaized.net/hls/live/2101642/RTHKTV34/master.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["香港", "中文", "公共电视"],
+      "tags": [
+        "香港",
+        "中文",
+        "公共电视"
+      ],
       "region": "HK",
       "order": 23
     },
-
     {
       "id": "pts_web",
       "name": "台湾 公视（官网入口）",
       "category": "港澳台",
       "sources": [
-        { "label": "公视官网", "url": "web:https://www.pts.org.tw/", "priority": 1 },
-        { "label": "PTS+ 直播页", "url": "web:https://www.ptsplus.tv/streaming", "priority": 2 }
+        {
+          "label": "公视官网",
+          "url": "web:https://www.pts.org.tw/",
+          "priority": 1
+        },
+        {
+          "label": "PTS+ 直播页",
+          "url": "web:https://www.ptsplus.tv/streaming",
+          "priority": 2
+        }
       ],
-      "tags": ["台湾", "中文", "公共电视"],
+      "tags": [
+        "台湾",
+        "中文",
+        "公共电视"
+      ],
       "region": "TW",
       "order": 30
     },
-
     {
       "id": "8world_web",
       "name": "新加坡 8world 新闻直播（官网入口）",
       "category": "新加坡/马来西亚",
       "sources": [
-        { "label": "8world Mobile Livestream", "url": "web:https://www.8world.com/mobile-livestream", "priority": 1 }
+        {
+          "label": "8world Mobile Livestream",
+          "url": "web:https://www.8world.com/mobile-livestream",
+          "priority": 1
+        }
       ],
-      "tags": ["新加坡", "中文", "新闻"],
+      "tags": [
+        "新加坡",
+        "中文",
+        "新闻"
+      ],
       "region": "SG",
       "order": 40
     },
-
+    {
+      "id": "mewatch_ch8",
+      "name": "新加坡 Channel 8（meWATCH 入口）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "meWATCH Channel 8",
+          "url": "web:https://www.mewatch.sg/channels/channel-8/97104",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "新加坡",
+        "中文",
+        "电视"
+      ],
+      "region": "SG",
+      "order": 41
+    },
+    {
+      "id": "astro_awani_live",
+      "name": "马来西亚 Astro AWANI（官网直播）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "Astro AWANI Live",
+          "url": "web:https://www.astroawani.com/video-terkini",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "马来西亚",
+        "新闻"
+      ],
+      "region": "MY",
+      "order": 50
+    },
+    {
+      "id": "tonton_live_hub",
+      "name": "马来西亚 Tonton Live TV（官方入口）",
+      "category": "新加坡/马来西亚",
+      "sources": [
+        {
+          "label": "Tonton Live TV",
+          "url": "web:https://browse.tonton.com.my/live",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "马来西亚",
+        "入口"
+      ],
+      "region": "MY",
+      "order": 51
+    },
     {
       "id": "nhk_world",
       "name": "NHK World-Japan（HLS）",
       "category": "国际",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["新闻", "国际"],
+      "tags": [
+        "新闻",
+        "国际"
+      ],
       "region": "Global",
       "order": 80
     },
@@ -143,33 +493,54 @@
       "name": "France 24 English（官网入口）",
       "category": "国际",
       "sources": [
-        { "label": "France24 Live", "url": "web:https://www.france24.com/en/live", "priority": 1 }
+        {
+          "label": "France24 Live",
+          "url": "web:https://www.france24.com/en/live",
+          "priority": 1
+        }
       ],
-      "tags": ["新闻", "国际"],
+      "tags": [
+        "新闻",
+        "国际"
+      ],
       "region": "Global",
       "order": 81
-    },
-    {
-      "id": "nasa_public",
-      "name": "NASA TV Public（HLS）",
-      "category": "太空",
-      "sources": [
-        { "label": "HLS 主线路", "url": "https://nasa-i.akamaihd.net/hls/live/253565/NTV-Public/master.m3u8", "priority": 1 }
-      ],
-      "tags": ["NASA", "太空"],
-      "region": "Global",
-      "order": 90
     },
     {
       "id": "classic_arts_showcase",
       "name": "Classic Arts Showcase（HLS）",
       "category": "科教/纪录",
       "sources": [
-        { "label": "HLS 主线路", "url": "https://classicarts.akamaized.net/hls/live/1024257/CAS/master.m3u8", "priority": 1 }
+        {
+          "label": "HLS 主线路",
+          "url": "https://classicarts.akamaized.net/hls/live/1024257/CAS/master.m3u8",
+          "priority": 1
+        }
       ],
-      "tags": ["艺术", "纪录"],
+      "tags": [
+        "艺术",
+        "纪录"
+      ],
       "region": "Global",
       "order": 95
+    },
+    {
+      "id": "nasa_public",
+      "name": "NASA TV Public（HLS）",
+      "category": "太空",
+      "sources": [
+        {
+          "label": "HLS 主线路",
+          "url": "https://nasa-i.akamaihd.net/hls/live/253565/NTV-Public/master.m3u8",
+          "priority": 1
+        }
+      ],
+      "tags": [
+        "NASA",
+        "太空"
+      ],
+      "region": "Global",
+      "order": 90
     }
   ]
 }

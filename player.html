@@ -145,10 +145,9 @@
     .source-btn:active { opacity: 0.7; }
     .source-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-    .action-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .action-row { display: flex; gap: 10px; margin-top: 16px; }
     .action-btn {
-      flex: 1 1 45%;
-      min-width: 160px;
+      flex: 1;
       padding: 12px;
       border-radius: 12px;
       border: 1px solid var(--line);
@@ -188,7 +187,8 @@
 </head>
 <body>
   <header>
-    <a class="back-btn" href="./">← 返回</a>
+    <a class="back-btn" href="./" id="backLink">← 列表</a>
+    <button class="back-btn" id="closeTabBtn" type="button">× 关闭</button>
     <div class="header-title" id="channelName">加载中...</div>
   </header>
 
@@ -243,16 +243,14 @@
       <button class="action-btn" id="speedBtn">⚡ 测速选线</button>
       <button class="action-btn" id="reloadBtn">🔄 重新加载</button>
       <button class="action-btn" id="retryBtn" style="display:none;">⏭️ 下一线路</button>
-      <button class="action-btn" id="openTabBtn">🌐 新标签打开</button>
-      <button class="action-btn" id="openBrowserBtn">🌐 本页打开（返回可回）</button>
     </div>
 
     <div class="url-display" id="urlDisplay">-</div>
   </div>
 
   <div class="footer-note">
-    Safari（iPhone/iPad/Mac）原生支持 HLS；其他浏览器会尝试使用 hls.js。
-    如果某条线路在播放器内无法播放（CORS/地区/防盗链/格式等），可点击下方“新标签打开”或“本页打开（返回可回）”，以浏览器方式打开原链接/原网页，然后用浏览器返回回到频道列表继续切换。
+    Safari（iPhone/iPad/Mac）原生支持 HLS。其他浏览器将尝试使用 hls.js。\n
+    若为 <code>web:</code> 线路，会尝试内嵌网页；若网页禁止内嵌，会提示在新标签打开。
   </div>
 
 <script>
@@ -303,11 +301,13 @@
   const reloadBtn = $('reloadBtn');
   const retryBtn = $('retryBtn');
   const speedBtn = $('speedBtn');
-  const openTabBtn = $('openTabBtn');
-  const openBrowserBtn = $('openBrowserBtn');
   const urlDisplay = $('urlDisplay');
 
+  const closeTabBtn = $('closeTabBtn');
+  const backLink = $('backLink');
+
   const params = new URLSearchParams(location.search);
+  const sid = params.get('sid');
   const channelId = params.get('id');
   const legacyName = params.get('name');
   const legacyUrl = params.get('url');
@@ -348,7 +348,7 @@
   }
 
   // ===== Bad source map =====
-  function getBadMap() { return Storage.get('tv_bad_sources', {}); }
+  function getBadMap() { return Storage.get('tv_bad_sources_v1', {}); }
 
   function isUrlBad(url) {
     if (!url) return false;
@@ -365,7 +365,7 @@
     const m = getBadMap();
     const prev = m[url] || {};
     m[url] = { ts: Date.now(), count: (prev.count || 0) + 1, reason: String(reason || prev.reason || '') };
-    Storage.set('tv_bad_sources', m);
+    Storage.set('tv_bad_sources_v1', m);
   }
 
   function findNextGood(fromIndex) {
@@ -781,6 +781,18 @@
   }
 
   async function loadChannel() {
+    if (sid) {
+      try {
+        const raw = localStorage.getItem('tv_channel_' + sid);
+        if (raw) {
+          channel = JSON.parse(raw);
+          initPlayer();
+          try { window.parent.postMessage({ type: 'focusTab', sid }, '*'); } catch (e) {}
+          return;
+        }
+      } catch (e) { /* ignore */ }
+    }
+
     if (legacyUrl && !channelId) {
       channel = {
         id: 'legacy',
@@ -845,6 +857,24 @@
   }
 
   // ===== Events =====
+  // Close tab / go back
+  if (closeTabBtn) {
+    closeTabBtn.addEventListener('click', () => {
+      if (sid) {
+        try { window.parent.postMessage({ type: 'closeTab', sid }, '*'); } catch (e) {}
+      } else {
+        history.back();
+      }
+    });
+  }
+  if (backLink) {
+    backLink.addEventListener('click', (e) => {
+      if (!sid) return;
+      e.preventDefault();
+      try { window.parent.postMessage({ type: 'openDrawer', sid }, '*'); } catch (e2) {}
+    });
+  }
+
   sourceList.addEventListener('click', e => {
     const btn = e.target.closest('.source-btn');
     if (!btn) return;
@@ -874,40 +904,6 @@
     const best = await pickBestSourceIndex();
     manualSelected = true;
     playSource(best);
-  });
-
-
-
-  function getOpenTargetUrl() {
-    if (!sources.length) return null;
-    const src = sources[currentSourceIndex] || {};
-    const u = src.url || '';
-
-    const yt = parseYouTubeSpec(u);
-    if (yt) {
-      // For users who can access YouTube, open the native page.
-      if (yt.kind === 'channel') return 'https://www.youtube.com/channel/' + yt.id + '/live';
-      if (yt.kind === 'playlist') return 'https://www.youtube.com/playlist?list=' + yt.id;
-      return 'https://www.youtube.com/watch?v=' + yt.id;
-    }
-
-    const web = parseWebSpec(u);
-    if (web) return web.url;
-
-    return u || null;
-  }
-
-  openTabBtn.addEventListener('click', () => {
-    const t = getOpenTargetUrl();
-    if (!t) return;
-    window.open(t, '_blank');
-  });
-
-  openBrowserBtn.addEventListener('click', () => {
-    const t = getOpenTargetUrl();
-    if (!t) return;
-    // Open in the same tab (like a browser). Use Back to return.
-    location.href = t;
   });
 
   if ('serviceWorker' in navigator) {
