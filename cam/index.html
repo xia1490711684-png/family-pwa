@@ -50,6 +50,12 @@
     border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   }
+  .player-wrap.dual-mode { aspect-ratio: 16/18; display: flex; flex-direction: column; gap: 4px; }
+  .player-wrap.dual-mode video { position: relative !important; width: 100% !important; height: 50% !important; opacity: 1 !important; pointer-events: auto !important; }
+  @media (min-width: 800px) {
+    .player-wrap.dual-mode { aspect-ratio: 32/9; flex-direction: row; }
+    .player-wrap.dual-mode video { width: 50% !important; height: 100% !important; }
+  }
   video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
   .overlay-status {
     position: absolute; top: 10px; left: 10px; right: 10px;
@@ -107,11 +113,12 @@
   <div class="cam-selector">
     <button class="btn active" id="camBtn0" onclick="selectCam('客厅_小米摄像机2K', 0)">🛋️ 客厅 2K</button>
     <button class="btn" id="camBtn1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅 2K</button>
+    <button class="btn" id="camBtnDual" onclick="selectDualLive()">🖼️ 双路同屏</button>
     <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)" style="display:none;">🚪 大门门铃 4Pro</button>
   </div>
 
   <!-- Video Player -->
-  <div class="player-wrap">
+  <div class="player-wrap" id="playerWrap">
     <div class="overlay-status" id="overlayText">正在连接 2K 原画流...</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <video id="videoA" controls autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;"></video>
@@ -126,6 +133,9 @@
     <button class="nudge-btn" onclick="nudgeVideo(10)">+10秒</button>
     <button class="nudge-btn" onclick="nudgeVideo(30)">+30秒</button>
     <button class="nudge-btn" onclick="nudgeVideo(300)">+5分钟 ⏩</button>
+    <button class="nudge-btn" id="spd1" onclick="setSpeed(1)" style="border-color:#38bdf8;color:#38bdf8;">1.0x</button>
+    <button class="nudge-btn" id="spd2" onclick="setSpeed(2)">2.0x</button>
+    <button class="nudge-btn" id="spd4" onclick="setSpeed(4)">4.0x</button>
   </div>
 
   <!-- Panel 1 & 2: Current 2-Hour Window Minute-Accurate Timeline -->
@@ -178,7 +188,7 @@
 <script src="hls.min.js"></script>
 <script>
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
-const EMBEDDED_TUNNEL = 'https://desired-sampling-usd-overseas.trycloudflare.com';
+const EMBEDDED_TUNNEL = 'https://woods-marion-bishop-carolina.trycloudflare.com';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
@@ -193,6 +203,11 @@ let curSegIndex = -1;
 let activeVid = document.getElementById('videoA');
 let standbyVid = document.getElementById('videoB');
 let hlsPlayer = null;
+let hlsPlayerB = null;
+let isDualMode = false;
+let playbackRateVal = 1.0;
+let lastWatchdogTime = -1;
+let stallCount = 0;
 let lastLiveSeq = -1;
 let liveTimer = null;
 let cloudData = null;
@@ -204,6 +219,34 @@ function destroyHls() {
     try { hlsPlayer.destroy(); } catch (e) {}
     hlsPlayer = null;
   }
+  if (hlsPlayerB) {
+    try { hlsPlayerB.destroy(); } catch (e) {}
+    hlsPlayerB = null;
+  }
+}
+
+function exitDualMode() {
+  if (isDualMode) {
+    isDualMode = false;
+    document.getElementById('playerWrap').classList.remove('dual-mode');
+    document.getElementById('camBtnDual').classList.remove('active');
+    standbyVid.pause();
+    standbyVid.removeAttribute('src');
+    standbyVid.style.opacity = '0';
+    standbyVid.style.pointerEvents = 'none';
+  }
+}
+
+function setSpeed(rate) {
+  playbackRateVal = rate;
+  if (activeVid) activeVid.playbackRate = rate;
+  [1, 2, 4].forEach(r => {
+    const b = document.getElementById('spd' + r);
+    if (b) {
+      b.style.borderColor = (r === rate) ? '#38bdf8' : 'var(--border)';
+      b.style.color = (r === rate) ? '#38bdf8' : '#e2e8f0';
+    }
+  });
 }
 
 function switchToLanDirect() {
@@ -343,9 +386,12 @@ function switchTab(tab) {
   document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
   document.getElementById('tabCloud').classList.toggle('active', tab === 'cloud');
   document.getElementById('camBtn2').style.display = (tab === 'cloud') ? 'inline-flex' : 'none';
+  document.getElementById('camBtnDual').style.display = (tab === 'live') ? 'inline-flex' : 'none';
   document.getElementById('panelRecent').style.display = (tab === 'cloud') ? 'none' : 'block';
   document.getElementById('panelCloud').style.display = (tab === 'cloud') ? 'block' : 'none';
   document.getElementById('nudgeBar').style.display = (tab === 'live') ? 'none' : 'flex';
+
+  if (tab !== 'live') exitDualMode();
 
   if (tab === 'live') {
     if (currentCam === '大门_小米智能门铃4Pro') selectCam('客厅_小米摄像机2K', 0);
@@ -360,6 +406,7 @@ function switchTab(tab) {
 }
 
 function selectCam(camName, idx) {
+  exitDualMode();
   soundUnlocked = true;
   document.getElementById('unmuteBtn').style.display = 'none';
   currentCam = camName;
@@ -377,6 +424,65 @@ function selectCam(camName, idx) {
     if (segs.length > 0) playSegmentAt(segs.length - 1, 0);
     else startLiveMode();
   }
+}
+
+function attachHlsToVideo(vid, hlsUrl, isSecondary) {
+  vid.onended = null;
+  if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+    vid.src = hlsUrl;
+    if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
+    else tryPlayVideo(vid);
+    return null;
+  } else if (window.Hls && Hls.isSupported()) {
+    const inst = new Hls({
+      enableWorker: true,
+      lowLatencyMode: false,
+      backBufferLength: 30,
+      maxBufferLength: 24,
+      liveSyncDurationCount: 2,
+      liveMaxLatencyDurationCount: 5
+    });
+    inst.loadSource(hlsUrl);
+    inst.attachMedia(vid);
+    inst.on(Hls.Events.MANIFEST_PARSED, () => {
+      if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
+      else tryPlayVideo(vid);
+    });
+    inst.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal) {
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) inst.startLoad();
+        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) inst.recoverMediaError();
+      }
+    });
+    return inst;
+  } else {
+    vid.src = hlsUrl;
+    if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
+    else tryPlayVideo(vid);
+    return null;
+  }
+}
+
+function selectDualLive() {
+  if (currentTab !== 'live') switchTab('live');
+  isDualMode = true;
+  isLiveMode = true;
+  curSegIndex = -1;
+  destroyHls();
+  document.getElementById('camBtn0').classList.remove('active');
+  document.getElementById('camBtn1').classList.remove('active');
+  document.getElementById('camBtn2').classList.remove('active');
+  document.getElementById('camBtnDual').classList.add('active');
+  document.getElementById('playerWrap').classList.add('dual-mode');
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = '🖼️ 双路2K同屏';
+  badge.style.background = '#ef4444';
+  document.getElementById('overlayText').textContent = '🛋️ 客厅 2K + 🍽️ 餐厅 2K ｜ 🔴 双路 2K 原画实时同屏';
+  if (IS_CLOUD_SHELL && !API_BASE) return;
+  const urlA = `${API_BASE}/hls/${encodeURIComponent('客厅_小米摄像机2K')}/live.m3u8`;
+  const urlB = `${API_BASE}/hls/${encodeURIComponent('餐厅_小米摄像机2K')}/live.m3u8`;
+  hlsPlayer = attachHlsToVideo(activeVid, urlA, false);
+  hlsPlayerB = attachHlsToVideo(standbyVid, urlB, true);
 }
 
 async function fetchState() {
@@ -441,6 +547,7 @@ function playSegmentAt(idx, offsetSec) {
   activeVid.onended = null;
   activeVid.src = `${API_BASE}${segs[idx].url}`;
   activeVid.currentTime = Math.max(0, offsetSec || 0);
+  activeVid.playbackRate = playbackRateVal;
   tryPlayVideo(activeVid);
 
   if (idx + 1 < segs.length) {
@@ -500,6 +607,10 @@ function nudgeVideo(deltaSec) {
 }
 
 async function startLiveMode() {
+  if (isDualMode) {
+    selectDualLive();
+    return;
+  }
   isLiveMode = true;
   curSegIndex = -1;
   destroyHls();
@@ -512,35 +623,8 @@ async function startLiveMode() {
 
   if (IS_CLOUD_SHELL && !API_BASE) return;
   const hlsUrl = `${API_BASE}/hls/${encodeURIComponent(currentCam)}/live.m3u8`;
-  activeVid.onended = null;
-
-  if (activeVid.canPlayType('application/vnd.apple.mpegurl')) {
-    activeVid.src = hlsUrl;
-    tryPlayVideo(activeVid);
-  } else if (window.Hls && Hls.isSupported()) {
-    hlsPlayer = new Hls({
-      enableWorker: true,
-      lowLatencyMode: false,
-      backBufferLength: 30,
-      maxBufferLength: 24,
-      liveSyncDurationCount: 2,
-      liveMaxLatencyDurationCount: 5
-    });
-    hlsPlayer.loadSource(hlsUrl);
-    hlsPlayer.attachMedia(activeVid);
-    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
-      tryPlayVideo(activeVid);
-    });
-    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hlsPlayer.startLoad();
-        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hlsPlayer.recoverMediaError();
-      }
-    });
-  } else {
-    activeVid.src = hlsUrl;
-    tryPlayVideo(activeVid);
-  }
+  activeVid.playbackRate = 1.0;
+  hlsPlayer = attachHlsToVideo(activeVid, hlsUrl, false);
 }
 
 async function loadCloudArchive(cam, dateStr) {
@@ -634,6 +718,7 @@ function playCloudFile(f, offsetSec) {
     }
     activeVid.currentTime = currentCloudOffset;
   }
+  activeVid.playbackRate = playbackRateVal;
   tryPlayVideo(activeVid);
   renderCloudFiles();
 
@@ -676,6 +761,20 @@ if (!IS_CLOUD_SHELL || API_BASE) {
 }
 discoverApiBase();
 setInterval(fetchState, 5000);
+setInterval(() => {
+  if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
+  const ct = activeVid.currentTime || 0;
+  if (!activeVid.paused && ct > 0 && Math.abs(ct - lastWatchdogTime) < 0.05) {
+    stallCount++;
+    if (stallCount >= 3) {
+      stallCount = 0;
+      startLiveMode();
+    }
+  } else {
+    stallCount = 0;
+  }
+  lastWatchdogTime = ct;
+}, 3500);
 </script>
 </body>
 </html>
