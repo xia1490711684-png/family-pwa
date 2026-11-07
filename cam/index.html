@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="全屋2K监控">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<title>全屋2K监控 — 实时直播 · 近2小时回放 · 谷歌云盘全量库</title>
+<style>
+  :root {
+    --bg: #0b1120; --panel: #1e293b; --border: #334155; --text: #f8fafc;
+    --muted: #94a3b8; --accent: #3b82f6; --live: #ef4444; --ok: #10b981; --purple: #8b5cf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    padding: calc(10px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom)) 12px;
+    max-width: 1280px; margin: 0 auto;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .title { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .badge-live { background: var(--live); color: #fff; font-size: 12px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+  .badge-net { background: #1e293b; border: 1px solid #475569; color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; cursor: pointer; }
+  .tabs-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .tab-btn {
+    cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    padding: 10px 6px; border-radius: 9px; font-size: 13px; font-weight: 700; text-align: center; transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab-btn.live-tab.active { background: var(--live); border-color: var(--live); color: #fff; }
+  .tab-btn.cloud-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+  .cam-selector { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .btn {
+    cursor: pointer; border: 1px solid var(--border); background: #0f172a; color: var(--text);
+    padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-unmute {
+    position: absolute; bottom: 52px; right: 14px; z-index: 20;
+    background: rgba(239,68,68,0.92); color: #fff; border: none; padding: 8px 14px;
+    border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .player-wrap {
+    position: relative; width: 100%; aspect-ratio: 16/9; background: #000;
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .overlay-status {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    background: rgba(15,23,42,0.78); padding: 5px 10px; border-radius: 7px;
+    font-size: 12px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; z-index: 10;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .seek-nudge-bar {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .nudge-btn {
+    cursor: pointer; background: var(--panel); border: 1px solid var(--border); color: #e2e8f0;
+    padding: 6px 11px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  }
+  .nudge-btn:active { background: var(--accent); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 10px 0; }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--accent); height: 8px; cursor: pointer; }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 190px; overflow-y: auto; padding-top: 4px; }
+  .m-chip {
+    cursor: pointer; font-size: 12px; padding: 6px 10px; border-radius: 7px;
+    background: #0f172a; border: 1px solid var(--border); color: #cbd5e1;
+  }
+  .m-chip.playing { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .m-chip.cloud-playing { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 700; }
+  select, input[type=time] {
+    background: #0f172a; border: 1px solid var(--border); color: #fff;
+    padding: 6px 10px; border-radius: 7px; font-size: 13px;
+  }
+  .ios-tip { font-size: 12px; color: var(--muted); text-align: center; padding: 8px; border-top: 1px solid var(--border); margin-top: 8px; line-height: 1.5; }
+  @media (min-width: 800px) { .only-pc { display: inline-flex !important; } }
+  @media (max-width: 799px) { .only-pc { display: none !important; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">
+      <span>📹 全屋 2K 监控</span>
+      <span id="modeBadge" class="badge-live">🔴 实时直播</span>
+      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 智能三网连接中...</span>
+    </div>
+    <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 用电脑系统媒体播放器打开</button>
+  </div>
+
+  <!-- 3 Core Functional Tabs -->
+  <div class="tabs-bar">
+    <div class="tab-btn live-tab active" id="tabLive" onclick="switchTab('live')">🔴 实时直播</div>
+    <div class="tab-btn" id="tabRecent" onclick="switchTab('recent')">🕒 近2小时点播</div>
+    <div class="tab-btn cloud-tab" id="tabCloud" onclick="switchTab('cloud')">☁️ 谷歌云盘全量库</div>
+  </div>
+
+  <!-- Device Selector -->
+  <div class="cam-selector">
+    <button class="btn active" id="camBtn0" onclick="selectCam('客厅_小米摄像机2K', 0)">🛋️ 客厅 2K</button>
+    <button class="btn" id="camBtn1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅 2K</button>
+    <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)" style="display:none;">🚪 大门门铃 4Pro</button>
+  </div>
+
+  <!-- Video Player -->
+  <div class="player-wrap">
+    <div class="overlay-status" id="overlayText">正在连接 2K 原画流...</div>
+    <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
+    <video id="videoA" controls autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;"></video>
+    <video id="videoB" controls playsinline webkit-playsinline crossorigin="anonymous" style="z-index:1;opacity:0;pointer-events:none;"></video>
+  </div>
+
+  <!-- Fast Seek Bar for Playback / Cloud Archive -->
+  <div class="seek-nudge-bar" id="nudgeBar" style="display:none;">
+    <button class="nudge-btn" onclick="nudgeVideo(-300)">⏪ -5分钟</button>
+    <button class="nudge-btn" onclick="nudgeVideo(-30)">-30秒</button>
+    <button class="nudge-btn" onclick="nudgeVideo(-10)">-10秒</button>
+    <button class="nudge-btn" onclick="nudgeVideo(10)">+10秒</button>
+    <button class="nudge-btn" onclick="nudgeVideo(30)">+30秒</button>
+    <button class="nudge-btn" onclick="nudgeVideo(300)">+5分钟 ⏩</button>
+  </div>
+
+  <!-- Panel 1 & 2: Current 2-Hour Window Minute-Accurate Timeline -->
+  <div class="card" id="panelRecent">
+    <div class="card-title">
+      <span id="blockTitle">🕒 近 2 小时任意时间点点播（点击秒开并自动往后连播）</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="time" id="exactTimeInput" step="1" onchange="jumpToExactInput()">
+        <button class="btn" style="padding:5px 10px;font-size:12px;" onclick="jumpToExactInput()">跳转</button>
+      </div>
+    </div>
+    <div class="slider-row">
+      <span id="tlStartLabel" style="font-size:12px;color:var(--muted);min-width:52px;">--:--</span>
+      <input type="range" id="tlSlider" min="0" max="100" value="100" oninput="onSliderScrub(this.value)">
+      <span id="tlEndLabel" style="font-size:12px;color:#38bdf8;min-width:52px;font-weight:700;">实时</span>
+    </div>
+    <div class="chip-grid" id="minuteGrid"></div>
+  </div>
+
+  <!-- Panel 3: Google Drive Full 20TB Archive Browser (All Devices, All Dates, All 2-Hour Blocks) -->
+  <div class="card" id="panelCloud" style="display:none;">
+    <div class="card-title">
+      <span>☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--muted);">选择日期：</span>
+        <select id="cloudDateSelect" onchange="onCloudDateChange()"></select>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（点击即播）：</div>
+    <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:10px;"></div>
+
+    <!-- Intra-2-Hour Quick 10-Minute Jump Bar -->
+    <div id="intra2hBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+      <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内快速定位（点击直达对应分钟）：</div>
+      <div class="chip-grid" id="intra10mGrid" style="margin-bottom:8px;"></div>
+    </div>
+
+    <!-- Motion & Sound Highlights from 今日动静时间轴速查.txt -->
+    <div id="highlightsBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+      <div style="font-size:12px;color:#10b981;font-weight:700;margin-bottom:6px;">🔊🏃 当日有声音/人员走动重点时刻（点击直接跳到该秒）：</div>
+      <div class="chip-grid" id="highlightsGrid"></div>
+    </div>
+  </div>
+
+  <div class="ios-tip">
+    📲 <b>苹果 iPhone 添加到主屏幕（三网合一永久有效）</b>：用 Safari 打开本页 → 点击底部中间 <b>分享图标 [↑]</b> → 选择 <b>「添加到主屏幕」</b>。<br>
+    ✨ 支持 <b>5G/4G 手机流量</b>、<b>家里光猫 Wi-Fi (10-506-5G)</b>、<b>电脑热点 (Xiaomi_0703)</b> 自动无缝切换！
+  </div>
+
+<script>
+const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
+const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
+let API_BASE = IS_CLOUD_SHELL ? (localStorage.getItem('nvr_api_base') || '') : '';
+let detectedLanUrl = '';
+let currentCam = '客厅_小米摄像机2K';
+let currentTab = 'live';
+let isLiveMode = true;
+let soundUnlocked = false;
+let stateData = null;
+let curSegIndex = -1;
+let activeVid = document.getElementById('videoA');
+let standbyVid = document.getElementById('videoB');
+let lastLiveSeq = -1;
+let liveTimer = null;
+let cloudData = null;
+let currentCloudFile = null;
+let currentCloudOffset = 0;
+
+function onNetBadgeClick() {
+  if (detectedLanUrl) {
+    window.location.href = detectedLanUrl + '/';
+  }
+}
+
+function probeLanFast() {
+  if (!IS_CLOUD_SHELL) {
+    const h = window.location.hostname;
+    const badge = document.getElementById('netBadge');
+    if (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost') {
+      badge.textContent = '⚡ 局域网原画极速直连 (' + h + ')';
+      badge.style.color = '#10b981';
+      badge.style.borderColor = '#10b981';
+    } else {
+      badge.textContent = '🌐 5G/公网云加速直连';
+      badge.style.color = '#38bdf8';
+    }
+    return;
+  }
+  const candidates = [
+    { url: 'http://192.168.137.1:15443', name: 'Xiaomi_0703 热点' },
+    { url: 'http://192.168.1.138:15443', name: '10-506-5G 局域网' }
+  ];
+  candidates.forEach(c => {
+    const img = new Image();
+    const timer = setTimeout(() => { img.src = ''; }, 900);
+    img.onload = () => {
+      clearTimeout(timer);
+      if (!detectedLanUrl) {
+        detectedLanUrl = c.url;
+        const badge = document.getElementById('netBadge');
+        badge.textContent = '📶 在家Wi-Fi已识别 (点此切局域网50MB/s极速)';
+        badge.style.color = '#10b981';
+        badge.style.borderColor = '#10b981';
+      }
+    };
+    img.src = c.url + '/apple-touch-icon.png?t=' + Date.now();
+  });
+}
+
+async function discoverApiBase() {
+  probeLanFast();
+  if (!IS_CLOUD_SHELL) {
+    API_BASE = '';
+    return;
+  }
+  const candidates = [];
+  if (API_BASE) candidates.push(API_BASE);
+
+  // 1. Fetch endpoints.json on GitHub Pages & ntfy.sh instant pub/sub in parallel
+  const pJson = fetch('./endpoints.json?t=' + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null);
+  const pNtfy = fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=48h`)
+    .then(r => r.ok ? r.text() : '')
+    .then(txt => {
+      const lines = txt.trim().split('\n').filter(Boolean);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const ev = JSON.parse(lines[i]);
+          if (ev.message) {
+            const msg = JSON.parse(ev.message);
+            if (msg.tunnel) return msg;
+          }
+        } catch (e) {}
+      }
+      return null;
+    })
+    .catch(() => null);
+
+  const [epJson, epNtfy] = await Promise.all([pJson, pNtfy]);
+  if (epNtfy && epNtfy.tunnel && !candidates.includes(epNtfy.tunnel)) {
+    candidates.unshift(epNtfy.tunnel);
+  }
+  if (epJson && epJson.tunnel && !candidates.includes(epJson.tunnel)) {
+    candidates.push(epJson.tunnel);
+  }
+
+  for (const cand of candidates) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 3500);
+      const r = await fetch(cand + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (r.ok) {
+        API_BASE = cand;
+        localStorage.setItem('nvr_api_base', cand);
+        const badge = document.getElementById('netBadge');
+        if (!detectedLanUrl) {
+          badge.textContent = '🌐 5G/外网云加速已连接';
+          badge.style.color = '#38bdf8';
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+  if (candidates.length > 0) {
+    API_BASE = candidates[0];
+  }
+}
+
+function enableSound() {
+  soundUnlocked = true;
+  activeVid.muted = false;
+  standbyVid.muted = false;
+  document.getElementById('unmuteBtn').style.display = 'none';
+  activeVid.play().catch(() => {});
+}
+
+function tryPlayVideo(vid) {
+  vid.muted = !soundUnlocked;
+  const p = vid.play();
+  if (p !== undefined) {
+    p.then(() => {
+      if (vid.muted) document.getElementById('unmuteBtn').style.display = 'block';
+    }).catch(() => {
+      vid.muted = true;
+      document.getElementById('unmuteBtn').style.display = 'block';
+      vid.play().catch(() => {});
+    });
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabLive').classList.toggle('active', tab === 'live');
+  document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
+  document.getElementById('tabCloud').classList.toggle('active', tab === 'cloud');
+  document.getElementById('camBtn2').style.display = (tab === 'cloud') ? 'inline-flex' : 'none';
+  document.getElementById('panelRecent').style.display = (tab === 'cloud') ? 'none' : 'block';
+  document.getElementById('panelCloud').style.display = (tab === 'cloud') ? 'block' : 'none';
+  document.getElementById('nudgeBar').style.display = (tab === 'live') ? 'none' : 'flex';
+
+  if (tab === 'live') {
+    if (currentCam === '大门_小米智能门铃4Pro') selectCam('客厅_小米摄像机2K', 0);
+    else startLiveMode();
+  } else if (tab === 'recent') {
+    if (currentCam === '大门_小米智能门铃4Pro') selectCam('客厅_小米摄像机2K', 0);
+    const segs = getCamSegs();
+    if (segs.length > 0 && curSegIndex < 0) playSegmentAt(segs.length - 1, 0);
+  } else if (tab === 'cloud') {
+    loadCloudArchive(currentCam, '');
+  }
+}
+
+function selectCam(camName, idx) {
+  soundUnlocked = true;
+  document.getElementById('unmuteBtn').style.display = 'none';
+  currentCam = camName;
+  document.getElementById('camBtn0').classList.toggle('active', idx === 0);
+  document.getElementById('camBtn1').classList.toggle('active', idx === 1);
+  document.getElementById('camBtn2').classList.toggle('active', idx === 2);
+  lastLiveSeq = -1;
+  renderTimeline();
+  if (currentTab === 'cloud') {
+    loadCloudArchive(currentCam, document.getElementById('cloudDateSelect').value || '');
+  } else if (currentTab === 'live') {
+    startLiveMode();
+  } else {
+    const segs = getCamSegs();
+    if (segs.length > 0) playSegmentAt(segs.length - 1, 0);
+    else startLiveMode();
+  }
+}
+
+async function fetchState() {
+  try {
+    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now());
+    stateData = await r.json();
+    renderTimeline();
+  } catch (e) {}
+}
+
+function getCamSegs() {
+  if (!stateData || !stateData.staging || !stateData.staging[currentCam]) return [];
+  return stateData.staging[currentCam];
+}
+
+function renderTimeline() {
+  const segs = getCamSegs();
+  const grid = document.getElementById('minuteGrid');
+  const bLabel = stateData ? stateData.current_block_label : '';
+  document.getElementById('blockTitle').textContent = `🕒 近 2 小时窗口 (${bLabel}) — 共 ${segs.length} 段高清有声切片`;
+
+  if (segs.length > 0) {
+    document.getElementById('tlStartLabel').textContent = segs[0].start_hms;
+    document.getElementById('tlEndLabel').textContent = isLiveMode ? '🔴 实时' : segs[segs.length - 1].end_hms;
+    const slider = document.getElementById('tlSlider');
+    slider.min = segs[0].start_sec;
+    slider.max = segs[segs.length - 1].end_sec;
+    if (isLiveMode) slider.value = slider.max;
+  }
+
+  grid.innerHTML = '';
+  segs.forEach((s, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'm-chip' + (!isLiveMode && currentTab !== 'cloud' && idx === curSegIndex ? ' playing' : '');
+    btn.textContent = `${s.start_hms}`;
+    btn.onclick = () => {
+      soundUnlocked = true;
+      document.getElementById('unmuteBtn').style.display = 'none';
+      if (currentTab === 'live') switchTab('recent');
+      playSegmentAt(idx, 0);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function swapVideos() {
+  const tmp = activeVid;
+  activeVid = standbyVid;
+  standbyVid = tmp;
+  activeVid.style.zIndex = '2';
+  activeVid.style.opacity = '1';
+  activeVid.style.pointerEvents = 'auto';
+  standbyVid.style.zIndex = '1';
+  standbyVid.style.opacity = '0';
+  standbyVid.style.pointerEvents = 'none';
+}
+
+function playSegmentAt(idx, offsetSec) {
+  const segs = getCamSegs();
+  if (idx < 0 || idx >= segs.length) {
+    startLiveMode();
+    return;
+  }
+  isLiveMode = false;
+  if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+  curSegIndex = idx;
+  document.getElementById('nudgeBar').style.display = 'flex';
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = `🕒 近2h回放 ${segs[idx].start_hms}`;
+  badge.style.background = '#3b82f6';
+  document.getElementById('overlayText').textContent = `${currentCam} ｜ 正在回放 ${segs[idx].start_hms} - ${segs[idx].end_hms}`;
+
+  activeVid.onended = null;
+  activeVid.src = `${API_BASE}${segs[idx].url}`;
+  activeVid.currentTime = Math.max(0, offsetSec || 0);
+  tryPlayVideo(activeVid);
+
+  if (idx + 1 < segs.length) {
+    standbyVid.src = `${API_BASE}${segs[idx + 1].url}`;
+    standbyVid.load();
+  }
+
+  activeVid.onended = () => {
+    const latestSegs = getCamSegs();
+    if (curSegIndex + 1 < latestSegs.length) {
+      playSegmentAt(curSegIndex + 1, 0);
+    } else {
+      switchTab('live');
+    }
+  };
+  renderTimeline();
+}
+
+function onSliderScrub(secVal) {
+  soundUnlocked = true;
+  document.getElementById('unmuteBtn').style.display = 'none';
+  const targetSec = parseInt(secVal, 10);
+  const segs = getCamSegs();
+  for (let i = 0; i < segs.length; i++) {
+    if (targetSec >= segs[i].start_sec && targetSec <= segs[i].end_sec) {
+      playSegmentAt(i, targetSec - segs[i].start_sec);
+      return;
+    }
+  }
+  if (segs.length > 0) {
+    let best = 0;
+    for (let i = 0; i < segs.length; i++) {
+      if (segs[i].start_sec <= targetSec) best = i;
+    }
+    playSegmentAt(best, 0);
+  }
+}
+
+function jumpToExactInput() {
+  soundUnlocked = true;
+  const val = document.getElementById('exactTimeInput').value;
+  if (!val) return;
+  const parts = val.split(':').map(Number);
+  const sec = parts[0] * 3600 + parts[1] * 60 + (parts[2] || 0);
+  onSliderScrub(sec);
+}
+
+function nudgeVideo(deltaSec) {
+  if (!activeVid) return;
+  if (currentTab === 'cloud' && currentCloudFile && currentCloudFile.size_mb > 40) {
+    const newOff = Math.max(0, currentCloudOffset + (activeVid.currentTime || 0) + deltaSec);
+    playCloudFile(currentCloudFile, newOff);
+    return;
+  }
+  activeVid.currentTime = Math.max(0, (activeVid.currentTime || 0) + deltaSec);
+  activeVid.play().catch(() => {});
+}
+
+async function startLiveMode() {
+  isLiveMode = true;
+  curSegIndex = -1;
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = '🔴 实时直播';
+  badge.style.background = '#ef4444';
+  renderTimeline();
+  await pollNextLiveChunk(true);
+}
+
+async function pollNextLiveChunk(initial) {
+  if (!isLiveMode) return;
+  try {
+    const r = await fetch(`${API_BASE}/api/live_info?cam=${encodeURIComponent(currentCam)}&t=${Date.now()}`);
+    const info = await r.json();
+    if (info && info.seq && info.seq !== lastLiveSeq) {
+      lastLiveSeq = info.seq;
+      const chunkUrl = `${API_BASE}/api/live_mp4?cam=${encodeURIComponent(currentCam)}&seq=${info.seq}`;
+      document.getElementById('overlayText').textContent = `${currentCam} ｜ 🔴 2K 原画实时直播 (${info.dt})`;
+      if (initial || activeVid.paused || activeVid.ended) {
+        activeVid.src = chunkUrl;
+        tryPlayVideo(activeVid);
+        activeVid.onended = () => { pollNextLiveChunk(false); };
+      } else {
+        standbyVid.src = chunkUrl;
+        standbyVid.muted = !soundUnlocked;
+        standbyVid.load();
+        activeVid.onended = () => {
+          swapVideos();
+          tryPlayVideo(activeVid);
+          pollNextLiveChunk(false);
+        };
+      }
+    } else if (initial) {
+      const segs = getCamSegs();
+      if (segs.length > 0) {
+        const last = segs[segs.length - 1];
+        activeVid.src = `${API_BASE}${last.url}`;
+        activeVid.currentTime = Math.max(0, last.dur - 4);
+        tryPlayVideo(activeVid);
+      }
+    }
+  } catch (e) {}
+  if (isLiveMode) {
+    if (liveTimer) clearTimeout(liveTimer);
+    liveTimer = setTimeout(() => pollNextLiveChunk(false), 1500);
+  }
+}
+
+async function loadCloudArchive(cam, dateStr) {
+  try {
+    const r = await fetch(`${API_BASE}/api/cloud_browser?cam=${encodeURIComponent(cam)}&date=${encodeURIComponent(dateStr || '')}&t=${Date.now()}`);
+    cloudData = await r.json();
+    const sel = document.getElementById('cloudDateSelect');
+    sel.innerHTML = '';
+    (cloudData.dates || []).forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      if (d === cloudData.selected_date) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    renderCloudFiles();
+  } catch (e) {}
+}
+
+function onCloudDateChange() {
+  const d = document.getElementById('cloudDateSelect').value;
+  loadCloudArchive(currentCam, d);
+}
+
+function renderCloudFiles() {
+  const fGrid = document.getElementById('cloudFileGrid');
+  fGrid.innerHTML = '';
+  const files = (cloudData && cloudData.files) || [];
+  if (files.length === 0) {
+    fGrid.innerHTML = '<span style="font-size:12px;color:var(--muted);">该日期暂无已归档录像</span>';
+  }
+  files.forEach(f => {
+    const btn = document.createElement('button');
+    const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
+    btn.className = 'm-chip' + (isPlaying ? ' cloud-playing' : '');
+    const cleanLabel = f.name.replace('_2小时连续录像.mp4', '').replace('_完整录像.mp4', '');
+    btn.textContent = `🎬 ${cleanLabel} (${f.size_mb}M)`;
+    btn.onclick = () => playCloudFile(f, 0);
+    fGrid.appendChild(btn);
+  });
+
+  const hlBox = document.getElementById('highlightsBox');
+  const hlGrid = document.getElementById('highlightsGrid');
+  hlGrid.innerHTML = '';
+  const hls = (cloudData && cloudData.highlights) || [];
+  if (hls.length > 0) {
+    hlBox.style.display = 'block';
+    hls.forEach(h => {
+      const btn = document.createElement('button');
+      btn.className = 'm-chip';
+      btn.textContent = `${h.time} ${h.desc}`;
+      btn.onclick = () => {
+        const targetFile = files.find(x => x.name === h.file);
+        if (targetFile) playCloudFile(targetFile, h.offset_sec);
+      };
+      hlGrid.appendChild(btn);
+    });
+  } else {
+    hlBox.style.display = 'none';
+  }
+}
+
+function playCloudFile(f, offsetSec) {
+  soundUnlocked = true;
+  document.getElementById('unmuteBtn').style.display = 'none';
+  isLiveMode = false;
+  if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+  currentCloudFile = f;
+  currentCloudOffset = Math.max(0, Math.floor(offsetSec || 0));
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = `☁️ 云盘回放`;
+  badge.style.background = '#8b5cf6';
+
+  const offMin = Math.floor(currentCloudOffset / 60);
+  const offSecRem = currentCloudOffset % 60;
+  document.getElementById('overlayText').textContent = `${currentCam} (${cloudData.selected_date}) ｜ ${f.name} (+${offMin}分${offSecRem}秒)`;
+
+  // Use instant lossless 3-minute slice for large 2-hour MP4s so 5G mobile data starts playing in <0.6s!
+  if (f.size_mb > 40) {
+    const sliceUrl = `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(cloudData.selected_date)}&file=${encodeURIComponent(f.name)}&offset=${currentCloudOffset}&dur=180`;
+    activeVid.src = sliceUrl;
+    activeVid.onended = () => {
+      playCloudFile(f, currentCloudOffset + 180);
+    };
+  } else {
+    const fullUrl = `${API_BASE}${f.url}`;
+    if (activeVid.src.indexOf(f.url) === -1) {
+      activeVid.onended = null;
+      activeVid.src = fullUrl;
+    }
+    activeVid.currentTime = currentCloudOffset;
+  }
+  tryPlayVideo(activeVid);
+  renderCloudFiles();
+
+  // Build 10-minute quick-jump buttons if this is a 2-hour block (e.g. 08时00分-10时00分)
+  const m = f.name.match(/^(\d{2})时00分-(\d{2})时00分/);
+  const intraBox = document.getElementById('intra2hBox');
+  const intraGrid = document.getElementById('intra10mGrid');
+  intraGrid.innerHTML = '';
+  if (m) {
+    const startH = parseInt(m[1], 10);
+    intraBox.style.display = 'block';
+    document.getElementById('intra2hTitle').textContent = `⚡ ${m[1]}:00 - ${m[2]}:00 录像内每 10 分钟快速定位（5G/Wi-Fi点击秒开）：`;
+    for (let minOff = 0; minOff < 120; minOff += 10) {
+      const hh = startH + Math.floor(minOff / 60);
+      const mm = minOff % 60;
+      const chip = document.createElement('button');
+      chip.className = 'm-chip' + (Math.abs(currentCloudOffset - minOff * 60) < 300 ? ' cloud-playing' : '');
+      chip.textContent = `⏱️ ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+      chip.onclick = () => {
+        playCloudFile(f, minOff * 60);
+      };
+      intraGrid.appendChild(chip);
+    }
+  } else {
+    intraBox.style.display = 'none';
+  }
+}
+
+async function openInWMP() {
+  const segs = getCamSegs();
+  let startIdx = curSegIndex >= 0 ? curSegIndex : Math.max(0, segs.length - 5);
+  await fetch(`${API_BASE}/api/open_wmp?cam=${encodeURIComponent(currentCam)}&idx=${startIdx}`);
+}
+
+discoverApiBase().then(() => {
+  fetchState().then(() => startLiveMode());
+  setInterval(fetchState, 5000);
+});
+</script>
+</body>
+</html>
