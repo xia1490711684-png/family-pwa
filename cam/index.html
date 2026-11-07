@@ -94,10 +94,9 @@
 <body>
   <div class="header">
     <div class="title">
-      <span>📹 全屋 2K 监控</span>
+      <span>📹 全屋 2K 监控 + 智能门铃</span>
       <span id="modeBadge" class="badge-live">🔴 实时直播</span>
-      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 智能极速连接</span>
-      <span id="lanDirectBtn" class="badge-net" style="background:#064e3b;border-color:#10b981;color:#6ee7b7;" onclick="switchToLanDirect()">⚡ 家里Wi-Fi秒连</span>
+      <span id="netBadge" class="badge-net">🌐 5G / Wi-Fi 三网极速</span>
     </div>
     <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 用电脑系统媒体播放器打开</button>
   </div>
@@ -109,12 +108,12 @@
     <div class="tab-btn cloud-tab" id="tabCloud" onclick="switchTab('cloud')">☁️ 谷歌云盘全量库</div>
   </div>
 
-  <!-- Device Selector -->
+  <!-- Device Selector (All 3 cameras + Dual-View always visible) -->
   <div class="cam-selector">
     <button class="btn active" id="camBtn0" onclick="selectCam('客厅_小米摄像机2K', 0)">🛋️ 客厅 2K</button>
     <button class="btn" id="camBtn1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅 2K</button>
+    <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)">🚪 大门门铃 4Pro</button>
     <button class="btn" id="camBtnDual" onclick="selectDualLive()">🖼️ 双路同屏</button>
-    <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)" style="display:none;">🚪 大门门铃 4Pro</button>
   </div>
 
   <!-- Video Player -->
@@ -158,13 +157,13 @@
   <!-- Panel 3: Google Drive Full 20TB Archive Browser (All Devices, All Dates, All 2-Hour Blocks) -->
   <div class="card" id="panelCloud" style="display:none;">
     <div class="card-title">
-      <span>☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播</span>
+      <span id="cloudPanelTitle">☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播</span>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--muted);">选择日期：</span>
         <select id="cloudDateSelect" onchange="onCloudDateChange()"></select>
       </div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（点击即播）：</div>
+    <div id="cloudSubHint" style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（点击即播）：</div>
     <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:10px;"></div>
 
     <!-- Intra-2-Hour Quick 10-Minute Jump Bar -->
@@ -188,7 +187,7 @@
 <script src="hls.min.js"></script>
 <script>
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
-const EMBEDDED_TUNNEL = 'https://refine-monster-fresh-versions.trycloudflare.com';
+const EMBEDDED_TUNNEL = 'https://joshua-sunshine-from-pound.trycloudflare.com';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
@@ -249,51 +248,24 @@ function setSpeed(rate) {
   });
 }
 
-function switchToLanDirect() {
-  window.location.href = 'http://192.168.1.138:15443/';
-}
-
-function onNetBadgeClick() {
-  if (detectedLanUrl) {
-    window.location.href = detectedLanUrl + '/';
-  } else if (IS_CLOUD_SHELL) {
-    switchToLanDirect();
-  }
-}
-
 function probeLanFast() {
-  const lanBtn = document.getElementById('lanDirectBtn');
+  const badge = document.getElementById('netBadge');
   if (!IS_CLOUD_SHELL) {
-    if (lanBtn) lanBtn.style.display = 'none';
     const h = window.location.hostname;
-    const badge = document.getElementById('netBadge');
     if (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost') {
       badge.textContent = '⚡ 局域网 2K 原画直连 (' + h + ')';
       badge.style.color = '#10b981';
       badge.style.borderColor = '#10b981';
     } else {
-      badge.textContent = '🌐 5G/公网云加速直连';
+      badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
       badge.style.color = '#38bdf8';
     }
     return;
   }
-  const badge = document.getElementById('netBadge');
   if (API_BASE) {
-    badge.textContent = '🌐 5G/云端加速已秒连';
+    badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
     badge.style.color = '#38bdf8';
   }
-  ['http://192.168.1.138:15443', 'http://192.168.137.1:15443'].forEach(lanUrl => {
-    try {
-      const img = new Image();
-      img.onload = () => {
-        detectedLanUrl = lanUrl;
-        badge.textContent = '⚡ 检测到家庭Wi-Fi，正切入局域网秒连...';
-        badge.style.color = '#10b981';
-        window.location.replace(lanUrl + '/');
-      };
-      img.src = lanUrl + '/apple-touch-icon.png?t=' + Date.now();
-    } catch (e) {}
-  });
 }
 
 async function discoverApiBase() {
@@ -316,21 +288,22 @@ async function discoverApiBase() {
     }
   } catch (e) {}
 
-  // Verify current API_BASE with fast 2.2s timeout; only query ntfy.sh if needed
+  // Verify current API_BASE with fast 2.5s timeout; only query ntfy.sh if needed
   if (API_BASE) {
     try {
       const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 2200);
+      const tid = setTimeout(() => ctrl.abort(), 2500);
       const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
       clearTimeout(tid);
       if (r.ok) {
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
-        badge.textContent = '🌐 5G/外网云加速已连接';
-        badge.style.color = '#38bdf8';
+        badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
+        badge.style.color = '#10b981';
         if (API_BASE !== initialBase) {
           fetchState();
-          if (isLiveMode) startLiveMode();
+          if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
+          else if (isLiveMode) startLiveMode();
         }
         return;
       }
@@ -352,7 +325,8 @@ async function discoverApiBase() {
               API_BASE = msg.tunnel;
               localStorage.setItem('nvr_api_base', API_BASE);
               fetchState();
-              if (isLiveMode) startLiveMode();
+              if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
+              else if (isLiveMode) startLiveMode();
               return;
             }
           }
@@ -384,28 +358,45 @@ function tryPlayVideo(vid) {
   }
 }
 
+function updatePanelsVisibility() {
+  const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
+  const showCloud = (currentTab === 'cloud') || isDoorbell;
+  document.getElementById('panelRecent').style.display = showCloud ? 'none' : 'block';
+  document.getElementById('panelCloud').style.display = showCloud ? 'block' : 'none';
+  document.getElementById('nudgeBar').style.display = (currentTab === 'live' && !isDoorbell) ? 'none' : 'flex';
+  const cTitle = document.getElementById('cloudPanelTitle');
+  const cHint = document.getElementById('cloudSubHint');
+  if (isDoorbell) {
+    cTitle.textContent = '🚪 大门智能门铃 4Pro（双摄高清事件录像）— 自动播放最新事件';
+    cHint.textContent = '选择门铃触发事件（点击即播，按时间排序）：';
+  } else {
+    cTitle.textContent = '☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播';
+    cHint.textContent = '选择 2 小时录像段（点击即播）：';
+  }
+}
+
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tabLive').classList.toggle('active', tab === 'live');
   document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
   document.getElementById('tabCloud').classList.toggle('active', tab === 'cloud');
-  document.getElementById('camBtn2').style.display = (tab === 'cloud') ? 'inline-flex' : 'none';
   document.getElementById('camBtnDual').style.display = (tab === 'live') ? 'inline-flex' : 'none';
-  document.getElementById('panelRecent').style.display = (tab === 'cloud') ? 'none' : 'block';
-  document.getElementById('panelCloud').style.display = (tab === 'cloud') ? 'block' : 'none';
-  document.getElementById('nudgeBar').style.display = (tab === 'live') ? 'none' : 'flex';
 
   if (tab !== 'live') exitDualMode();
+  updatePanelsVisibility();
+
+  if (currentCam === '大门_小米智能门铃4Pro') {
+    loadCloudArchive('大门_小米智能门铃4Pro', document.getElementById('cloudDateSelect').value || '', true);
+    return;
+  }
 
   if (tab === 'live') {
-    if (currentCam === '大门_小米智能门铃4Pro') selectCam('客厅_小米摄像机2K', 0);
-    else startLiveMode();
+    startLiveMode();
   } else if (tab === 'recent') {
-    if (currentCam === '大门_小米智能门铃4Pro') selectCam('客厅_小米摄像机2K', 0);
     const segs = getCamSegs();
     if (segs.length > 0 && curSegIndex < 0) playSegmentAt(segs.length - 1, 0);
   } else if (tab === 'cloud') {
-    loadCloudArchive(currentCam, '');
+    loadCloudArchive(currentCam, '', true);
   }
 }
 
@@ -418,9 +409,14 @@ function selectCam(camName, idx) {
   document.getElementById('camBtn1').classList.toggle('active', idx === 1);
   document.getElementById('camBtn2').classList.toggle('active', idx === 2);
   lastLiveSeq = -1;
+  updatePanelsVisibility();
   renderTimeline();
+  if (currentCam === '大门_小米智能门铃4Pro') {
+    loadCloudArchive('大门_小米智能门铃4Pro', '', true);
+    return;
+  }
   if (currentTab === 'cloud') {
-    loadCloudArchive(currentCam, document.getElementById('cloudDateSelect').value || '');
+    loadCloudArchive(currentCam, document.getElementById('cloudDateSelect').value || '', true);
   } else if (currentTab === 'live') {
     startLiveMode();
   } else {
@@ -611,6 +607,11 @@ function nudgeVideo(deltaSec) {
 }
 
 async function startLiveMode() {
+  if (currentCam === '大门_小米智能门铃4Pro') {
+    updatePanelsVisibility();
+    loadCloudArchive('大门_小米智能门铃4Pro', '', true);
+    return;
+  }
   if (isDualMode) {
     selectDualLive();
     return;
@@ -631,7 +632,7 @@ async function startLiveMode() {
   hlsPlayer = attachHlsToVideo(activeVid, hlsUrl, false);
 }
 
-async function loadCloudArchive(cam, dateStr) {
+async function loadCloudArchive(cam, dateStr, autoPlayLatest) {
   try {
     const r = await fetch(`${API_BASE}/api/cloud_browser?cam=${encodeURIComponent(cam)}&date=${encodeURIComponent(dateStr || '')}&t=${Date.now()}`);
     cloudData = await r.json();
@@ -645,12 +646,16 @@ async function loadCloudArchive(cam, dateStr) {
       sel.appendChild(opt);
     });
     renderCloudFiles();
+    const files = (cloudData && cloudData.files) || [];
+    if (autoPlayLatest && files.length > 0) {
+      playCloudFile(files[files.length - 1], 0);
+    }
   } catch (e) {}
 }
 
 function onCloudDateChange() {
   const d = document.getElementById('cloudDateSelect').value;
-  loadCloudArchive(currentCam, d);
+  loadCloudArchive(currentCam, d, true);
 }
 
 function renderCloudFiles() {
