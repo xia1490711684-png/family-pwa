@@ -324,14 +324,6 @@ async function discoverApiBase() {
       const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
       clearTimeout(tid);
       if (r.ok) {
-        const info = await r.json().catch(() => ({}));
-        if (info && info.is_home_wifi) {
-          const badge = document.getElementById('netBadge');
-          badge.textContent = '⚡ 检测到家庭Wi-Fi，正切入局域网秒连...';
-          badge.style.color = '#10b981';
-          window.location.replace('http://192.168.1.138:15443/');
-          return;
-        }
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
         badge.textContent = '🌐 5G/外网云加速已连接';
