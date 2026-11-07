@@ -178,7 +178,7 @@
 <script src="hls.min.js"></script>
 <script>
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
-const EMBEDDED_TUNNEL = 'https://individuals-harmony-purchasing-passed.trycloudflare.com';
+const EMBEDDED_TUNNEL = 'https://desired-sampling-usd-overseas.trycloudflare.com';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
@@ -269,6 +269,14 @@ async function discoverApiBase() {
       const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
       clearTimeout(tid);
       if (r.ok) {
+        const info = await r.json().catch(() => ({}));
+        if (info && info.is_home_wifi) {
+          const badge = document.getElementById('netBadge');
+          badge.textContent = '⚡ 检测到家庭Wi-Fi，正切入局域网秒连...';
+          badge.style.color = '#10b981';
+          window.location.replace('http://192.168.1.138:15443/');
+          return;
+        }
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
         badge.textContent = '🌐 5G/外网云加速已连接';
