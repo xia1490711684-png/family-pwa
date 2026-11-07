@@ -90,7 +90,8 @@
     <div class="title">
       <span>📹 全屋 2K 监控</span>
       <span id="modeBadge" class="badge-live">🔴 实时直播</span>
-      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 智能三网连接中...</span>
+      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 智能极速连接</span>
+      <span id="lanDirectBtn" class="badge-net" style="background:#064e3b;border-color:#10b981;color:#6ee7b7;" onclick="switchToLanDirect()">⚡ 家里Wi-Fi秒连</span>
     </div>
     <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 用电脑系统媒体播放器打开</button>
   </div>
@@ -177,8 +178,11 @@
 <script src="hls.min.js"></script>
 <script>
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
+const EMBEDDED_TUNNEL = 'https://api.trycloudflare.com';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
-let API_BASE = IS_CLOUD_SHELL ? (localStorage.getItem('nvr_api_base') || '') : '';
+let API_BASE = IS_CLOUD_SHELL
+  ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
+  : '';
 let detectedLanUrl = '';
 let currentCam = '客厅_小米摄像机2K';
 let currentTab = 'live';
@@ -202,47 +206,39 @@ function destroyHls() {
   }
 }
 
+function switchToLanDirect() {
+  window.location.href = 'http://192.168.1.138:15443/';
+}
+
 function onNetBadgeClick() {
   if (detectedLanUrl) {
     window.location.href = detectedLanUrl + '/';
+  } else if (IS_CLOUD_SHELL) {
+    switchToLanDirect();
   }
 }
 
 function probeLanFast() {
+  const lanBtn = document.getElementById('lanDirectBtn');
   if (!IS_CLOUD_SHELL) {
+    if (lanBtn) lanBtn.style.display = 'none';
     const h = window.location.hostname;
     const badge = document.getElementById('netBadge');
     if (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost') {
-      badge.textContent = '⚡ 局域网 2K 连续原画直连 (' + h + ')';
+      badge.textContent = '⚡ 局域网 2K 原画直连 (' + h + ')';
       badge.style.color = '#10b981';
       badge.style.borderColor = '#10b981';
     } else {
-      badge.textContent = '🌐 5G/公网云加速连续直连';
+      badge.textContent = '🌐 5G/公网云加速直连';
       badge.style.color = '#38bdf8';
     }
     return;
   }
-  const candidates = [
-    { url: 'http://192.168.137.1:15443', name: 'Xiaomi_0703 热点' },
-    { url: 'http://192.168.1.138:15443', name: '10-506-5G 局域网' }
-  ];
-  candidates.forEach(c => {
-    const img = new Image();
-    const timer = setTimeout(() => { img.src = ''; }, 900);
-    img.onload = () => {
-      clearTimeout(timer);
-      if (!detectedLanUrl) {
-        detectedLanUrl = c.url;
-        const badge = document.getElementById('netBadge');
-        badge.textContent = '⚡ 已自动切入局域网 50MB/s 原画直连...';
-        badge.style.color = '#10b981';
-        badge.style.borderColor = '#10b981';
-        // Automatically switch to local LAN server so home Wi-Fi gets 50MB/s zero-latency direct streaming!
-        window.location.replace(c.url + '/');
-      }
-    };
-    img.src = c.url + '/apple-touch-icon.png?t=' + Date.now();
-  });
+  const badge = document.getElementById('netBadge');
+  if (API_BASE) {
+    badge.textContent = '🌐 5G/云端加速已秒连';
+    badge.style.color = '#38bdf8';
+  }
 }
 
 async function discoverApiBase() {
@@ -251,58 +247,64 @@ async function discoverApiBase() {
     API_BASE = '';
     return;
   }
-  const candidates = [];
-  if (API_BASE) candidates.push(API_BASE);
+  const initialBase = API_BASE;
 
-  const pJson = fetch('./endpoints.json?t=' + Date.now())
-    .then(r => r.ok ? r.json() : null)
-    .catch(() => null);
-  const pNtfy = fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=48h`)
-    .then(r => r.ok ? r.text() : '')
-    .then(txt => {
+  // Fast 1: check same-origin endpoints.json (<100ms on GitHub CDN)
+  try {
+    const r = await fetch('./endpoints.json?t=' + Date.now());
+    if (r.ok) {
+      const epJson = await r.json();
+      if (epJson && epJson.tunnel) {
+        API_BASE = epJson.tunnel;
+        localStorage.setItem('nvr_api_base', epJson.tunnel);
+      }
+    }
+  } catch (e) {}
+
+  // Verify current API_BASE with fast 2.2s timeout; only query ntfy.sh if needed
+  if (API_BASE) {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 2200);
+      const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (r.ok) {
+        localStorage.setItem('nvr_api_base', API_BASE);
+        const badge = document.getElementById('netBadge');
+        badge.textContent = '🌐 5G/外网云加速已连接';
+        badge.style.color = '#38bdf8';
+        if (API_BASE !== initialBase) {
+          fetchState();
+          if (isLiveMode) startLiveMode();
+        }
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // Fallback: query ntfy.sh only if primary endpoint failed
+  try {
+    const r = await fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=12h`);
+    if (r.ok) {
+      const txt = await r.text();
       const lines = txt.trim().split('\n').filter(Boolean);
       for (let i = lines.length - 1; i >= 0; i--) {
         try {
           const ev = JSON.parse(lines[i]);
           if (ev.message) {
             const msg = JSON.parse(ev.message);
-            if (msg.tunnel) return msg;
+            if (msg.tunnel && msg.tunnel !== API_BASE) {
+              API_BASE = msg.tunnel;
+              localStorage.setItem('nvr_api_base', API_BASE);
+              fetchState();
+              if (isLiveMode) startLiveMode();
+              return;
+            }
           }
         } catch (e) {}
       }
-      return null;
-    })
-    .catch(() => null);
-
-  const [epJson, epNtfy] = await Promise.all([pJson, pNtfy]);
-  if (epNtfy && epNtfy.tunnel && !candidates.includes(epNtfy.tunnel)) {
-    candidates.unshift(epNtfy.tunnel);
-  }
-  if (epJson && epJson.tunnel && !candidates.includes(epJson.tunnel)) {
-    candidates.push(epJson.tunnel);
-  }
-
-  for (const cand of candidates) {
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 3500);
-      const r = await fetch(cand + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
-      clearTimeout(tid);
-      if (r.ok) {
-        API_BASE = cand;
-        localStorage.setItem('nvr_api_base', cand);
-        const badge = document.getElementById('netBadge');
-        if (!detectedLanUrl) {
-          badge.textContent = '🌐 5G/外网云加速已连接';
-          badge.style.color = '#38bdf8';
-        }
-        return;
-      }
-    } catch (e) {}
-  }
-  if (candidates.length > 0) {
-    API_BASE = candidates[0];
-  }
+    }
+  } catch (e) {}
 }
 
 function enableSound() {
@@ -500,18 +502,9 @@ async function startLiveMode() {
   document.getElementById('overlayText').textContent = `${currentCam} ｜ 🔴 2K 原画连续无断点直播`;
   renderTimeline();
 
+  if (IS_CLOUD_SHELL && !API_BASE) return;
   const hlsUrl = `${API_BASE}/hls/${encodeURIComponent(currentCam)}/live.m3u8`;
   activeVid.onended = null;
-
-  for (let attempt = 0; attempt < 8; attempt++) {
-    if (!isLiveMode) return;
-    try {
-      const r = await fetch(hlsUrl + '?t=' + Date.now());
-      if (r.ok) break;
-    } catch (e) {}
-    await new Promise(res => setTimeout(res, 500));
-  }
-  if (!isLiveMode) return;
 
   if (activeVid.canPlayType('application/vnd.apple.mpegurl')) {
     activeVid.src = hlsUrl;
@@ -522,8 +515,8 @@ async function startLiveMode() {
       lowLatencyMode: false,
       backBufferLength: 30,
       maxBufferLength: 24,
-      liveSyncDurationCount: 3,
-      liveMaxLatencyDurationCount: 7
+      liveSyncDurationCount: 2,
+      liveMaxLatencyDurationCount: 5
     });
     hlsPlayer.loadSource(hlsUrl);
     hlsPlayer.attachMedia(activeVid);
@@ -667,10 +660,14 @@ async function openInWMP() {
   await fetch(`${API_BASE}/api/open_wmp?cam=${encodeURIComponent(currentCam)}&idx=${startIdx}`);
 }
 
-discoverApiBase().then(() => {
-  fetchState().then(() => startLiveMode());
-  setInterval(fetchState, 5000);
-});
+// Zero-wait startup: start live stream and state fetch immediately at t=0ms!
+probeLanFast();
+if (!IS_CLOUD_SHELL || API_BASE) {
+  startLiveMode();
+  fetchState();
+}
+discoverApiBase();
+setInterval(fetchState, 5000);
 </script>
 </body>
 </html>
