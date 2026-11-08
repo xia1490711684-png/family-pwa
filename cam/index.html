@@ -312,7 +312,11 @@ function probeLanFast() {
   });
 }
 
-async function discoverApiBase() {
+let lastDiscoveryTs = 0;
+async function discoverApiBase(forceRediscover) {
+  const nowTs = Date.now();
+  if (!forceRediscover && nowTs - lastDiscoveryTs < 3500) return;
+  lastDiscoveryTs = nowTs;
   probeLanFast();
   if (!IS_CLOUD_SHELL) {
     API_BASE = '';
@@ -320,24 +324,36 @@ async function discoverApiBase() {
   }
   const initialBase = API_BASE;
 
+  function applyNewBase(newUrl) {
+    if (!newUrl || !newUrl.startsWith('https://')) return false;
+    const changed = (newUrl !== initialBase || newUrl !== API_BASE);
+    API_BASE = newUrl;
+    localStorage.setItem('nvr_api_base', newUrl);
+    if (changed || forceRediscover) {
+      fetchState();
+      if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
+      else if (isLiveMode) startLiveMode();
+    }
+    return true;
+  }
+
   // Fast 1: check same-origin endpoints.json (<100ms on GitHub CDN)
   try {
-    const r = await fetch('./endpoints.json?t=' + Date.now());
+    const r = await fetch('./endpoints.json?t=' + Date.now(), { cache: 'no-store' });
     if (r.ok) {
       const epJson = await r.json();
-      if (epJson && epJson.tunnel) {
-        API_BASE = epJson.tunnel;
-        localStorage.setItem('nvr_api_base', epJson.tunnel);
+      if (epJson && epJson.tunnel && epJson.tunnel !== initialBase) {
+        applyNewBase(epJson.tunnel);
       }
     }
   } catch (e) {}
 
-  // Verify current API_BASE with fast 2.5s timeout; only query ntfy.sh if needed
+  // Verify current API_BASE with 5s timeout; if unreachable, query ntfy.sh immediately
   if (API_BASE) {
     try {
       const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 2500);
-      const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
+      const tid = setTimeout(() => ctrl.abort(), 5000);
+      const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(tid);
       if (r.ok) {
         const info = await r.json();
@@ -352,19 +368,14 @@ async function discoverApiBase() {
           badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
           badge.style.color = '#10b981';
         }
-        if (API_BASE !== initialBase) {
-          fetchState();
-          if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
-          else if (isLiveMode) startLiveMode();
-        }
         return;
       }
     } catch (e) {}
   }
 
-  // Fallback: query ntfy.sh only if primary endpoint failed
+  // Fallback: query ntfy.sh instant channel if primary endpoint failed or rotated
   try {
-    const r = await fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=12h`);
+    const r = await fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=12h`, { cache: 'no-store' });
     if (r.ok) {
       const txt = await r.text();
       const lines = txt.trim().split('\n').filter(Boolean);
@@ -373,12 +384,8 @@ async function discoverApiBase() {
           const ev = JSON.parse(lines[i]);
           if (ev.message) {
             const msg = JSON.parse(ev.message);
-            if (msg.tunnel && msg.tunnel !== API_BASE) {
-              API_BASE = msg.tunnel;
-              localStorage.setItem('nvr_api_base', API_BASE);
-              fetchState();
-              if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
-              else if (isLiveMode) startLiveMode();
+            if (msg.tunnel) {
+              applyNewBase(msg.tunnel);
               return;
             }
           }
@@ -498,12 +505,17 @@ function attachHlsToVideo(vid, hlsUrl, isSecondary) {
     });
     inst.on(Hls.Events.ERROR, (event, data) => {
       if (data.fatal) {
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) inst.startLoad();
-        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) inst.recoverMediaError();
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          discoverApiBase(false);
+          inst.startLoad();
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          inst.recoverMediaError();
+        }
       }
     });
     return inst;
   } else {
+    vid.onerror = () => { discoverApiBase(false); };
     vid.src = hlsUrl + '?t=' + Date.now();
     if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
     else tryPlayVideo(vid);
@@ -536,10 +548,16 @@ function selectDualLive() {
 
 async function fetchState() {
   try {
-    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now());
+    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now(), { cache: 'no-store' });
+    if (!r.ok) {
+      discoverApiBase(false);
+      return;
+    }
     stateData = await r.json();
     renderTimeline();
-  } catch (e) {}
+  } catch (e) {
+    discoverApiBase(false);
+  }
 }
 
 function getCamSegs() {
@@ -818,7 +836,12 @@ if (!IS_CLOUD_SHELL || API_BASE) {
   startLiveMode();
   fetchState();
 }
-discoverApiBase();
+discoverApiBase(false);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) discoverApiBase(true);
+});
+window.addEventListener('online', () => discoverApiBase(true));
+window.addEventListener('pageshow', () => discoverApiBase(false));
 setInterval(fetchState, 5000);
 setInterval(() => {
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
