@@ -91,7 +91,8 @@
     <div class="title">
       <span>📹 全屋 2K 监控 + 智能门铃</span>
       <span id="modeBadge" class="badge-live">🔴 实时直播</span>
-      <span id="netBadge" class="badge-net">🌐 5G / Wi-Fi 三网极速</span>
+      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 5G / Wi-Fi 三网极速</span>
+      <span id="qualBadge" class="badge-net" onclick="toggleQualityMode()" style="border-color:#10b981;color:#10b981;">⚡ 超清流畅</span>
     </div>
     <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 用电脑系统媒体播放器打开</button>
   </div>
@@ -187,6 +188,7 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
+let qualityMode = IS_CLOUD_SHELL ? (localStorage.getItem('nvr_qual_mode') || 'fast') : '2k';
 let detectedLanUrl = '';
 let currentCam = '客厅_小米摄像机2K';
 let currentTab = 'live';
@@ -243,7 +245,41 @@ function setSpeed(rate) {
   });
 }
 
+function getHlsPrefix() {
+  return (qualityMode === 'fast') ? 'hls_fast' : 'hls';
+}
+
+function updateQualBadge() {
+  const qb = document.getElementById('qualBadge');
+  if (!qb) return;
+  if (qualityMode === 'fast') {
+    qb.textContent = '⚡ 超清免卡顿 (点切2K)';
+    qb.style.color = '#10b981';
+    qb.style.borderColor = '#10b981';
+  } else {
+    qb.textContent = '💎 2K原画直出 (点切流畅)';
+    qb.style.color = '#38bdf8';
+    qb.style.borderColor = '#38bdf8';
+  }
+}
+
+function toggleQualityMode() {
+  qualityMode = (qualityMode === 'fast') ? '2k' : 'fast';
+  localStorage.setItem('nvr_qual_mode', qualityMode);
+  updateQualBadge();
+  if (isLiveMode) startLiveMode();
+}
+
+function onNetBadgeClick() {
+  if (detectedLanUrl) {
+    window.location.href = detectedLanUrl + '/';
+  } else if (IS_CLOUD_SHELL) {
+    window.location.href = 'http://192.168.1.138:15443/';
+  }
+}
+
 function probeLanFast() {
+  updateQualBadge();
   const badge = document.getElementById('netBadge');
   if (!IS_CLOUD_SHELL) {
     const h = window.location.hostname;
@@ -261,6 +297,23 @@ function probeLanFast() {
     badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
     badge.style.color = '#38bdf8';
   }
+  // Background image probe for Home Wi-Fi (192.168.1.138) & Hotspot (192.168.137.1)
+  ['http://192.168.1.138:15443', 'http://192.168.137.1:15443'].forEach(lanCandidate => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        detectedLanUrl = lanCandidate;
+        badge.textContent = '🏠 家庭内网已就绪 (点此切2K零延迟)';
+        badge.style.color = '#10b981';
+        badge.style.borderColor = '#10b981';
+        if (!window.navigator.standalone && !sessionStorage.getItem('lan_redirect_done')) {
+          sessionStorage.setItem('lan_redirect_done', '1');
+          window.location.replace(lanCandidate + '/');
+        }
+      };
+      img.src = lanCandidate + '/apple-touch-icon.png?t=' + Date.now();
+    } catch (e) {}
+  });
 }
 
 async function discoverApiBase() {
@@ -291,10 +344,18 @@ async function discoverApiBase() {
       const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal });
       clearTimeout(tid);
       if (r.ok) {
+        const info = await r.json();
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
-        badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
-        badge.style.color = '#10b981';
+        if (info && info.is_home_wifi) {
+          detectedLanUrl = 'http://192.168.1.138:15443';
+          badge.textContent = '🏠 家庭Wi-Fi (点此切2K内网直连)';
+          badge.style.color = '#10b981';
+          badge.style.borderColor = '#10b981';
+        } else {
+          badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
+          badge.style.color = '#10b981';
+        }
         if (API_BASE !== initialBase) {
           fetchState();
           if (currentCam === '大门_小米智能门铃4Pro') loadCloudArchive(currentCam, '', true);
@@ -470,8 +531,9 @@ function selectDualLive() {
   badge.style.background = '#ef4444';
   document.getElementById('overlayText').textContent = '🛋️ 客厅 2K + 🍽️ 餐厅 2K ｜ 🔴 双路 2K 原画实时同屏';
   if (IS_CLOUD_SHELL && !API_BASE) return;
-  const urlA = `${API_BASE}/hls/${encodeURIComponent('客厅_小米摄像机2K')}/live.m3u8`;
-  const urlB = `${API_BASE}/hls/${encodeURIComponent('餐厅_小米摄像机2K')}/live.m3u8`;
+  const hlsPref = getHlsPrefix();
+  const urlA = `${API_BASE}/${hlsPref}/${encodeURIComponent('客厅_小米摄像机2K')}/live.m3u8`;
+  const urlB = `${API_BASE}/${hlsPref}/${encodeURIComponent('餐厅_小米摄像机2K')}/live.m3u8`;
   hlsPlayer = attachHlsToVideo(activeVid, urlA, false);
   hlsPlayerB = attachHlsToVideo(standbyVid, urlB, true);
 }
@@ -618,7 +680,8 @@ async function startLiveMode() {
   renderTimeline();
 
   if (IS_CLOUD_SHELL && !API_BASE) return;
-  const hlsUrl = `${API_BASE}/hls/${encodeURIComponent(currentCam)}/live.m3u8`;
+  const hlsPref = getHlsPrefix();
+  const hlsUrl = `${API_BASE}/${hlsPref}/${encodeURIComponent(currentCam)}/live.m3u8`;
   activeVid.playbackRate = 1.0;
   hlsPlayer = attachHlsToVideo(activeVid, hlsUrl, false);
 }
