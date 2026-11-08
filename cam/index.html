@@ -426,8 +426,22 @@ function selectCam(camName, idx) {
   }
 }
 
+function snapToLiveEdge(vid) {
+  try {
+    if (vid.seekable && vid.seekable.length > 0) {
+      const liveEdge = vid.seekable.end(vid.seekable.length - 1);
+      if (liveEdge > 3.5 && (liveEdge - vid.currentTime) > 5.0) {
+        vid.currentTime = Math.max(0, liveEdge - 2.4);
+      }
+    }
+  } catch (e) {}
+}
+
 function attachHlsToVideo(vid, hlsUrl, isSecondary) {
   vid.onended = null;
+  vid.onloadedmetadata = () => {
+    if (isLiveMode) snapToLiveEdge(vid);
+  };
   if (vid.canPlayType('application/vnd.apple.mpegurl')) {
     vid.src = hlsUrl;
     if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
@@ -437,10 +451,11 @@ function attachHlsToVideo(vid, hlsUrl, isSecondary) {
     const inst = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
-      backBufferLength: 30,
-      maxBufferLength: 24,
-      liveSyncDurationCount: 2,
-      liveMaxLatencyDurationCount: 5
+      backBufferLength: 10,
+      maxBufferLength: 12,
+      liveSyncDuration: 3.1,
+      liveMaxLatencyDuration: 6.5,
+      maxLiveSyncPlaybackRate: 1.12
     });
     inst.loadSource(hlsUrl);
     inst.attachMedia(vid);
@@ -773,9 +788,29 @@ setInterval(fetchState, 5000);
 setInterval(() => {
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
   const ct = activeVid.currentTime || 0;
+  try {
+    if (activeVid.seekable && activeVid.seekable.length > 0) {
+      const liveEdge = activeVid.seekable.end(activeVid.seekable.length - 1);
+      const lag = liveEdge - ct;
+      if (lag > 7.5 && liveEdge > 3.5) {
+        activeVid.currentTime = Math.max(0, liveEdge - 2.4);
+        activeVid.playbackRate = 1.0;
+      } else if (lag > 4.2) {
+        activeVid.playbackRate = 1.08;
+      } else if (lag <= 3.3 && activeVid.playbackRate !== 1.0) {
+        activeVid.playbackRate = 1.0;
+      }
+    }
+    if (isDualMode && standbyVid && standbyVid.seekable && standbyVid.seekable.length > 0) {
+      const leB = standbyVid.seekable.end(standbyVid.seekable.length - 1);
+      if ((leB - standbyVid.currentTime) > 7.5 && leB > 3.5) {
+        standbyVid.currentTime = Math.max(0, leB - 2.4);
+      }
+    }
+  } catch (e) {}
   if (!activeVid.paused && ct > 0 && Math.abs(ct - lastWatchdogTime) < 0.05) {
     stallCount++;
-    if (stallCount >= 3) {
+    if (stallCount >= 4) {
       stallCount = 0;
       startLiveMode();
     }
@@ -783,7 +818,7 @@ setInterval(() => {
     stallCount = 0;
   }
   lastWatchdogTime = ct;
-}, 3500);
+}, 2000);
 </script>
 </body>
 </html>
