@@ -116,8 +116,8 @@
   <div class="player-wrap" id="playerWrap">
     <div class="overlay-status" id="overlayText">正在连接 2K 原画流...</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
-    <video id="videoA" controls autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;"></video>
-    <video id="videoB" controls playsinline webkit-playsinline crossorigin="anonymous" style="z-index:1;opacity:0;pointer-events:none;"></video>
+    <video id="videoA" controls autoplay playsinline webkit-playsinline style="z-index:2;"></video>
+    <video id="videoB" controls playsinline webkit-playsinline style="z-index:1;opacity:0;pointer-events:none;"></video>
   </div>
 
   <!-- Fast Seek Bar for Playback / Cloud Archive -->
@@ -180,16 +180,21 @@
     ✨ 支持 <b>5G/4G 手机流量</b>、<b>家里光猫 Wi-Fi (10-506-5G)</b>、<b>电脑热点 (Xiaomi_0703)</b> 自动无缝切换！
   </div>
 
-<script src="hls.min.js"></script>
 <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
-const EMBEDDED_TUNNEL = 'https://emails-blair-exit-amp.trycloudflare.com';
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const EMBEDDED_TUNNEL = 'https://satellite-ensemble-firm-considers.trycloudflare.com';
+const EMBEDDED_IPV6 = 'http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
 let qualityMode = IS_CLOUD_SHELL ? (localStorage.getItem('nvr_qual_mode') || 'fast') : '2k';
 let detectedLanUrl = '';
+let directFailStreak = 0;
 let currentCam = '客厅_小米摄像机2K';
 let currentTab = 'live';
 let isLiveMode = true;
@@ -273,18 +278,24 @@ function toggleQualityMode() {
 function onNetBadgeClick() {
   if (detectedLanUrl) {
     window.location.href = detectedLanUrl + '/';
-  } else if (IS_CLOUD_SHELL) {
+  } else if (!IS_CLOUD_SHELL) {
+    window.location.href = 'https://xia1490711684-png.github.io/family-pwa/cam/?stay_cloud=1';
+  } else {
     window.location.href = 'http://192.168.1.138:15443/';
   }
 }
 
-function probeLanFast() {
+function probeLanFast(extraIpv6) {
   updateQualBadge();
   const badge = document.getElementById('netBadge');
   if (!IS_CLOUD_SHELL) {
     const h = window.location.hostname;
-    if (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost') {
-      badge.textContent = '⚡ 局域网 2K 原画直连 (' + h + ')';
+    if (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost' || h === '1999.config.com') {
+      badge.textContent = '⚡ 局域网 2K 零延迟直连 (' + h + ')';
+      badge.style.color = '#10b981';
+      badge.style.borderColor = '#10b981';
+    } else if (h.includes(':')) {
+      badge.textContent = '⚡ 5G/Wi-Fi 电信IPv6毫秒直连';
       badge.style.color = '#10b981';
       badge.style.borderColor = '#10b981';
     } else {
@@ -293,19 +304,31 @@ function probeLanFast() {
     }
     return;
   }
-  if (API_BASE) {
+  if (API_BASE && !detectedLanUrl) {
     badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
     badge.style.color = '#38bdf8';
   }
-  // Background image probe for Home Wi-Fi (192.168.1.138) & Hotspot (192.168.137.1)
-  ['http://192.168.1.138:15443', 'http://192.168.137.1:15443'].forEach(lanCandidate => {
+  const candidates = [
+    'http://192.168.1.138:15443',
+    'http://192.168.137.1:15443',
+    'http://1999.config.com:15443'
+  ];
+  const v6 = extraIpv6 || ((EMBEDDED_IPV6 && !EMBEDDED_IPV6.startsWith('__')) ? EMBEDDED_IPV6 : (localStorage.getItem('nvr_ipv6_direct') || ''));
+  if (v6 && v6.startsWith('http://[')) candidates.push(v6);
+
+  candidates.forEach(lanCandidate => {
     try {
       const img = new Image();
       img.onload = () => {
-        detectedLanUrl = lanCandidate;
-        badge.textContent = '🏠 家庭内网已就绪 (点此切2K零延迟)';
+        if (!detectedLanUrl) {
+          detectedLanUrl = lanCandidate;
+        }
+        badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此直连)';
         badge.style.color = '#10b981';
         badge.style.borderColor = '#10b981';
+        if (IS_MOBILE && !window.location.search.includes('stay_cloud=1')) {
+          window.location.replace(lanCandidate + '/');
+        }
       };
       img.src = lanCandidate + '/apple-touch-icon.png?t=' + Date.now();
     } catch (e) {}
@@ -324,7 +347,11 @@ async function discoverApiBase(forceRediscover) {
   }
   const initialBase = API_BASE;
 
-  function applyNewBase(newUrl) {
+  function applyNewBase(newUrl, ipv6Url) {
+    if (ipv6Url && ipv6Url.startsWith('http://[')) {
+      localStorage.setItem('nvr_ipv6_direct', ipv6Url);
+      probeLanFast(ipv6Url);
+    }
     if (!newUrl || !newUrl.startsWith('https://')) return false;
     const changed = (newUrl !== initialBase || newUrl !== API_BASE);
     API_BASE = newUrl;
@@ -342,17 +369,20 @@ async function discoverApiBase(forceRediscover) {
     const r = await fetch('./endpoints.json?t=' + Date.now(), { cache: 'no-store' });
     if (r.ok) {
       const epJson = await r.json();
-      if (epJson && epJson.tunnel && epJson.tunnel !== initialBase) {
-        applyNewBase(epJson.tunnel);
+      if (epJson) {
+        if (epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
+        if (epJson.tunnel && epJson.tunnel !== initialBase) {
+          applyNewBase(epJson.tunnel, epJson.ipv6_direct);
+        }
       }
     }
   } catch (e) {}
 
-  // Verify current API_BASE with 5s timeout; if unreachable, query ntfy.sh immediately
+  // Verify current API_BASE with 4s timeout; if unreachable, query ntfy.sh immediately
   if (API_BASE) {
     try {
       const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 5000);
+      const tid = setTimeout(() => ctrl.abort(), 4000);
       const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(tid);
       if (r.ok) {
@@ -360,11 +390,14 @@ async function discoverApiBase(forceRediscover) {
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
         if (info && info.is_home_wifi) {
-          detectedLanUrl = 'http://192.168.1.138:15443';
+          if (!detectedLanUrl) detectedLanUrl = 'http://192.168.1.138:15443';
           badge.textContent = '🏠 家庭Wi-Fi (点此切2K内网直连)';
           badge.style.color = '#10b981';
           badge.style.borderColor = '#10b981';
-        } else {
+          if (IS_MOBILE && !window.location.search.includes('stay_cloud=1')) {
+            window.location.replace(detectedLanUrl + '/');
+          }
+        } else if (!detectedLanUrl) {
           badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
           badge.style.color = '#10b981';
         }
@@ -385,7 +418,7 @@ async function discoverApiBase(forceRediscover) {
           if (ev.message) {
             const msg = JSON.parse(ev.message);
             if (msg.tunnel) {
-              applyNewBase(msg.tunnel);
+              applyNewBase(msg.tunnel, msg.ipv6_direct);
               return;
             }
           }
@@ -485,42 +518,78 @@ function selectCam(camName, idx) {
   }
 }
 
+let hlsScriptLoading = null;
+function ensureHlsScriptLoaded() {
+  if (window.Hls) return Promise.resolve(true);
+  if (hlsScriptLoading) return hlsScriptLoading;
+  hlsScriptLoading = new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'hls.min.js';
+    s.async = true;
+    s.onload = () => resolve(Boolean(window.Hls));
+    s.onerror = () => { hlsScriptLoading = null; resolve(false); };
+    document.head.appendChild(s);
+  });
+  return hlsScriptLoading;
+}
+
 function attachHlsToVideo(vid, hlsUrl, isSecondary) {
   vid.onended = null;
   vid.onloadedmetadata = null;
-  if (window.Hls && Hls.isSupported()) {
-    const inst = new Hls({
-      enableWorker: true,
-      lowLatencyMode: false,
-      backBufferLength: 20,
-      maxBufferLength: 24,
-      liveSyncDurationCount: 3,
-      liveMaxLatencyDurationCount: 6
-    });
-    inst.loadSource(hlsUrl);
-    inst.attachMedia(vid);
-    inst.on(Hls.Events.MANIFEST_PARSED, () => {
-      if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
-      else tryPlayVideo(vid);
-    });
-    inst.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-          discoverApiBase(false);
-          inst.startLoad();
-        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-          inst.recoverMediaError();
-        }
-      }
-    });
-    return inst;
-  } else {
+  const isAppleNative = (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) && !/Chrome|CriOS|Edg/i.test(navigator.userAgent))
+    || (IS_MOBILE && Boolean(vid.canPlayType('application/vnd.apple.mpegurl')));
+
+  if (isAppleNative) {
     vid.onerror = () => { discoverApiBase(false); };
     vid.src = hlsUrl + '?t=' + Date.now();
     if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
     else tryPlayVideo(vid);
     return null;
   }
+
+  function mountHlsJs() {
+    if (window.Hls && Hls.isSupported()) {
+      const inst = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 16,
+        maxBufferLength: 18,
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 5
+      });
+      inst.loadSource(hlsUrl);
+      inst.attachMedia(vid);
+      inst.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
+        else tryPlayVideo(vid);
+      });
+      inst.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            discoverApiBase(false);
+            inst.startLoad();
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            inst.recoverMediaError();
+          }
+        }
+      });
+      if (isSecondary) hlsPlayerB = inst;
+      else hlsPlayer = inst;
+      return inst;
+    } else {
+      vid.onerror = () => { discoverApiBase(false); };
+      vid.src = hlsUrl + '?t=' + Date.now();
+      if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
+      else tryPlayVideo(vid);
+      return null;
+    }
+  }
+
+  if (window.Hls) return mountHlsJs();
+  ensureHlsScriptLoaded().then(() => {
+    if (isLiveMode) mountHlsJs();
+  });
+  return null;
 }
 
 function selectDualLive() {
@@ -548,14 +617,25 @@ function selectDualLive() {
 
 async function fetchState() {
   try {
-    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now(), { cache: 'no-store' });
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 4000);
+    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(tid);
     if (!r.ok) {
       discoverApiBase(false);
       return;
     }
+    directFailStreak = 0;
     stateData = await r.json();
     renderTimeline();
   } catch (e) {
+    if (!IS_CLOUD_SHELL && IS_MOBILE) {
+      directFailStreak++;
+      if (directFailStreak >= 2) {
+        window.location.replace('https://xia1490711684-png.github.io/family-pwa/cam/?stay_cloud=1');
+        return;
+      }
+    }
     discoverApiBase(false);
   }
 }
