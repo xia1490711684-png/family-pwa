@@ -323,12 +323,9 @@ function probeLanFast(extraIpv6) {
         if (!detectedLanUrl) {
           detectedLanUrl = lanCandidate;
         }
-        badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此直连)';
+        badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此切换)';
         badge.style.color = '#10b981';
         badge.style.borderColor = '#10b981';
-        if (IS_MOBILE && !window.location.search.includes('stay_cloud=1')) {
-          window.location.replace(lanCandidate + '/');
-        }
       };
       img.src = lanCandidate + '/apple-touch-icon.png?t=' + Date.now();
     } catch (e) {}
@@ -389,15 +386,11 @@ async function discoverApiBase(forceRediscover) {
         const info = await r.json();
         localStorage.setItem('nvr_api_base', API_BASE);
         const badge = document.getElementById('netBadge');
-        if (info && info.is_home_wifi) {
-          if (!detectedLanUrl) detectedLanUrl = 'http://192.168.1.138:15443';
-          badge.textContent = '🏠 家庭Wi-Fi (点此切2K内网直连)';
+        if (detectedLanUrl) {
+          badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此切换)';
           badge.style.color = '#10b981';
           badge.style.borderColor = '#10b981';
-          if (IS_MOBILE && !window.location.search.includes('stay_cloud=1')) {
-            window.location.replace(detectedLanUrl + '/');
-          }
-        } else if (!detectedLanUrl) {
+        } else {
           badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
           badge.style.color = '#10b981';
         }
