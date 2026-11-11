@@ -84,6 +84,116 @@
   .ios-tip { font-size: 12px; color: var(--muted); text-align: center; padding: 8px; border-top: 1px solid var(--border); margin-top: 8px; line-height: 1.5; }
   @media (min-width: 800px) { .only-pc { display: inline-flex !important; } }
   @media (max-width: 799px) { .only-pc { display: none !important; } }
+
+  /* === Smart iPhone Landscape Fullscreen & Custom HUD (v9) === */
+  html.fs-lock, body.fs-lock {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    touch-action: none !important;
+    background: #000 !important;
+  }
+  .video-stage {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform-origin: center center; will-change: transform;
+    background: #000; z-index: 2;
+  }
+  .player-wrap.dual-mode .video-stage {
+    position: relative !important; display: flex; flex-direction: column; gap: 4px;
+    width: 100%; height: 100%;
+  }
+  @media (min-width: 800px) {
+    .player-wrap.dual-mode .video-stage { flex-direction: row; }
+  }
+  .player-wrap { --fs-side-pad: 24px; }
+  .player-wrap.fs-active {
+    position: fixed !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    aspect-ratio: unset !important;
+    max-width: none !important;
+    background: #000 !important;
+    box-shadow: none !important;
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+  .player-wrap.fs-active.dual-mode .video-stage {
+    position: absolute !important; top: 0; left: 0;
+    flex-direction: row !important; gap: 2px;
+  }
+  .player-wrap.fs-active.dual-mode video {
+    width: 50% !important; height: 100% !important;
+  }
+  .player-wrap.fs-active[data-fit="contain"] video { object-fit: contain !important; }
+  .player-wrap.fs-active[data-fit="fill"] video { object-fit: fill !important; }
+  .player-wrap.fs-active[data-fit="cover"] video { object-fit: cover !important; }
+
+  .hud-layer {
+    position: absolute; inset: 0; z-index: 25; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: opacity 0.22s ease; opacity: 1;
+  }
+  .player-wrap.hud-hidden .hud-layer { opacity: 0; }
+  .player-wrap.hud-hidden .hud-bar { pointer-events: none !important; }
+
+  .hud-bar {
+    pointer-events: auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 8px 12px;
+  }
+  .hud-top {
+    display: none;
+    background: linear-gradient(180deg, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0) 100%);
+    padding: 12px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right)) 16px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right));
+  }
+  .player-wrap.fs-active .hud-top { display: flex; }
+  .hud-bottom {
+    margin-top: auto;
+    background: linear-gradient(0deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0) 100%);
+    padding: 16px 12px 10px 12px;
+    flex-wrap: wrap;
+  }
+  .player-wrap.fs-active .hud-bottom {
+    padding: 16px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right));
+  }
+  .hud-group { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+  .hud-pill {
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(15,23,42,0.78); color: #f8fafc;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    padding: 6px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .hud-pill:active { background: var(--accent); border-color: var(--accent); }
+  .hud-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .hud-pill.fs-exit-btn {
+    background: rgba(239,68,68,0.90); border-color: rgba(248,113,113,0.92);
+    padding: 6px 12px; font-size: 12.5px;
+  }
+  .hud-pill.fs-enter-btn {
+    background: rgba(59,130,246,0.90); border-color: rgba(96,165,250,0.95);
+    padding: 6px 12px; font-size: 12.5px;
+  }
+  .hud-seek-wrap {
+    display: none; align-items: center; gap: 7px; flex: 1; min-width: 150px; margin: 0 4px;
+  }
+  .hud-seek-wrap input[type=range] {
+    flex: 1; accent-color: #38bdf8; height: 6px; cursor: pointer;
+  }
+  .hud-time { font-size: 11.5px; color: #e2e8f0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hud-live-tag {
+    font-size: 12px; font-weight: 700; color: #f8fafc;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.85); white-space: nowrap;
+  }
+  .btn-fs-toolbar {
+    background: #1d4ed8; border-color: #3b82f6; color: #fff; margin-left: auto;
+  }
+  .player-wrap.fs-active .btn-unmute {
+    bottom: 64px; right: max(var(--fs-side-pad), 28px); z-index: 35;
+  }
+  .btn-unmute { z-index: 35; bottom: 52px; }
 </style>
 </head>
 <body>
@@ -110,14 +220,49 @@
     <button class="btn" id="camBtn1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅 2K</button>
     <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)">🚪 大门门铃 4Pro</button>
     <button class="btn" id="camBtnDual" onclick="selectDualLive()">🖼️ 双路同屏</button>
+    <button class="btn btn-fs-toolbar" id="camBtnFs" onclick="enterSmartFullscreen()">⛶ 横屏全屏</button>
   </div>
 
   <!-- Video Player -->
-  <div class="player-wrap" id="playerWrap">
+  <div class="player-wrap" id="playerWrap" data-fit="contain">
     <div class="overlay-status" id="overlayText">正在连接 2K 原画流...</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
-    <video id="videoA" controls autoplay playsinline webkit-playsinline style="z-index:2;"></video>
-    <video id="videoB" controls playsinline webkit-playsinline style="z-index:1;opacity:0;pointer-events:none;"></video>
+    <div class="video-stage" id="videoStage">
+      <video id="videoA" autoplay playsinline webkit-playsinline style="z-index:2;"></video>
+      <video id="videoB" playsinline webkit-playsinline style="z-index:1;opacity:0;pointer-events:none;"></video>
+    </div>
+    <div class="hud-layer" id="hudLayer">
+      <div class="hud-bar hud-top" id="hudTopBar">
+        <div class="hud-group">
+          <button class="hud-pill fs-exit-btn" onclick="exitSmartFullscreen(false)">✕ 退出</button>
+          <button class="hud-pill active" id="fsCam0" onclick="selectCam('客厅_小米摄像机2K', 0)">🛋️ 客厅</button>
+          <button class="hud-pill" id="fsCam1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅</button>
+          <button class="hud-pill" id="fsCam2" onclick="selectCam('大门_小米智能门铃4Pro', 2)">🚪 门铃</button>
+          <button class="hud-pill" id="fsCamDual" onclick="selectDualLive()">🖼️ 双路</button>
+        </div>
+        <div class="hud-group">
+          <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
+          <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
+        </div>
+      </div>
+      <div class="hud-bar hud-bottom" id="hudBottomBar">
+        <div class="hud-group">
+          <button class="hud-pill" id="hudPlayBtn" onclick="togglePlayPause()">⏸</button>
+          <button class="hud-pill" id="hudMuteBtn" onclick="toggleMuteHud()">🔊</button>
+          <span class="hud-live-tag" id="hudModeLabel">🔴 客厅 2K</span>
+        </div>
+        <div class="hud-seek-wrap" id="hudSeekWrap">
+          <button class="hud-pill" style="padding:4px 8px;" onclick="nudgeVideo(-15)">-15s</button>
+          <input type="range" id="hudSeekRange" min="0" max="60" step="0.5" value="0" oninput="onHudSeekInput(this.value)">
+          <span class="hud-time" id="hudTimeText">00:00</span>
+          <button class="hud-pill" style="padding:4px 8px;" onclick="nudgeVideo(15)">+15s</button>
+        </div>
+        <div class="hud-group" style="margin-left:auto;">
+          <button class="hud-pill" id="fsZoomResetBtn" style="display:none;" onclick="resetFsZoom()">🔍 1.0x</button>
+          <button class="hud-pill fs-enter-btn" id="hudFsBtn" onclick="toggleSmartFullscreen()">⛶ 全屏</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Fast Seek Bar for Playback / Cloud Archive -->
@@ -182,11 +327,20 @@
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  const _hadSwCtrl = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => {
+    try { r.update(); } catch (e) {}
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (_hadSwCtrl && !window._swReloaded) {
+      window._swReloaded = true;
+      window.location.reload();
+    }
+  });
 }
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const EMBEDDED_TUNNEL = 'https://humans-gerald-sheep-seventh.trycloudflare.com';
+const EMBEDDED_TUNNEL = 'https://indoor-viii-thriller-tolerance.trycloudflare.com';
 const EMBEDDED_IPV6 = 'http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
@@ -940,6 +1094,417 @@ setInterval(() => {
   }
   lastWatchdogTime = ct;
 }, 2000);
+
+// === Smart iPhone Landscape Fullscreen, Fit/Fill & Pinch-Zoom Engine (v9) ===
+const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const playerWrapEl = document.getElementById('playerWrap');
+const videoStageEl = document.getElementById('videoStage');
+let isSmartFs = false;
+let fsEffectiveDeg = 0;
+let fsRotateDir = (localStorage.getItem('nvr_fs_rot_dir') === '-1') ? -1 : 1;
+let fsFitMode = localStorage.getItem('nvr_fs_fit') || 'contain';
+let fsZoom = 1;
+let fsPanX = 0;
+let fsPanY = 0;
+let hudHideTimer = null;
+let hudScrubbing = false;
+
+function formatSec(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const s = Math.floor(sec);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}:${String(m % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function applyFsFitUI() {
+  if (!['contain', 'fill', 'cover'].includes(fsFitMode)) fsFitMode = 'contain';
+  playerWrapEl.setAttribute('data-fit', fsFitMode);
+  const btn = document.getElementById('fsFitBtn');
+  if (!btn) return;
+  if (fsFitMode === 'contain') btn.textContent = '📐 原比例';
+  else if (fsFitMode === 'fill') btn.textContent = '🖼️ 满屏';
+  else btn.textContent = '🔍 铺满';
+}
+
+function cycleFsFitMode() {
+  if (fsFitMode === 'contain') fsFitMode = 'fill';
+  else if (fsFitMode === 'fill') fsFitMode = 'cover';
+  else fsFitMode = 'contain';
+  localStorage.setItem('nvr_fs_fit', fsFitMode);
+  resetFsZoom();
+  applyFsFitUI();
+  bumpHudTimer();
+}
+
+function flipFsRotateDir() {
+  fsRotateDir = (fsRotateDir === 1) ? -1 : 1;
+  localStorage.setItem('nvr_fs_rot_dir', String(fsRotateDir));
+  updateFsGeometry();
+  bumpHudTimer();
+}
+
+function applyStageTransform() {
+  const zBtn = document.getElementById('fsZoomResetBtn');
+  if (!isSmartFs || fsZoom <= 1.01) {
+    fsZoom = 1;
+    fsPanX = 0;
+    fsPanY = 0;
+    videoStageEl.style.transform = '';
+    if (zBtn) zBtn.style.display = 'none';
+    return;
+  }
+  const stW = videoStageEl.clientWidth || 360;
+  const stH = videoStageEl.clientHeight || 200;
+  const maxX = Math.max(0, (stW * (fsZoom - 1)) / 2);
+  const maxY = Math.max(0, (stH * (fsZoom - 1)) / 2);
+  fsPanX = Math.max(-maxX, Math.min(maxX, fsPanX));
+  fsPanY = Math.max(-maxY, Math.min(maxY, fsPanY));
+  videoStageEl.style.transform = `translate3d(${fsPanX.toFixed(1)}px, ${fsPanY.toFixed(1)}px, 0) scale(${fsZoom.toFixed(3)})`;
+  if (zBtn) {
+    zBtn.style.display = 'inline-flex';
+    zBtn.textContent = `🔍 ${fsZoom.toFixed(1)}x`;
+  }
+}
+
+function resetFsZoom() {
+  fsZoom = 1;
+  fsPanX = 0;
+  fsPanY = 0;
+  applyStageTransform();
+}
+
+function updateFsGeometry() {
+  if (!isSmartFs) {
+    fsEffectiveDeg = 0;
+    playerWrapEl.style.left = '';
+    playerWrapEl.style.top = '';
+    playerWrapEl.style.width = '';
+    playerWrapEl.style.height = '';
+    playerWrapEl.style.transform = '';
+    playerWrapEl.style.setProperty('--fs-side-pad', '24px');
+    resetFsZoom();
+    return;
+  }
+  const vv = window.visualViewport;
+  const vw = Math.round(vv ? vv.width : window.innerWidth);
+  const vh = Math.round(vv ? vv.height : window.innerHeight);
+  const ox = vv ? Math.round(vv.offsetLeft) : 0;
+  const oy = vv ? Math.round(vv.offsetTop) : 0;
+  const rotBtn = document.getElementById('fsRotBtn');
+
+  if (vh > vw) {
+    // Phone held in portrait or iPhone Portrait Lock ON -> auto-rotate 90deg to fill landscape screen!
+    fsEffectiveDeg = 90 * fsRotateDir;
+    playerWrapEl.style.setProperty('--fs-side-pad', IS_IOS ? '56px' : '28px');
+    playerWrapEl.style.left = (ox + vw / 2) + 'px';
+    playerWrapEl.style.top = (oy + vh / 2) + 'px';
+    playerWrapEl.style.width = vh + 'px';
+    playerWrapEl.style.height = vw + 'px';
+    playerWrapEl.style.transform = `translate(-50%, -50%) rotate(${fsEffectiveDeg}deg)`;
+    if (rotBtn) rotBtn.style.display = 'inline-flex';
+  } else {
+    // Device physically in landscape or desktop monitor -> native 0deg full viewport
+    fsEffectiveDeg = 0;
+    playerWrapEl.style.setProperty('--fs-side-pad', IS_IOS ? '50px' : '24px');
+    playerWrapEl.style.left = ox + 'px';
+    playerWrapEl.style.top = oy + 'px';
+    playerWrapEl.style.width = vw + 'px';
+    playerWrapEl.style.height = vh + 'px';
+    playerWrapEl.style.transform = 'none';
+    if (rotBtn) rotBtn.style.display = 'none';
+  }
+  applyStageTransform();
+}
+
+function bumpHudTimer() {
+  playerWrapEl.classList.remove('hud-hidden');
+  if (hudHideTimer) clearTimeout(hudHideTimer);
+  hudHideTimer = setTimeout(() => {
+    if (activeVid && !activeVid.paused && !hudScrubbing) {
+      playerWrapEl.classList.add('hud-hidden');
+    }
+  }, 3800);
+}
+
+function syncHudControls() {
+  const playBtn = document.getElementById('hudPlayBtn');
+  const muteBtn = document.getElementById('hudMuteBtn');
+  const fsBtn = document.getElementById('hudFsBtn');
+  const modeLbl = document.getElementById('hudModeLabel');
+  const seekWrap = document.getElementById('hudSeekWrap');
+  const seekRange = document.getElementById('hudSeekRange');
+  const timeTxt = document.getElementById('hudTimeText');
+
+  if (playBtn && activeVid) playBtn.textContent = activeVid.paused ? '▶' : '⏸';
+  if (muteBtn && activeVid) muteBtn.textContent = (activeVid.muted || !soundUnlocked) ? '🔇' : '🔊';
+  if (fsBtn) fsBtn.textContent = isSmartFs ? '⤡ 退出' : '⛶ 全屏';
+
+  const shortCam = isDualMode ? '双路2K同屏' : currentCam.replace('_小米摄像机2K', ' 2K').replace('_小米智能门铃4Pro', '门铃');
+  if (modeLbl) {
+    if (isLiveMode && currentCam !== '大门_小米智能门铃4Pro') {
+      modeLbl.textContent = `🔴 ${shortCam}`;
+    } else if (currentTab === 'cloud' || currentCam === '大门_小米智能门铃4Pro') {
+      modeLbl.textContent = `☁️ ${shortCam}`;
+    } else {
+      modeLbl.textContent = `🕒 ${shortCam}`;
+    }
+  }
+
+  const c0 = document.getElementById('fsCam0');
+  const c1 = document.getElementById('fsCam1');
+  const c2 = document.getElementById('fsCam2');
+  const cd = document.getElementById('fsCamDual');
+  if (c0) c0.classList.toggle('active', !isDualMode && currentCam === '客厅_小米摄像机2K');
+  if (c1) c1.classList.toggle('active', !isDualMode && currentCam === '餐厅_小米摄像机2K');
+  if (c2) c2.classList.toggle('active', !isDualMode && currentCam === '大门_小米智能门铃4Pro');
+  if (cd) {
+    cd.classList.toggle('active', isDualMode);
+    cd.style.display = (currentTab === 'live') ? 'inline-flex' : 'none';
+  }
+
+  const showSeek = !isLiveMode || currentCam === '大门_小米智能门铃4Pro';
+  if (seekWrap) seekWrap.style.display = showSeek ? 'flex' : 'none';
+  if (showSeek && activeVid && !hudScrubbing) {
+    const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
+    const ct = activeVid.currentTime || 0;
+    if (seekRange && dur > 0) {
+      seekRange.max = dur;
+      seekRange.value = Math.min(dur, ct);
+    }
+    if (timeTxt) {
+      timeTxt.textContent = dur > 0 ? `${formatSec(ct)} / ${formatSec(dur)}` : formatSec(ct);
+    }
+  }
+}
+
+function togglePlayPause() {
+  if (!activeVid) return;
+  if (activeVid.paused) {
+    tryPlayVideo(activeVid);
+    if (isDualMode && standbyVid) standbyVid.play().catch(() => {});
+  } else {
+    activeVid.pause();
+    if (isDualMode && standbyVid) standbyVid.pause();
+  }
+  syncHudControls();
+  bumpHudTimer();
+}
+
+function toggleMuteHud() {
+  if (!activeVid) return;
+  if (activeVid.muted || !soundUnlocked) {
+    enableSound();
+  } else {
+    activeVid.muted = true;
+    standbyVid.muted = true;
+  }
+  syncHudControls();
+  bumpHudTimer();
+}
+
+function onHudSeekInput(val) {
+  if (!activeVid) return;
+  hudScrubbing = true;
+  const v = parseFloat(val);
+  if (isFinite(v)) activeVid.currentTime = v;
+  bumpHudTimer();
+  clearTimeout(window._hudScrubEndTid);
+  window._hudScrubEndTid = setTimeout(() => { hudScrubbing = false; }, 400);
+}
+
+function enterSmartFullscreen() {
+  if (isSmartFs) return;
+  isSmartFs = true;
+  document.documentElement.classList.add('fs-lock');
+  document.body.classList.add('fs-lock');
+  playerWrapEl.classList.add('fs-active');
+  applyFsFitUI();
+  window.scrollTo(0, 0);
+
+  if (!IS_IOS && playerWrapEl.requestFullscreen && !document.fullscreenElement) {
+    playerWrapEl.requestFullscreen().catch(() => {});
+  }
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(() => {});
+  }
+  try { history.pushState({ nvrSmartFs: 1 }, ''); } catch (e) {}
+
+  updateFsGeometry();
+  setTimeout(updateFsGeometry, 120);
+  setTimeout(updateFsGeometry, 350);
+  syncHudControls();
+  bumpHudTimer();
+}
+
+function exitSmartFullscreen(fromPopState) {
+  if (!isSmartFs) return;
+  isSmartFs = false;
+  document.documentElement.classList.remove('fs-lock');
+  document.body.classList.remove('fs-lock');
+  playerWrapEl.classList.remove('fs-active');
+  resetFsZoom();
+  updateFsGeometry();
+
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+  if (screen.orientation && screen.orientation.unlock) {
+    try { screen.orientation.unlock(); } catch (e) {}
+  }
+  if (!fromPopState && history.state && history.state.nvrSmartFs) {
+    try { history.back(); } catch (e) {}
+  }
+  syncHudControls();
+  bumpHudTimer();
+}
+
+function toggleSmartFullscreen() {
+  if (isSmartFs) exitSmartFullscreen(false);
+  else enterSmartFullscreen();
+}
+
+function mapScreenDeltaToStage(dxScreen, dyScreen) {
+  if (fsEffectiveDeg === 90) return [dyScreen, -dxScreen];
+  if (fsEffectiveDeg === -90) return [-dyScreen, dxScreen];
+  return [dxScreen, dyScreen];
+}
+
+(function initStageGestures() {
+  let pinchStartDist = 0;
+  let pinchStartZoom = 1;
+  let panLastX = 0;
+  let panLastY = 0;
+  let touchMoved = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTs = 0;
+  let lastTapTs = 0;
+  let singleTapTid = null;
+
+  document.querySelectorAll('.hud-bar, .btn-unmute').forEach(el => {
+    el.addEventListener('touchstart', e => { e.stopPropagation(); bumpHudTimer(); }, { passive: true });
+    el.addEventListener('click', e => { e.stopPropagation(); setTimeout(syncHudControls, 15); bumpHudTimer(); });
+  });
+
+  playerWrapEl.addEventListener('mousemove', () => {
+    if (!IS_MOBILE) bumpHudTimer();
+  });
+  playerWrapEl.addEventListener('dblclick', e => {
+    if (e.target.closest('.hud-bar, .btn-unmute')) return;
+    if (!IS_MOBILE) toggleSmartFullscreen();
+  });
+
+  videoStageEl.addEventListener('touchstart', e => {
+    if (e.touches.length === 2 && isSmartFs) {
+      e.preventDefault();
+      touchMoved = true;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartDist = Math.hypot(dx, dy) || 1;
+      pinchStartZoom = fsZoom;
+    } else if (e.touches.length === 1) {
+      touchMoved = false;
+      touchStartX = panLastX = e.touches[0].clientX;
+      touchStartY = panLastY = e.touches[0].clientY;
+      touchStartTs = Date.now();
+    }
+  }, { passive: false });
+
+  videoStageEl.addEventListener('touchmove', e => {
+    if (!isSmartFs) return;
+    if (e.touches.length === 2 && pinchStartDist > 0) {
+      e.preventDefault();
+      touchMoved = true;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy) || 1;
+      fsZoom = Math.max(1, Math.min(4, pinchStartZoom * (dist / pinchStartDist)));
+      applyStageTransform();
+    } else if (e.touches.length === 1) {
+      const cx = e.touches[0].clientX;
+      const cy = e.touches[0].clientY;
+      if (Math.hypot(cx - touchStartX, cy - touchStartY) > 10) touchMoved = true;
+      if (fsZoom > 1.02) {
+        e.preventDefault();
+        const [sdx, sdy] = mapScreenDeltaToStage(cx - panLastX, cy - panLastY);
+        fsPanX += sdx;
+        fsPanY += sdy;
+        panLastX = cx;
+        panLastY = cy;
+        applyStageTransform();
+      }
+    }
+  }, { passive: false });
+
+  videoStageEl.addEventListener('touchend', e => {
+    if (e.touches.length < 2) pinchStartDist = 0;
+    if (e.touches.length === 1) {
+      panLastX = e.touches[0].clientX;
+      panLastY = e.touches[0].clientY;
+    }
+    if (e.touches.length === 0 && !touchMoved && (Date.now() - touchStartTs) < 320) {
+      const now = Date.now();
+      if (now - lastTapTs < 280) {
+        lastTapTs = 0;
+        if (singleTapTid) { clearTimeout(singleTapTid); singleTapTid = null; }
+        if (!isSmartFs) {
+          enterSmartFullscreen();
+        } else if (fsZoom > 1.05) {
+          resetFsZoom();
+          bumpHudTimer();
+        } else {
+          fsFitMode = (fsFitMode === 'contain') ? 'fill' : 'contain';
+          localStorage.setItem('nvr_fs_fit', fsFitMode);
+          applyFsFitUI();
+          bumpHudTimer();
+        }
+      } else {
+        lastTapTs = now;
+        singleTapTid = setTimeout(() => {
+          singleTapTid = null;
+          if (playerWrapEl.classList.contains('hud-hidden')) bumpHudTimer();
+          else playerWrapEl.classList.add('hud-hidden');
+        }, 250);
+      }
+    }
+  });
+})();
+
+window.addEventListener('resize', updateFsGeometry);
+window.addEventListener('orientationchange', () => {
+  updateFsGeometry();
+  setTimeout(updateFsGeometry, 150);
+  setTimeout(updateFsGeometry, 380);
+});
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updateFsGeometry);
+  window.visualViewport.addEventListener('scroll', updateFsGeometry);
+}
+window.addEventListener('popstate', () => {
+  if (isSmartFs) exitSmartFullscreen(true);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && isSmartFs) exitSmartFullscreen(false);
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && isSmartFs && !IS_IOS) {
+    exitSmartFullscreen(false);
+  } else if (isSmartFs) {
+    updateFsGeometry();
+  }
+});
+
+['play', 'pause', 'volumechange', 'timeupdate', 'loadedmetadata'].forEach(evName => {
+  activeVid.addEventListener(evName, syncHudControls);
+});
+setInterval(syncHudControls, 500);
+applyFsFitUI();
+syncHudControls();
+bumpHudTimer();
+
 </script>
 </body>
 </html>
