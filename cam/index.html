@@ -461,7 +461,7 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
-let qualityMode = localStorage.getItem('nvr_qual_mode_v4') || 'auto';
+let qualityMode = localStorage.getItem('nvr_qual_mode_2k_v5') || '2k';
 let detectedLanUrl = '';
 let directFailStreak = 0;
 let currentCam = '客厅_小米摄像机2K';
@@ -629,7 +629,7 @@ function updateQualBadge() {
 function toggleQualityMode() {
   const order = ['auto', '2k', 'fast'];
   qualityMode = order[(order.indexOf(qualityMode) + 1) % order.length] || 'auto';
-  localStorage.setItem('nvr_qual_mode_v4', qualityMode);
+  localStorage.setItem('nvr_qual_mode_2k_v5', qualityMode);
   updateQualBadge();
   if (isLiveMode) {
     destroyAllHls();
@@ -684,7 +684,7 @@ function probeLanFast(extraIpv6) {
   const candidates = [
     'http://192.168.1.138:15443',
     'http://192.168.137.1:15443',
-    'http://1999.config.com:15443'
+    'http://1999.config.com:15443', 'http://117.65.227.59:15443'
   ];
   const v6 = extraIpv6 || ((EMBEDDED_IPV6 && !EMBEDDED_IPV6.startsWith('__')) ? EMBEDDED_IPV6 : (localStorage.getItem('nvr_ipv6_direct') || ''));
   if (v6 && v6.startsWith('http://[')) {
