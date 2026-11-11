@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>全屋 2K 监控极速直连导航</title>
+<style>
+  body { background:#060b16; color:#f8fafc; font-family:-apple-system,sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:92vh; margin:0; padding:20px; text-align:center; }
+  .spinner { width:36px; height:36px; border:3px solid rgba(56,189,248,0.25); border-top-color:#10b981; border-radius:50%; animation:sp 0.7s linear infinite; margin-bottom:14px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  .sub { font-size:13px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .btn { display:inline-block; margin-top:16px; padding:10px 18px; border-radius:10px; background:#1e293b; color:#38bdf8; text-decoration:none; font-weight:700; font-size:13.5px; border:1px solid #334155; }
+</style>
+<script>
+(function() {
+  var jumped = false;
+  function go(u) {
+    if (!jumped) { jumped = true; window.location.replace(u); }
+  }
+  var list = [
+    "http://192.168.1.138:15443",
+    "http://192.168.137.1:15443",
+    "http://1999.config.com:15443",
+    "http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822",
+    "http://[240e:363:3d51:af00:168d:50d:f256:dae7]:15443"
+  ].filter(function(x) { return x && x.indexOf("http") === 0; });
+
+  list.forEach(function(u) {
+    var img = new Image();
+    img.onload = function() { go(u + "/"); };
+    img.src = u + "/apple-touch-icon.png?t=" + Date.now();
+  });
+  setTimeout(function() { go("./index.html"); }, 950);
+})();
+</script>
+</head>
+<body>
+  <div class="spinner"></div>
+  <div style="font-size:16px;font-weight:800;">正在毫秒级竞速直连全屋 2K 监控...</div>
+  <div class="sub">优先走家里 Wi-Fi 0.5ms / 电信 IPv6 14ms 国内直连，超时自动切云端</div>
+  <a class="btn" href="./index.html">立即进入云端控制台</a>
+</body>
+</html>
