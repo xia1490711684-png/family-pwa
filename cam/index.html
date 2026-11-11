@@ -8,47 +8,60 @@
 <meta name="apple-mobile-web-app-title" content="全屋2K监控">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
-<title>全屋2K监控 — 实时直播 · 近2小时回放 · 谷歌云盘全量库</title>
+<title>全屋2K监控 — 实时直播 · 智能动静点播 · 20TB云归档</title>
 <style>
   :root {
-    --bg: #0b1120; --panel: #1e293b; --border: #334155; --text: #f8fafc;
-    --muted: #94a3b8; --accent: #3b82f6; --live: #ef4444; --ok: #10b981; --purple: #8b5cf6;
+    --bg: #070d19; --panel: #131f33; --panel2: #1b2a44; --border: #2b3f60; --text: #f8fafc;
+    --muted: #94a3b8; --accent: #3b82f6; --live: #ef4444; --ok: #10b981; --warn: #f59e0b; --purple: #8b5cf6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Microsoft YaHei", sans-serif;
-    background: var(--bg); color: var(--text);
-    padding: calc(10px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom)) 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(circle at top, #101c33 0%, var(--bg) 65%); color: var(--text);
+    padding: calc(10px + env(safe-area-inset-top)) 12px calc(22px + env(safe-area-inset-bottom)) 12px;
     max-width: 1280px; margin: 0 auto;
   }
-  .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-  .title { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .badge-live { background: var(--live); color: #fff; font-size: 12px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
-  .badge-net { background: #1e293b; border: 1px solid #475569; color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; cursor: pointer; }
+  .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.09); padding-bottom: 9px; }
+  .title { font-size: 16.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; letter-spacing: -0.2px; }
+  .badge-live { background: var(--live); color: #fff; font-size: 11.5px; padding: 3px 9px; border-radius: 99px; font-weight: 700; box-shadow: 0 2px 8px rgba(239,68,68,0.35); }
+  .badge-net { background: var(--panel); border: 1px solid var(--border); color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; cursor: pointer; }
+  .telemetry-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    font-size: 11.5px; color: var(--muted); background: rgba(19,31,51,0.72); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 9px; padding: 6px 10px; margin-bottom: 10px;
+  }
+  .telemetry-ok { color: #34d399; font-weight: 600; }
+
   .tabs-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
   .tab-btn {
     cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--muted);
-    padding: 10px 6px; border-radius: 9px; font-size: 13px; font-weight: 700; text-align: center; transition: all 0.15s;
+    padding: 10px 6px; border-radius: 10px; font-size: 13px; font-weight: 700; text-align: center; transition: all 0.16s;
   }
-  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .tab-btn.live-tab.active { background: var(--live); border-color: var(--live); color: #fff; }
-  .tab-btn.cloud-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .tab-btn.active { background: var(--accent); border-color: #60a5fa; color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+  .tab-btn.live-tab.active { background: var(--live); border-color: #f87171; color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+  .tab-btn.cloud-tab.active { background: var(--purple); border-color: #a78bfa; color: #fff; box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
 
-  .cam-selector { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cam-selector {
+    display: flex; gap: 7px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .cam-selector::-webkit-scrollbar { display: none; }
   .btn {
-    cursor: pointer; border: 1px solid var(--border); background: #0f172a; color: var(--text);
-    padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+    cursor: pointer; border: 1px solid var(--border); background: #0d1729; color: var(--text);
+    padding: 8px 12px; border-radius: 9px; font-size: 12.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex-shrink: 0;
   }
-  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn-unmute {
-    position: absolute; bottom: 52px; right: 14px; z-index: 20;
-    background: rgba(239,68,68,0.92); color: #fff; border: none; padding: 8px 14px;
-    border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  .btn.active { background: var(--accent); border-color: #60a5fa; color: #fff; }
+  .pill-count {
+    background: rgba(245,158,11,0.22); color: #fbbf24; border: 1px solid rgba(245,158,11,0.45);
+    padding: 0 6px; border-radius: 99px; font-size: 11px; font-weight: 800;
   }
+  .btn.active .pill-count { background: rgba(255,255,255,0.22); color: #fff; border-color: rgba(255,255,255,0.4); }
+
   .player-wrap {
     position: relative; width: 100%; aspect-ratio: 16/9; background: #000;
-    border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    border-radius: 13px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55); --fs-side-pad: 24px;
   }
   .player-wrap.dual-mode { aspect-ratio: 16/18; display: flex; flex-direction: column; gap: 4px; }
   .player-wrap.dual-mode video { position: relative !important; width: 100% !important; height: 50% !important; opacity: 1 !important; pointer-events: auto !important; }
@@ -58,74 +71,111 @@
   }
   video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
   .overlay-status { display: none !important; }
-  .seek-nudge-bar {
-    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;
+
+  .dual-badges {
+    display: none; position: absolute; inset: 0; z-index: 18; pointer-events: none;
   }
+  .player-wrap.dual-mode .dual-badges { display: block; }
+  .dual-cam-pill {
+    pointer-events: auto; position: absolute; left: 12px;
+    background: rgba(15,23,42,0.82); border: 1px solid rgba(255,255,255,0.25); color: #f8fafc;
+    padding: 5px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .dual-cam-pill.audio-on { border-color: #34d399; color: #34d399; }
+  #dualPillA { top: 10px; }
+  #dualPillB { top: calc(50% + 10px); }
+  @media (min-width: 800px) {
+    #dualPillB { top: 10px; left: calc(50% + 12px); }
+  }
+  .player-wrap.fs-active.dual-mode #dualPillA { top: 56px; left: max(var(--fs-side-pad), 24px); }
+  .player-wrap.fs-active.dual-mode #dualPillB { top: 56px; left: calc(50% + 14px); }
+
+  .action-strip {
+    display: flex; gap: 7px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .action-strip::-webkit-scrollbar { display: none; }
+  .act-btn {
+    cursor: pointer; background: var(--panel); border: 1px solid var(--border); color: #e2e8f0;
+    padding: 7px 11px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  }
+  .act-btn:active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .act-btn.primary { background: rgba(59,130,246,0.16); border-color: rgba(96,165,250,0.45); color: #93c5fd; }
+
+  .seek-nudge-bar {
+    display: flex; gap: 6px; justify-content: flex-start; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .seek-nudge-bar::-webkit-scrollbar { display: none; }
   .nudge-btn {
     cursor: pointer; background: var(--panel); border: 1px solid var(--border); color: #e2e8f0;
-    padding: 6px 11px; border-radius: 7px; font-size: 12px; font-weight: 600;
+    padding: 6px 10px; border-radius: 7px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
   }
   .nudge-btn:active { background: var(--accent); }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
-  .card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-  .slider-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 10px 0; }
+  .nudge-btn.spd-active { border-color: #38bdf8; color: #38bdf8; background: rgba(56,189,248,0.14); }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+  .card-title { font-size: 13.5px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .heatmap-wrap {
+    position: relative; width: 100%; height: 14px; background: #09111f; border-radius: 6px;
+    overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin-top: 4px; cursor: pointer;
+  }
+  .heatmap-bar { position: absolute; top: 0; bottom: 0; min-width: 2px; border-radius: 1px; }
+  .heatmap-legend { display: flex; gap: 10px; font-size: 11px; color: var(--muted); margin: 4px 0 4px 0; align-items: center; flex-wrap: wrap; }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px 0; }
   .slider-row input[type=range] { flex: 1; accent-color: var(--accent); height: 8px; cursor: pointer; }
-  .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 190px; overflow-y: auto; padding-top: 4px; }
+
+  .filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .f-pill {
+    cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
+    background: #0b1324; border: 1px solid var(--border); color: var(--muted);
+  }
+  .f-pill.active { background: rgba(16,185,129,0.18); border-color: #10b981; color: #34d399; }
+
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 210px; overflow-y: auto; padding-top: 2px; }
   .m-chip {
     cursor: pointer; font-size: 12px; padding: 6px 10px; border-radius: 7px;
-    background: #0f172a; border: 1px solid var(--border); color: #cbd5e1;
+    background: #0b1426; border: 1px solid var(--border); color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px;
   }
-  .m-chip.playing { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
-  .m-chip.cloud-playing { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 700; }
+  .m-chip.has-act { border-color: rgba(16,185,129,0.5); color: #d1fae5; }
+  .m-chip.has-snd { border-color: rgba(245,158,11,0.6); color: #fef3c7; }
+  .m-chip.playing { background: var(--accent) !important; border-color: #60a5fa !important; color: #fff !important; font-weight: 700; }
+  .m-chip.cloud-playing { background: var(--purple) !important; border-color: #a78bfa !important; color: #fff !important; font-weight: 700; }
+
   select, input[type=time] {
-    background: #0f172a; border: 1px solid var(--border); color: #fff;
+    background: #0b1426; border: 1px solid var(--border); color: #fff;
     padding: 6px 10px; border-radius: 7px; font-size: 13px;
   }
   .ios-tip { font-size: 12px; color: var(--muted); text-align: center; padding: 8px; border-top: 1px solid var(--border); margin-top: 8px; line-height: 1.5; }
   @media (min-width: 800px) { .only-pc { display: inline-flex !important; } }
   @media (max-width: 799px) { .only-pc { display: none !important; } }
 
-  /* === Smart iPhone Landscape Fullscreen & Custom HUD (v9) === */
+  /* === Smart iPhone Landscape Fullscreen & Custom HUD (v11) === */
   html.fs-lock, body.fs-lock {
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-    touch-action: none !important;
-    background: #000 !important;
+    overflow: hidden !important; overscroll-behavior: none !important;
+    touch-action: none !important; background: #000 !important;
   }
   .video-stage {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    transform-origin: center center; will-change: transform;
-    background: #000; z-index: 2;
+    transform-origin: center center; will-change: transform; background: #000; z-index: 2;
   }
   .player-wrap.dual-mode .video-stage {
-    position: relative !important; display: flex; flex-direction: column; gap: 4px;
-    width: 100%; height: 100%;
+    position: relative !important; display: flex; flex-direction: column; gap: 4px; width: 100%; height: 100%;
   }
   @media (min-width: 800px) {
     .player-wrap.dual-mode .video-stage { flex-direction: row; }
   }
-  .player-wrap { --fs-side-pad: 24px; }
   .player-wrap.fs-active {
-    position: fixed !important;
-    z-index: 99999 !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    aspect-ratio: unset !important;
-    max-width: none !important;
-    background: #000 !important;
-    box-shadow: none !important;
-    touch-action: none !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
+    position: fixed !important; z-index: 99999 !important; margin: 0 !important;
+    border: none !important; border-radius: 0 !important; aspect-ratio: unset !important;
+    max-width: none !important; background: #000 !important; box-shadow: none !important;
+    touch-action: none !important; user-select: none !important; -webkit-user-select: none !important;
   }
   .player-wrap.fs-active.dual-mode .video-stage {
-    position: absolute !important; top: 0; left: 0;
-    flex-direction: row !important; gap: 2px;
+    position: absolute !important; top: 0; left: 0; flex-direction: row !important; gap: 2px;
   }
-  .player-wrap.fs-active.dual-mode video {
-    width: 50% !important; height: 100% !important;
-  }
+  .player-wrap.fs-active.dual-mode video { width: 50% !important; height: 100% !important; }
   .player-wrap.fs-active[data-fit="contain"] video { object-fit: contain !important; }
   .player-wrap.fs-active[data-fit="fill"] video { object-fit: fill !important; }
   .player-wrap.fs-active[data-fit="cover"] video { object-fit: cover !important; }
@@ -139,21 +189,18 @@
   .player-wrap.hud-hidden .hud-bar { pointer-events: none !important; }
 
   .hud-bar {
-    pointer-events: auto;
-    display: flex; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 8px 12px;
+    pointer-events: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 12px;
   }
   .hud-top {
-    display: none;
-    background: linear-gradient(180deg, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0) 100%);
+    display: none; background: linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0) 100%);
     padding: 12px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right)) 16px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right));
+    overflow-x: auto; scrollbar-width: none;
   }
+  .hud-top::-webkit-scrollbar { display: none; }
   .player-wrap.fs-active .hud-top { display: flex; }
   .hud-bottom {
-    margin-top: auto;
-    background: linear-gradient(0deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0) 100%);
-    padding: 16px 12px 10px 12px;
-    flex-wrap: wrap;
+    margin-top: auto; background: linear-gradient(0deg, rgba(0,0,0,0.84) 0%, rgba(0,0,0,0) 100%);
+    padding: 16px 12px 10px 12px; flex-wrap: wrap;
   }
   .player-wrap.fs-active .hud-bottom {
     padding: 16px max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(var(--fs-side-pad), env(safe-area-inset-left), env(safe-area-inset-right));
@@ -168,37 +215,24 @@
   }
   .hud-pill:active { background: var(--accent); border-color: var(--accent); }
   .hud-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .hud-pill.fs-exit-btn {
-    background: rgba(239,68,68,0.90); border-color: rgba(248,113,113,0.92);
-    padding: 6px 12px; font-size: 12.5px;
-  }
-  .hud-pill.fs-enter-btn {
-    background: rgba(59,130,246,0.90); border-color: rgba(96,165,250,0.95);
-    padding: 6px 12px; font-size: 12.5px;
-  }
-  .hud-seek-wrap {
-    display: none; align-items: center; gap: 7px; flex: 1; min-width: 150px; margin: 0 4px;
-  }
-  .hud-seek-wrap input[type=range] {
-    flex: 1; accent-color: #38bdf8; height: 6px; cursor: pointer;
-  }
+  .hud-pill.fs-exit-btn { background: rgba(239,68,68,0.90); border-color: rgba(248,113,113,0.92); padding: 6px 12px; font-size: 12.5px; }
+  .hud-pill.fs-enter-btn { background: rgba(59,130,246,0.90); border-color: rgba(96,165,250,0.95); padding: 6px 12px; font-size: 12.5px; }
+  .hud-seek-wrap { display: none; align-items: center; gap: 7px; flex: 1; min-width: 150px; margin: 0 4px; }
+  .hud-seek-wrap input[type=range] { flex: 1; accent-color: #38bdf8; height: 6px; cursor: pointer; }
   .hud-time { font-size: 11.5px; color: #e2e8f0; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .hud-live-tag {
-    font-size: 12px; font-weight: 700; color: #f8fafc;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.85); white-space: nowrap;
+  .hud-live-tag { font-size: 12px; font-weight: 700; color: #f8fafc; text-shadow: 0 1px 3px rgba(0,0,0,0.85); white-space: nowrap; }
+  .btn-fs-toolbar { background: #1d4ed8; border-color: #3b82f6; color: #fff; margin-left: auto; }
+  .btn-unmute {
+    position: absolute; bottom: 52px; right: 14px; z-index: 35;
+    background: rgba(239,68,68,0.93); color: #fff; border: none; padding: 8px 14px;
+    border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.45);
   }
-  .btn-fs-toolbar {
-    background: #1d4ed8; border-color: #3b82f6; color: #fff; margin-left: auto;
-  }
-  .player-wrap.fs-active .btn-unmute {
-    bottom: 64px; right: max(var(--fs-side-pad), 28px); z-index: 35;
-  }
-  .btn-unmute { z-index: 35; bottom: 52px; }
+  .player-wrap.fs-active .btn-unmute { bottom: 64px; right: max(var(--fs-side-pad), 28px); }
 
   .loading-toast {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    z-index: 22; background: rgba(15,23,42,0.85); color: #38bdf8;
-    border: 1px solid rgba(56,189,248,0.45); border-radius: 99px;
+    z-index: 30; background: rgba(15,23,42,0.88); color: #38bdf8;
+    border: 1px solid rgba(56,189,248,0.48); border-radius: 99px;
     padding: 8px 16px; font-size: 13px; font-weight: 700;
     pointer-events: none; white-space: nowrap; display: none;
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -210,10 +244,16 @@
     <div class="title">
       <span>📹 全屋 2K 监控 + 智能门铃</span>
       <span id="modeBadge" class="badge-live">🔴 实时直播</span>
-      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 5G / Wi-Fi 三网极速</span>
-      <span id="qualBadge" class="badge-net" onclick="toggleQualityMode()" style="border-color:#10b981;color:#10b981;">⚡ 超清流畅</span>
+      <span id="netBadge" class="badge-net" onclick="onNetBadgeClick()">🌐 5G / Wi-Fi 极速连接</span>
+      <span id="qualBadge" class="badge-net" onclick="toggleQualityMode()">💎 2K超清原画</span>
     </div>
-    <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 用电脑系统媒体播放器打开</button>
+    <button class="btn only-pc" style="background:#059669;border-color:#10b981;color:#fff;" onclick="openInWMP()">🎬 系统播放器连播</button>
+  </div>
+
+  <!-- Real-Time Telemetry & Health Bar -->
+  <div class="telemetry-bar" id="telemetryBar">
+    <span id="teleHealth" class="telemetry-ok">● 双路 2K 24h 原画有声录制正常 · 谷歌云盘 20TB 自动归档</span>
+    <span id="teleSpec">画质: 2304×1296 HEVC · 实时音频增强</span>
   </div>
 
   <!-- 3 Core Functional Tabs -->
@@ -223,11 +263,11 @@
     <div class="tab-btn cloud-tab" id="tabCloud" onclick="switchTab('cloud')">☁️ 谷歌云盘全量库</div>
   </div>
 
-  <!-- Device Selector (All 3 cameras + Dual-View always visible) -->
+  <!-- Device Selector -->
   <div class="cam-selector">
     <button class="btn active" id="camBtn0" onclick="selectCam('客厅_小米摄像机2K', 0)">🛋️ 客厅 2K</button>
     <button class="btn" id="camBtn1" onclick="selectCam('餐厅_小米摄像机2K', 1)">🍽️ 餐厅 2K</button>
-    <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)">🚪 大门门铃 4Pro</button>
+    <button class="btn" id="camBtn2" onclick="selectCam('大门_小米智能门铃4Pro', 2)">🚪 大门门铃 <span id="doorbellCountPill" class="pill-count" style="display:none;">0</span></button>
     <button class="btn" id="camBtnDual" onclick="selectDualLive()">🖼️ 双路同屏</button>
     <button class="btn btn-fs-toolbar" id="camBtnFs" onclick="enterSmartFullscreen()">⛶ 横屏全屏</button>
   </div>
@@ -238,8 +278,12 @@
     <div class="loading-toast" id="loadingToast">☁️ 正在加载 2K 原画流...</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <div class="video-stage" id="videoStage">
-      <video id="videoA" autoplay playsinline webkit-playsinline style="z-index:2;"></video>
-      <video id="videoB" playsinline webkit-playsinline style="z-index:1;opacity:0;pointer-events:none;"></video>
+      <video id="videoA" autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;"></video>
+      <video id="videoB" playsinline webkit-playsinline crossorigin="anonymous" style="z-index:1;opacity:0;pointer-events:none;"></video>
+    </div>
+    <div class="dual-badges" id="dualBadges">
+      <button class="dual-cam-pill audio-on" id="dualPillA" onclick="switchDualAudio(0)">🛋️ 客厅 2K · 🔊 正在收听</button>
+      <button class="dual-cam-pill" id="dualPillB" onclick="switchDualAudio(1)">🍽️ 餐厅 2K · 🔇 点此收听</button>
     </div>
     <div class="hud-layer" id="hudLayer">
       <div class="hud-bar hud-top" id="hudTopBar">
@@ -251,6 +295,7 @@
           <button class="hud-pill" id="fsCamDual" onclick="selectDualLive()">🖼️ 双路</button>
         </div>
         <div class="hud-group">
+          <button class="hud-pill" onclick="captureSnapshot()">📸 抓拍</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
           <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
@@ -267,6 +312,7 @@
           <input type="range" id="hudSeekRange" min="0" max="60" step="0.5" value="0" oninput="onHudSeekInput(this.value)">
           <span class="hud-time" id="hudTimeText">00:00</span>
           <button class="hud-pill" style="padding:4px 8px;" onclick="nudgeVideo(15)">+15s</button>
+          <button class="hud-pill" id="hudSpdBtn" style="padding:4px 8px;" onclick="cyclePlaybackSpeed()">1.0x</button>
         </div>
         <div class="hud-group" style="margin-left:auto;">
           <button class="hud-pill" id="fsZoomResetBtn" style="display:none;" onclick="resetFsZoom()">🔍 1.0x</button>
@@ -276,20 +322,30 @@
     </div>
   </div>
 
-  <!-- Fast Seek Bar for Playback / Cloud Archive -->
+  <!-- Quick Utility Strip (2K Snapshot, Picture-in-Picture, Save Clip, Live Edge Sync) -->
+  <div class="action-strip">
+    <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
+    <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
+    <button class="act-btn" id="dlClipBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 保存当前录像段</button>
+    <button class="act-btn" id="syncLiveBtn" onclick="syncToLiveEdge()">⚡ 追平最新直播秒</button>
+  </div>
+
+  <!-- Fast Seek & Multi-Speed Bar for Playback / Cloud Archive -->
   <div class="seek-nudge-bar" id="nudgeBar" style="display:none;">
-    <button class="nudge-btn" onclick="nudgeVideo(-300)">⏪ -5分钟</button>
+    <button class="nudge-btn" onclick="nudgeVideo(-300)">⏪ -5分</button>
     <button class="nudge-btn" onclick="nudgeVideo(-30)">-30秒</button>
     <button class="nudge-btn" onclick="nudgeVideo(-10)">-10秒</button>
     <button class="nudge-btn" onclick="nudgeVideo(10)">+10秒</button>
     <button class="nudge-btn" onclick="nudgeVideo(30)">+30秒</button>
-    <button class="nudge-btn" onclick="nudgeVideo(300)">+5分钟 ⏩</button>
-    <button class="nudge-btn" id="spd1" onclick="setSpeed(1)" style="border-color:#38bdf8;color:#38bdf8;">1.0x</button>
+    <button class="nudge-btn" onclick="nudgeVideo(300)">+5分 ⏩</button>
+    <button class="nudge-btn" id="spd0.5" onclick="setSpeed(0.5)">0.5x</button>
+    <button class="nudge-btn spd-active" id="spd1" onclick="setSpeed(1)">1.0x</button>
     <button class="nudge-btn" id="spd2" onclick="setSpeed(2)">2.0x</button>
     <button class="nudge-btn" id="spd4" onclick="setSpeed(4)">4.0x</button>
+    <button class="nudge-btn" id="spd8" onclick="setSpeed(8)">8.0x</button>
   </div>
 
-  <!-- Panel 1 & 2: Current 2-Hour Window Minute-Accurate Timeline -->
+  <!-- Panel 1 & 2: Current 2-Hour Window Minute-Accurate Timeline + Activity Heatmap -->
   <div class="card" id="panelRecent">
     <div class="card-title">
       <span id="blockTitle">🕒 近 2 小时任意时间点点播（点击秒开并自动往后连播）</span>
@@ -297,6 +353,13 @@
         <input type="time" id="exactTimeInput" step="1" onchange="jumpToExactInput()">
         <button class="btn" style="padding:5px 10px;font-size:12px;" onclick="jumpToExactInput()">跳转</button>
       </div>
+    </div>
+    <div class="heatmap-wrap" id="recentHeatmap" onclick="onHeatmapClick(event)" title="点击热力条任意位置直达该时刻"></div>
+    <div class="heatmap-legend">
+      <span>📊 动静热力轴（点击直达）：</span>
+      <span style="color:#fbbf24;">🟠 有人说话/声响</span>
+      <span style="color:#34d399;">🟢 画面人员走动</span>
+      <button class="f-pill" id="recentActFilterBtn" style="margin-left:auto;" onclick="toggleRecentActFilter()">🔥 仅看有动静片段</button>
     </div>
     <div class="slider-row">
       <span id="tlStartLabel" style="font-size:12px;color:var(--muted);min-width:52px;">--:--</span>
@@ -306,7 +369,7 @@
     <div class="chip-grid" id="minuteGrid"></div>
   </div>
 
-  <!-- Panel 3: Google Drive Full 20TB Archive Browser (All Devices, All Dates, All 2-Hour Blocks) -->
+  <!-- Panel 3: Google Drive Full 20TB Archive Browser -->
   <div class="card" id="panelCloud" style="display:none;">
     <div class="card-title">
       <span id="cloudPanelTitle">☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播</span>
@@ -315,25 +378,31 @@
         <select id="cloudDateSelect" onchange="onCloudDateChange()"></select>
       </div>
     </div>
-    <div id="cloudSubHint" style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（点击即播）：</div>
+    <div id="cloudSubHint" style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（点击即播，内存预热秒开）：</div>
     <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:10px;"></div>
 
     <!-- Intra-2-Hour Quick 10-Minute Jump Bar -->
     <div id="intra2hBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-      <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内快速定位（点击直达对应分钟）：</div>
+      <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内每 10 分钟快速定位：</div>
       <div class="chip-grid" id="intra10mGrid" style="margin-bottom:8px;"></div>
     </div>
 
-    <!-- Motion & Sound Highlights from 今日动静时间轴速查.txt -->
+    <!-- Smart Filtered Motion & Sound Highlights from 今日动静时间轴速查.txt -->
     <div id="highlightsBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-      <div style="font-size:12px;color:#10b981;font-weight:700;margin-bottom:6px;">🔊🏃 当日有声音/人员走动重点时刻（点击直接跳到该秒）：</div>
+      <div style="font-size:12px;color:#10b981;font-weight:700;margin-bottom:6px;">🔊🏃 当日声音与人员走动智能索引（点击直达对应秒）：</div>
+      <div class="filter-bar" id="cloudHlFilterBar">
+        <button class="f-pill active" data-hlf="all" onclick="setCloudHlFilter('all')">全部动态</button>
+        <button class="f-pill" data-hlf="sound" onclick="setCloudHlFilter('sound')">🔊 仅看有声音</button>
+        <button class="f-pill" data-hlf="motion" onclick="setCloudHlFilter('motion')">🏃 仅看有人活动</button>
+        <button class="f-pill" data-hlf="curblock" onclick="setCloudHlFilter('curblock')">📍 仅当前2h段</button>
+      </div>
       <div class="chip-grid" id="highlightsGrid"></div>
     </div>
   </div>
 
   <div class="ios-tip">
-    📲 <b>苹果 iPhone 添加到主屏幕（三网合一永久有效）</b>：用 Safari 打开本页 → 点击底部中间 <b>分享图标 [↑]</b> → 选择 <b>「添加到主屏幕」</b>。<br>
-    ✨ 支持 <b>5G/4G 手机流量</b>、<b>家里光猫 Wi-Fi (10-506-5G)</b>、<b>电脑热点 (Xiaomi_0703)</b> 自动无缝切换！
+    📲 <b>苹果 iPhone 主屏幕 WebApp（三网并发竞速 · 永久有效）</b>：Safari 打开本页 → 底部 <b>分享 [↑]</b> → <b>「添加到主屏幕」</b>。<br>
+    ✨ 支持 <b>5G 远程云加速</b>、<b>光猫 5GHz Wi-Fi</b>、<b>小米路由器网关</b> 毫秒级感知切换，新增 2K 原画抓拍、画中画与 AI 动静热力轴！
   </div>
 
 <script>
@@ -349,6 +418,7 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
+
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const EMBEDDED_TUNNEL = 'https://indoor-viii-thriller-tolerance.trycloudflare.com';
@@ -371,14 +441,31 @@ let standbyVid = document.getElementById('videoB');
 let hlsPlayer = null;
 let hlsPlayerB = null;
 let isDualMode = false;
+let dualAudioIdx = 0;
 let playbackRateVal = 1.0;
 let lastWatchdogTime = -1;
 let stallCount = 0;
-let lastLiveSeq = -1;
 let liveTimer = null;
 let cloudData = null;
 let currentCloudFile = null;
 let currentCloudOffset = 0;
+let recentOnlyActive = false;
+let cloudHlFilter = 'all';
+
+function showLoadingToast(msg, durMs) {
+  const el = document.getElementById('loadingToast');
+  if (!el) return;
+  el.textContent = msg || '☁️ 正在加载 2K 原画流...';
+  el.style.display = 'block';
+  clearTimeout(window._loadToastTid);
+  window._loadToastTid = setTimeout(() => { el.style.display = 'none'; }, durMs || 10000);
+}
+
+function hideLoadingToast() {
+  const el = document.getElementById('loadingToast');
+  if (el) el.style.display = 'none';
+  clearTimeout(window._loadToastTid);
+}
 
 function destroyHls() {
   if (hlsPlayer) {
@@ -403,16 +490,42 @@ function exitDualMode() {
   }
 }
 
+function switchDualAudio(idx) {
+  dualAudioIdx = idx;
+  soundUnlocked = true;
+  document.getElementById('unmuteBtn').style.display = 'none';
+  activeVid.muted = (idx !== 0);
+  standbyVid.muted = (idx !== 1);
+  if (idx === 0) activeVid.play().catch(() => {});
+  else standbyVid.play().catch(() => {});
+  const pA = document.getElementById('dualPillA');
+  const pB = document.getElementById('dualPillB');
+  if (pA) {
+    pA.classList.toggle('audio-on', idx === 0);
+    pA.textContent = idx === 0 ? '🛋️ 客厅 2K · 🔊 正在收听' : '🛋️ 客厅 2K · 🔇 点此收听';
+  }
+  if (pB) {
+    pB.classList.toggle('audio-on', idx === 1);
+    pB.textContent = idx === 1 ? '🍽️ 餐厅 2K · 🔊 正在收听' : '🍽️ 餐厅 2K · 🔇 点此收听';
+  }
+}
+
 function setSpeed(rate) {
   playbackRateVal = rate;
-  if (activeVid) activeVid.playbackRate = rate;
-  [1, 2, 4].forEach(r => {
+  if (activeVid && !isLiveMode) activeVid.playbackRate = rate;
+  [0.5, 1, 2, 4, 8].forEach(r => {
     const b = document.getElementById('spd' + r);
-    if (b) {
-      b.style.borderColor = (r === rate) ? '#38bdf8' : 'var(--border)';
-      b.style.color = (r === rate) ? '#38bdf8' : '#e2e8f0';
-    }
+    if (b) b.classList.toggle('spd-active', r === rate);
   });
+  const hs = document.getElementById('hudSpdBtn');
+  if (hs) hs.textContent = rate + 'x';
+}
+
+function cyclePlaybackSpeed() {
+  const order = [1, 2, 4, 8, 0.5];
+  const nxt = order[(order.indexOf(playbackRateVal) + 1) % order.length] || 1;
+  setSpeed(nxt);
+  bumpHudTimer();
 }
 
 function getHlsPrefix() {
@@ -422,9 +535,10 @@ function getHlsPrefix() {
 function updateQualBadge() {
   const qb = document.getElementById('qualBadge');
   const fsq = document.getElementById('fsQualBtn');
+  const tSpec = document.getElementById('teleSpec');
   if (qb) {
     if (qualityMode === 'fast') {
-      qb.textContent = '⚡ 1080P流畅 (点切2K原画)';
+      qb.textContent = '⚡ 1080P高帧 (点切2K原画)';
       qb.style.color = '#10b981';
       qb.style.borderColor = '#10b981';
     } else {
@@ -437,6 +551,11 @@ function updateQualBadge() {
     fsq.textContent = (qualityMode === 'fast') ? '⚡ 1080P' : '💎 2K原画';
     fsq.classList.toggle('active', qualityMode === '2k');
   }
+  if (tSpec && isLiveMode) {
+    tSpec.textContent = (qualityMode === 'fast')
+      ? '画质: 1920×1080 H.264 · 5G省流低延迟'
+      : '画质: 2304×1296 2K无损原画 · AI语音降噪';
+  }
 }
 
 function toggleQualityMode() {
@@ -446,13 +565,19 @@ function toggleQualityMode() {
   if (isLiveMode) startLiveMode();
 }
 
+function applyInstantPoster(vid, camName) {
+  if (!vid || (IS_CLOUD_SHELL && !API_BASE)) return;
+  vid.poster = `${API_BASE}/api/poster?cam=${encodeURIComponent(camName)}&t=${Math.floor(Date.now() / 3000)}`;
+}
+
 function onNetBadgeClick() {
   if (detectedLanUrl) {
     window.location.href = detectedLanUrl + '/';
   } else if (!IS_CLOUD_SHELL) {
     window.location.href = 'https://xia1490711684-png.github.io/family-pwa/cam/?stay_cloud=1';
   } else {
-    window.location.href = 'http://192.168.1.138:15443/';
+    showLoadingToast('🔄 正在重新探测最快线路...', 2500);
+    discoverApiBase(true);
   }
 }
 
@@ -466,7 +591,7 @@ function probeLanFast(extraIpv6) {
       badge.style.color = '#10b981';
       badge.style.borderColor = '#10b981';
     } else if (h.includes(':')) {
-      badge.textContent = '⚡ 5G/Wi-Fi 电信IPv6毫秒直连';
+      badge.textContent = '⚡ 电信 IPv6 毫秒直连';
       badge.style.color = '#10b981';
       badge.style.borderColor = '#10b981';
     } else {
@@ -491,10 +616,8 @@ function probeLanFast(extraIpv6) {
     try {
       const img = new Image();
       img.onload = () => {
-        if (!detectedLanUrl) {
-          detectedLanUrl = lanCandidate;
-        }
-        badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此切换)';
+        if (!detectedLanUrl) detectedLanUrl = lanCandidate;
+        badge.textContent = '⚡ 内网零延迟可用 (点此切换)';
         badge.style.color = '#10b981';
         badge.style.borderColor = '#10b981';
       };
@@ -504,9 +627,22 @@ function probeLanFast(extraIpv6) {
 }
 
 let lastDiscoveryTs = 0;
+async function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    return r;
+  } catch (e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
 async function discoverApiBase(forceRediscover) {
   const nowTs = Date.now();
-  if (!forceRediscover && nowTs - lastDiscoveryTs < 3500) return;
+  if (!forceRediscover && nowTs - lastDiscoveryTs < 3000) return;
   lastDiscoveryTs = nowTs;
   probeLanFast();
   if (!IS_CLOUD_SHELL) {
@@ -532,47 +668,39 @@ async function discoverApiBase(forceRediscover) {
     return true;
   }
 
-  // Fast 1: check same-origin endpoints.json (<100ms on GitHub CDN)
-  try {
-    const r = await fetch('./endpoints.json?t=' + Date.now(), { cache: 'no-store' });
-    if (r.ok) {
-      const epJson = await r.json();
-      if (epJson) {
-        if (epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
-        if (epJson.tunnel && epJson.tunnel !== initialBase) {
-          applyNewBase(epJson.tunnel, epJson.ipv6_direct);
-        }
-      }
-    }
-  } catch (e) {}
+  // Parallel fast race: check GitHub CDN endpoints.json AND live API_BASE simultaneously!
+  const epPromise = fetchWithTimeout('./endpoints.json?t=' + Date.now(), 2500)
+    .then(r => r.ok ? r.json() : null).catch(() => null);
+  const liveProbePromise = API_BASE
+    ? fetchWithTimeout(API_BASE + '/api/live_info?t=' + Date.now(), 2800).then(r => r.ok ? r.json() : null).catch(() => null)
+    : Promise.resolve(null);
 
-  // Verify current API_BASE with 4s timeout; if unreachable, query ntfy.sh immediately
-  if (API_BASE) {
+  const [epJson, liveOk] = await Promise.all([epPromise, liveProbePromise]);
+  if (epJson && epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
+
+  if (liveOk) {
+    localStorage.setItem('nvr_api_base', API_BASE);
+    const badge = document.getElementById('netBadge');
+    if (!detectedLanUrl) {
+      badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
+      badge.style.color = '#10b981';
+    }
+    return;
+  }
+
+  if (epJson && epJson.tunnel && epJson.tunnel !== initialBase) {
     try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 4000);
-      const r = await fetch(API_BASE + '/api/live_info?t=' + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
-      clearTimeout(tid);
-      if (r.ok) {
-        const info = await r.json();
-        localStorage.setItem('nvr_api_base', API_BASE);
-        const badge = document.getElementById('netBadge');
-        if (detectedLanUrl) {
-          badge.textContent = '⚡ 内网/IPv6零延迟已就绪 (点此切换)';
-          badge.style.color = '#10b981';
-          badge.style.borderColor = '#10b981';
-        } else {
-          badge.textContent = '🌐 5G / Wi-Fi 云加速已连接';
-          badge.style.color = '#10b981';
-        }
+      const r2 = await fetchWithTimeout(epJson.tunnel + '/api/live_info?t=' + Date.now(), 3000);
+      if (r2.ok) {
+        applyNewBase(epJson.tunnel, epJson.ipv6_direct);
         return;
       }
     } catch (e) {}
   }
 
-  // Fallback: query ntfy.sh instant channel if primary endpoint failed or rotated
+  // Instant fallback: query ntfy.sh tunnel broadcast channel
   try {
-    const r = await fetch(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=12h`, { cache: 'no-store' });
+    const r = await fetchWithTimeout(`https://ntfy.sh/${NTFY_TOPIC}/json?poll=1&since=12h`, 3500);
     if (r.ok) {
       const txt = await r.text();
       const lines = txt.trim().split('\n').filter(Boolean);
@@ -594,8 +722,12 @@ async function discoverApiBase(forceRediscover) {
 
 function enableSound() {
   soundUnlocked = true;
-  activeVid.muted = false;
-  standbyVid.muted = false;
+  if (isDualMode) {
+    switchDualAudio(dualAudioIdx);
+  } else {
+    activeVid.muted = false;
+    standbyVid.muted = true;
+  }
   document.getElementById('unmuteBtn').style.display = 'none';
   activeVid.play().catch(() => {});
 }
@@ -619,15 +751,19 @@ function updatePanelsVisibility() {
   const showCloud = (currentTab === 'cloud') || isDoorbell;
   document.getElementById('panelRecent').style.display = showCloud ? 'none' : 'block';
   document.getElementById('panelCloud').style.display = showCloud ? 'block' : 'none';
-  document.getElementById('nudgeBar').style.display = (currentTab === 'live' && !isDoorbell) ? 'none' : 'flex';
+  const inPlayback = (currentTab !== 'live') || isDoorbell;
+  document.getElementById('nudgeBar').style.display = inPlayback ? 'flex' : 'none';
+  document.getElementById('dlClipBtn').style.display = inPlayback ? 'inline-flex' : 'none';
+  document.getElementById('syncLiveBtn').style.display = (!inPlayback) ? 'inline-flex' : 'none';
+
   const cTitle = document.getElementById('cloudPanelTitle');
   const cHint = document.getElementById('cloudSubHint');
   if (isDoorbell) {
-    cTitle.textContent = '🚪 大门智能门铃 4Pro（双摄高清事件录像）— 自动播放最新事件';
-    cHint.textContent = '选择门铃触发事件（点击即播，按时间排序）：';
+    cTitle.textContent = '🚪 大门智能门铃 4Pro（双摄高清事件库）— 自动连播最新事件';
+    cHint.textContent = '选择门铃触发事件（按时间倒序/顺序，点击秒播）：';
   } else {
     cTitle.textContent = '☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播';
-    cHint.textContent = '选择 2 小时录像段（点击即播）：';
+    cHint.textContent = '选择 2 小时录像段（内存预热头部索引，点击秒开并支持倍速拖动）：';
   }
 }
 
@@ -664,7 +800,6 @@ function selectCam(camName, idx) {
   document.getElementById('camBtn0').classList.toggle('active', idx === 0);
   document.getElementById('camBtn1').classList.toggle('active', idx === 1);
   document.getElementById('camBtn2').classList.toggle('active', idx === 2);
-  lastLiveSeq = -1;
   updatePanelsVisibility();
   renderTimeline();
   if (currentCam === '大门_小米智能门铃4Pro') {
@@ -706,8 +841,12 @@ function attachHlsToVideo(vid, hlsUrl, isSecondary) {
   if (isAppleNative) {
     vid.onerror = () => { discoverApiBase(false); };
     vid.src = hlsUrl + '?t=' + Date.now();
-    if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
-    else tryPlayVideo(vid);
+    if (isSecondary) {
+      vid.muted = (dualAudioIdx !== 1);
+      vid.play().catch(() => {});
+    } else {
+      tryPlayVideo(vid);
+    }
     return null;
   }
 
@@ -716,16 +855,20 @@ function attachHlsToVideo(vid, hlsUrl, isSecondary) {
       const inst = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        backBufferLength: 16,
-        maxBufferLength: 18,
-        liveSyncDurationCount: 2,
-        liveMaxLatencyDurationCount: 5
+        backBufferLength: 14,
+        maxBufferLength: 15,
+        liveSyncDurationCount: 1.6,
+        liveMaxLatencyDurationCount: 4
       });
       inst.loadSource(hlsUrl);
       inst.attachMedia(vid);
       inst.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (isSecondary) { vid.muted = true; vid.play().catch(() => {}); }
-        else tryPlayVideo(vid);
+        if (isSecondary) {
+          vid.muted = (dualAudioIdx !== 1);
+          vid.play().catch(() => {});
+        } else {
+          tryPlayVideo(vid);
+        }
       });
       inst.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
@@ -770,27 +913,37 @@ function selectDualLive() {
   const badge = document.getElementById('modeBadge');
   badge.textContent = '🖼️ 双路2K同屏';
   badge.style.background = '#ef4444';
-  document.getElementById('overlayText').textContent = '🛋️ 客厅 2K + 🍽️ 餐厅 2K ｜ 🔴 双路 2K 原画实时同屏';
   if (IS_CLOUD_SHELL && !API_BASE) return;
+  applyInstantPoster(activeVid, '客厅_小米摄像机2K');
+  applyInstantPoster(standbyVid, '餐厅_小米摄像机2K');
   const hlsPref = getHlsPrefix();
   const urlA = `${API_BASE}/${hlsPref}/${encodeURIComponent('客厅_小米摄像机2K')}/live.m3u8`;
   const urlB = `${API_BASE}/${hlsPref}/${encodeURIComponent('餐厅_小米摄像机2K')}/live.m3u8`;
   hlsPlayer = attachHlsToVideo(activeVid, urlA, false);
   hlsPlayerB = attachHlsToVideo(standbyVid, urlB, true);
+  switchDualAudio(dualAudioIdx);
 }
 
 async function fetchState() {
+  if (IS_CLOUD_SHELL && !API_BASE) return;
   try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 4000);
-    const r = await fetch(`${API_BASE}/api/state?t=` + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
-    clearTimeout(tid);
+    const r = await fetchWithTimeout(`${API_BASE}/api/state?t=` + Date.now(), 4000);
     if (!r.ok) {
       discoverApiBase(false);
       return;
     }
     directFailStreak = 0;
     stateData = await r.json();
+    const dbPill = document.getElementById('doorbellCountPill');
+    if (dbPill && stateData.doorbell_today_count !== undefined) {
+      dbPill.style.display = stateData.doorbell_today_count > 0 ? 'inline-block' : 'none';
+      dbPill.textContent = stateData.doorbell_today_count;
+    }
+    const th = document.getElementById('teleHealth');
+    if (th && stateData.now) {
+      const dbStr = stateData.doorbell_today_count ? ` · 今日门铃 ${stateData.doorbell_today_count} 次` : '';
+      th.textContent = `● 双路2K录制正常 (${stateData.now.slice(11, 19)})${dbStr}`;
+    }
     renderTimeline();
   } catch (e) {
     if (!IS_CLOUD_SHELL && IS_MOBILE) {
@@ -809,26 +962,75 @@ function getCamSegs() {
   return stateData.staging[currentCam];
 }
 
+function toggleRecentActFilter() {
+  recentOnlyActive = !recentOnlyActive;
+  const b = document.getElementById('recentActFilterBtn');
+  if (b) b.classList.toggle('active', recentOnlyActive);
+  renderTimeline();
+}
+
+function onHeatmapClick(ev) {
+  const segs = getCamSegs();
+  if (!segs.length) return;
+  const rect = ev.currentTarget.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left) / Math.max(1, rect.width)));
+  const minSec = segs[0].start_sec;
+  const maxSec = segs[segs.length - 1].end_sec;
+  const targetSec = Math.round(minSec + ratio * (maxSec - minSec));
+  if (currentTab === 'live') switchTab('recent');
+  onSliderScrub(targetSec);
+}
+
 function renderTimeline() {
   const segs = getCamSegs();
   const grid = document.getElementById('minuteGrid');
+  const hmap = document.getElementById('recentHeatmap');
   const bLabel = stateData ? stateData.current_block_label : '';
-  document.getElementById('blockTitle').textContent = `🕒 近 2 小时窗口 (${bLabel}) — 共 ${segs.length} 段高清有声切片`;
+  const actCount = segs.filter(s => s.has_sound || s.has_motion).length;
+  document.getElementById('blockTitle').textContent = `🕒 近 2 小时窗口 (${bLabel}) — 共 ${segs.length} 段 · 动静 ${actCount} 段`;
+  const fBtn = document.getElementById('recentActFilterBtn');
+  if (fBtn) fBtn.textContent = recentOnlyActive ? `🔥 显示全部 (${segs.length})` : `🔥 仅看有动静 (${actCount})`;
 
   if (segs.length > 0) {
+    const minSec = segs[0].start_sec;
+    const maxSec = Math.max(minSec + 60, segs[segs.length - 1].end_sec);
     document.getElementById('tlStartLabel').textContent = segs[0].start_hms;
     document.getElementById('tlEndLabel').textContent = isLiveMode ? '🔴 实时' : segs[segs.length - 1].end_hms;
     const slider = document.getElementById('tlSlider');
-    slider.min = segs[0].start_sec;
-    slider.max = segs[segs.length - 1].end_sec;
+    slider.min = minSec;
+    slider.max = maxSec;
     if (isLiveMode) slider.value = slider.max;
+
+    if (hmap) {
+      hmap.innerHTML = '';
+      const span = Math.max(1, maxSec - minSec);
+      segs.forEach(s => {
+        if (!s.has_sound && !s.has_motion) return;
+        const bar = document.createElement('div');
+        bar.className = 'heatmap-bar';
+        const leftPct = ((s.start_sec - minSec) / span) * 100;
+        const widthPct = Math.max(0.8, ((s.end_sec - s.start_sec) / span) * 100);
+        bar.style.left = leftPct.toFixed(2) + '%';
+        bar.style.width = widthPct.toFixed(2) + '%';
+        bar.style.background = s.has_sound ? '#f59e0b' : '#10b981';
+        hmap.appendChild(bar);
+      });
+    }
+  } else if (hmap) {
+    hmap.innerHTML = '';
   }
 
   grid.innerHTML = '';
   segs.forEach((s, idx) => {
+    if (recentOnlyActive && !s.has_sound && !s.has_motion) return;
     const btn = document.createElement('button');
-    btn.className = 'm-chip' + (!isLiveMode && currentTab !== 'cloud' && idx === curSegIndex ? ' playing' : '');
-    btn.textContent = `${s.start_hms}`;
+    let cls = 'm-chip';
+    if (s.has_sound) cls += ' has-snd';
+    else if (s.has_motion) cls += ' has-act';
+    if (!isLiveMode && currentTab !== 'cloud' && idx === curSegIndex) cls += ' playing';
+    btn.className = cls;
+    const icon = s.has_sound ? '🔊 ' : (s.has_motion ? '🏃 ' : '');
+    btn.textContent = icon + s.start_hms;
     btn.onclick = () => {
       soundUnlocked = true;
       document.getElementById('unmuteBtn').style.display = 'none';
@@ -849,13 +1051,13 @@ function playSegmentAt(idx, offsetSec) {
   destroyHls();
   if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
   curSegIndex = idx;
-  document.getElementById('nudgeBar').style.display = 'flex';
+  updatePanelsVisibility();
   const badge = document.getElementById('modeBadge');
-  badge.textContent = `🕒 近2h回放 ${segs[idx].start_hms}`;
+  badge.textContent = `🕒 回放 ${segs[idx].start_hms}`;
   badge.style.background = '#3b82f6';
-  document.getElementById('overlayText').textContent = `${currentCam} ｜ 正在回放 ${segs[idx].start_hms} - ${segs[idx].end_hms}`;
 
   activeVid.onended = null;
+  activeVid.removeAttribute('poster');
   activeVid.removeAttribute('data-cloud-url');
   activeVid.src = `${API_BASE}${segs[idx].url}`;
   activeVid.currentTime = Math.max(0, offsetSec || 0);
@@ -904,22 +1106,8 @@ function jumpToExactInput() {
   if (!val) return;
   const parts = val.split(':').map(Number);
   const sec = parts[0] * 3600 + parts[1] * 60 + (parts[2] || 0);
+  if (currentTab === 'live') switchTab('recent');
   onSliderScrub(sec);
-}
-
-function showLoadingToast(msg) {
-  const el = document.getElementById('loadingToast');
-  if (!el) return;
-  el.textContent = msg || '☁️ 正在加载 2K 原画流...';
-  el.style.display = 'block';
-  clearTimeout(window._loadToastTid);
-  window._loadToastTid = setTimeout(() => { el.style.display = 'none'; }, 12000);
-}
-
-function hideLoadingToast() {
-  const el = document.getElementById('loadingToast');
-  if (el) el.style.display = 'none';
-  clearTimeout(window._loadToastTid);
 }
 
 function nudgeVideo(deltaSec) {
@@ -929,6 +1117,114 @@ function nudgeVideo(deltaSec) {
   activeVid.currentTime = target;
   if (currentTab === 'cloud') currentCloudOffset = Math.floor(target);
   activeVid.play().catch(() => {});
+}
+
+function syncToLiveEdge() {
+  if (!isLiveMode) {
+    switchTab('live');
+    return;
+  }
+  if (activeVid && activeVid.seekable && activeVid.seekable.length > 0) {
+    const edge = activeVid.seekable.end(activeVid.seekable.length - 1);
+    if (edge > 2.5) activeVid.currentTime = Math.max(0, edge - 1.8);
+    showLoadingToast('⚡ 已追平最新实时画面', 1600);
+  } else {
+    startLiveMode();
+  }
+}
+
+async function captureSnapshot() {
+  try {
+    const vA = activeVid;
+    if (!vA || !vA.videoWidth) {
+      showLoadingToast('⚠️ 画面尚未就绪，请稍候再试', 2000);
+      return;
+    }
+    const cvs = document.createElement('canvas');
+    const nowStr = new Date().toLocaleString('zh-CN', { hour12: false });
+    if (isDualMode && standbyVid && standbyVid.videoWidth) {
+      cvs.width = vA.videoWidth + standbyVid.videoWidth;
+      cvs.height = Math.max(vA.videoHeight, standbyVid.videoHeight);
+      const ctx = cvs.getContext('2d');
+      ctx.drawImage(vA, 0, 0, vA.videoWidth, cvs.height);
+      ctx.drawImage(standbyVid, vA.videoWidth, 0, standbyVid.videoWidth, cvs.height);
+      ctx.fillStyle = 'rgba(0,0,0,0.58)';
+      ctx.fillRect(20, cvs.height - 64, 680, 46);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText(`客厅2K + 餐厅2K · ${nowStr}`, 34, cvs.height - 32);
+    } else {
+      cvs.width = vA.videoWidth;
+      cvs.height = vA.videoHeight;
+      const ctx = cvs.getContext('2d');
+      ctx.drawImage(vA, 0, 0, cvs.width, cvs.height);
+      const fontSize = Math.max(20, Math.round(cvs.width / 85));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      const label = `${currentCam.replace('_小米摄像机2K', ' 2K').replace('_小米智能门铃4Pro', ' 门铃4Pro')} · ${nowStr}`;
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(18, cvs.height - fontSize - 28, tw + 28, fontSize + 18);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, 32, cvs.height - 16);
+    }
+    const blob = await new Promise(res => cvs.toBlob(res, 'image/jpeg', 0.94));
+    if (!blob) return;
+    const fname = `监控抓拍_${currentCam.slice(0, 2)}_${Date.now()}.jpg`;
+    const fileObj = new File([blob], fname, { type: 'image/jpeg' });
+    if (IS_MOBILE && navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+      await navigator.share({ files: [fileObj], title: fname });
+      showLoadingToast('✅ 已打开系统分享/存储图像面板', 2200);
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showLoadingToast('📸 已保存 2K 原画抓拍图片', 2200);
+  } catch (e) {
+    if (String(e).indexOf('AbortError') === -1) {
+      showLoadingToast('⚠️ 抓拍受跨域限制，请切至直连或重试', 2400);
+    }
+  }
+}
+
+async function togglePictureInPicture() {
+  try {
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+      return;
+    }
+    if (activeVid.webkitSupportsPresentationMode && typeof activeVid.webkitSetPresentationMode === 'function') {
+      const cur = activeVid.webkitPresentationMode;
+      activeVid.webkitSetPresentationMode(cur === 'picture-in-picture' ? 'inline' : 'picture-in-picture');
+      return;
+    }
+    if (activeVid.requestPictureInPicture) {
+      await activeVid.requestPictureInPicture();
+    } else {
+      showLoadingToast('💡 当前环境不支持小窗画中画', 2000);
+    }
+  } catch (e) {
+    showLoadingToast('💡 请先开始播放画面再开启画中画', 2200);
+  }
+}
+
+function downloadCurrentVideo() {
+  if (!activeVid || !activeVid.src || activeVid.src.startsWith('blob:')) {
+    showLoadingToast('💡 实时直播请用「2K抓拍」，回放段可直接下载', 2400);
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = activeVid.src;
+  a.download = (currentCloudFile ? currentCloudFile.name : `监控回放_${Date.now()}.mp4`);
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 async function startLiveMode() {
@@ -945,13 +1241,15 @@ async function startLiveMode() {
   curSegIndex = -1;
   destroyHls();
   if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+  updatePanelsVisibility();
+  updateQualBadge();
   const badge = document.getElementById('modeBadge');
   badge.textContent = '🔴 实时直播';
   badge.style.background = '#ef4444';
-  document.getElementById('overlayText').textContent = `${currentCam} ｜ 🔴 2K 原画连续无断点直播`;
   renderTimeline();
 
   if (IS_CLOUD_SHELL && !API_BASE) return;
+  applyInstantPoster(activeVid, currentCam);
   const hlsPref = getHlsPrefix();
   const hlsUrl = `${API_BASE}/${hlsPref}/${encodeURIComponent(currentCam)}/live.m3u8`;
   activeVid.playbackRate = 1.0;
@@ -959,9 +1257,22 @@ async function startLiveMode() {
   hlsPlayer = attachHlsToVideo(activeVid, hlsUrl, false);
 }
 
+function formatDoorbellLabel(rawName) {
+  let clean = rawName.replace('_完整录像.mp4', '').replace('.mp4', '');
+  const m = clean.match(/^(\d{2})时(\d{2})分(\d{2})秒_(.*)$/);
+  if (!m) return clean.replace('_2小时连续录像', '');
+  const hms = `${m[1]}:${m[2]}:${m[3]}`;
+  const rest = m[4];
+  if (/Ring|Bell/i.test(rest)) return `🔔 访客按铃 ${hms}`;
+  if (/Stay/i.test(rest)) return `🧍 门前停留 ${hms}`;
+  if (/Pass/i.test(rest)) return `🚶 门前经过 ${hms}`;
+  return `🚪 门前动态 ${hms}`;
+}
+
 async function loadCloudArchive(cam, dateStr, autoPlayLatest) {
+  if (IS_CLOUD_SHELL && !API_BASE) return;
   try {
-    const r = await fetch(`${API_BASE}/api/cloud_browser?cam=${encodeURIComponent(cam)}&date=${encodeURIComponent(dateStr || '')}&t=${Date.now()}`);
+    const r = await fetchWithTimeout(`${API_BASE}/api/cloud_browser?cam=${encodeURIComponent(cam)}&date=${encodeURIComponent(dateStr || '')}&t=${Date.now()}`, 6000);
     cloudData = await r.json();
     const sel = document.getElementById('cloudDateSelect');
     sel.innerHTML = '';
@@ -985,42 +1296,68 @@ function onCloudDateChange() {
   loadCloudArchive(currentCam, d, true);
 }
 
+function setCloudHlFilter(mode) {
+  cloudHlFilter = mode;
+  document.querySelectorAll('#cloudHlFilterBar .f-pill').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-hlf') === mode);
+  });
+  renderCloudHighlightsOnly();
+}
+
+function renderCloudHighlightsOnly() {
+  const hlBox = document.getElementById('highlightsBox');
+  const hlGrid = document.getElementById('highlightsGrid');
+  hlGrid.innerHTML = '';
+  const files = (cloudData && cloudData.files) || [];
+  const allHls = (cloudData && cloudData.highlights) || [];
+  if (allHls.length === 0) {
+    hlBox.style.display = 'none';
+    return;
+  }
+  hlBox.style.display = 'block';
+  const filtered = allHls.filter(h => {
+    if (cloudHlFilter === 'sound') return h.desc.indexOf('🔊') !== -1;
+    if (cloudHlFilter === 'motion') return h.desc.indexOf('🏃') !== -1;
+    if (cloudHlFilter === 'curblock' && currentCloudFile) return h.file === currentCloudFile.name;
+    return true;
+  });
+  if (filtered.length === 0) {
+    hlGrid.innerHTML = '<span style="font-size:12px;color:var(--muted);">当前筛选条件下暂无动静记录</span>';
+    return;
+  }
+  filtered.forEach(h => {
+    const btn = document.createElement('button');
+    const isSnd = h.desc.indexOf('🔊') !== -1;
+    btn.className = 'm-chip ' + (isSnd ? 'has-snd' : 'has-act');
+    const shortDesc = isSnd ? '🔊 声音+活动' : '🏃 人员走动';
+    btn.textContent = `${h.time} ${shortDesc}`;
+    btn.onclick = () => {
+      const targetFile = files.find(x => x.name === h.file);
+      if (targetFile) playCloudFile(targetFile, h.offset_sec);
+    };
+    hlGrid.appendChild(btn);
+  });
+}
+
 function renderCloudFiles() {
   const fGrid = document.getElementById('cloudFileGrid');
   fGrid.innerHTML = '';
   const files = (cloudData && cloudData.files) || [];
+  const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
   if (files.length === 0) {
     fGrid.innerHTML = '<span style="font-size:12px;color:var(--muted);">该日期暂无已归档录像</span>';
   }
-  files.forEach(f => {
+  const displayList = isDoorbell ? [...files].reverse() : files;
+  displayList.forEach(f => {
     const btn = document.createElement('button');
     const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
     btn.className = 'm-chip' + (isPlaying ? ' cloud-playing' : '');
-    const cleanLabel = f.name.replace('_2小时连续录像.mp4', '').replace('_完整录像.mp4', '');
-    btn.textContent = `🎬 ${cleanLabel} (${f.size_mb}M)`;
+    const cleanLabel = isDoorbell ? formatDoorbellLabel(f.name) : `🎬 ${f.name.replace('_2小时连续录像.mp4', '')}`;
+    btn.textContent = `${cleanLabel} (${f.size_mb}M)`;
     btn.onclick = () => playCloudFile(f, 0);
     fGrid.appendChild(btn);
   });
-
-  const hlBox = document.getElementById('highlightsBox');
-  const hlGrid = document.getElementById('highlightsGrid');
-  hlGrid.innerHTML = '';
-  const hls = (cloudData && cloudData.highlights) || [];
-  if (hls.length > 0) {
-    hlBox.style.display = 'block';
-    hls.forEach(h => {
-      const btn = document.createElement('button');
-      btn.className = 'm-chip';
-      btn.textContent = `${h.time} ${h.desc}`;
-      btn.onclick = () => {
-        const targetFile = files.find(x => x.name === h.file);
-        if (targetFile) playCloudFile(targetFile, h.offset_sec);
-      };
-      hlGrid.appendChild(btn);
-    });
-  } else {
-    hlBox.style.display = 'none';
-  }
+  renderCloudHighlightsOnly();
 }
 
 function playCloudFile(f, offsetSec) {
@@ -1031,27 +1368,26 @@ function playCloudFile(f, offsetSec) {
   if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
   currentCloudFile = f;
   currentCloudOffset = Math.max(0, Math.floor(offsetSec || 0));
+  updatePanelsVisibility();
   const badge = document.getElementById('modeBadge');
-  badge.textContent = `☁️ 云盘回放`;
+  badge.textContent = (currentCam === '大门_小米智能门铃4Pro') ? '🚪 门铃回放' : '☁️ 云盘回放';
   badge.style.background = '#8b5cf6';
 
-  const offMin = Math.floor(currentCloudOffset / 60);
-  const offSecRem = currentCloudOffset % 60;
-  const selDate = (cloudData && cloudData.selected_date) || '';
-  document.getElementById('overlayText').textContent = `${currentCam} (${selDate}) ｜ ${f.name} (+${offMin}分${offSecRem}秒)`;
+  const tSpec = document.getElementById('teleSpec');
+  if (tSpec) tSpec.textContent = `正在回放: ${formatDoorbellLabel(f.name)} (${f.size_mb} MB)`;
 
-  // Stream full +faststart hvc1 2K MP4 directly via HTTP 206 Byte-Range (zero ffmpeg stall, full 2-hour timeline scrubbable!)
   const fullUrl = `${API_BASE}${f.url}`;
   const isSameCloudUrl = (activeVid.getAttribute('data-cloud-url') === f.url) && activeVid.readyState >= 1;
+  activeVid.removeAttribute('poster');
   activeVid.onerror = () => { hideLoadingToast(); discoverApiBase(false); };
 
   if (isSameCloudUrl) {
-    showLoadingToast('⚡ 正在定位时间点...');
+    showLoadingToast('⚡ 正在定位时间点...', 2000);
     try { activeVid.currentTime = currentCloudOffset; } catch (e) {}
     activeVid.playbackRate = playbackRateVal;
     tryPlayVideo(activeVid);
   } else {
-    showLoadingToast('☁️ 正在从谷歌云盘加载 2K 原画录像...');
+    showLoadingToast('☁️ 正在秒开云盘高清录像...', 8000);
     activeVid.setAttribute('data-cloud-url', f.url);
     const targetOffset = currentCloudOffset;
     activeVid.onended = () => {
@@ -1081,7 +1417,6 @@ function playCloudFile(f, offsetSec) {
     }
   }, 30);
 
-  // Build 10-minute quick-jump buttons if this is a 2-hour block (e.g. 08时00分-10时00分)
   const m = f.name.match(/^(\d{2})时00分-(\d{2})时00分/);
   const intraBox = document.getElementById('intra2hBox');
   const intraGrid = document.getElementById('intra10mGrid');
@@ -1089,16 +1424,14 @@ function playCloudFile(f, offsetSec) {
   if (m) {
     const startH = parseInt(m[1], 10);
     intraBox.style.display = 'block';
-    document.getElementById('intra2hTitle').textContent = `⚡ ${m[1]}:00 - ${m[2]}:00 录像内每 10 分钟快速定位（5G/Wi-Fi点击秒开）：`;
+    document.getElementById('intra2hTitle').textContent = `⚡ ${m[1]}:00 - ${m[2]}:00 录像内每 10 分钟快速定位：`;
     for (let minOff = 0; minOff < 120; minOff += 10) {
       const hh = startH + Math.floor(minOff / 60);
       const mm = minOff % 60;
       const chip = document.createElement('button');
       chip.className = 'm-chip' + (Math.abs(currentCloudOffset - minOff * 60) < 300 ? ' cloud-playing' : '');
       chip.textContent = `⏱️ ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-      chip.onclick = () => {
-        playCloudFile(f, minOff * 60);
-      };
+      chip.onclick = () => playCloudFile(f, minOff * 60);
       intraGrid.appendChild(chip);
     }
   } else {
@@ -1112,7 +1445,7 @@ async function openInWMP() {
   await fetch(`${API_BASE}/api/open_wmp?cam=${encodeURIComponent(currentCam)}&idx=${startIdx}`);
 }
 
-// Zero-wait startup: start live stream and state fetch immediately at t=0ms!
+// Zero-wait startup: start live stream, poster frame, and state fetch immediately at t=0ms!
 probeLanFast();
 if (!IS_CLOUD_SHELL || API_BASE) {
   startLiveMode();
@@ -1133,8 +1466,13 @@ setInterval(() => {
     if (!activeVid.paused && activeVid.readyState >= 3 && ct > 0.5 && activeVid.seekable && activeVid.seekable.length > 0) {
       const liveEdge = activeVid.seekable.end(activeVid.seekable.length - 1);
       const lag = liveEdge - ct;
-      if (lag > 18.0 && liveEdge > 9.0) {
-        activeVid.currentTime = Math.max(0, liveEdge - 4.5);
+      const tSpec = document.getElementById('teleSpec');
+      if (tSpec && isFinite(lag) && lag >= 0 && lag < 60) {
+        const resTxt = (qualityMode === 'fast') ? '1920×1080 H.264' : '2304×1296 2K原画';
+        tSpec.textContent = `画质: ${resTxt} · 实时延迟 ${lag.toFixed(1)}s`;
+      }
+      if (lag > 12.0 && liveEdge > 6.0) {
+        activeVid.currentTime = Math.max(0, liveEdge - 2.5);
       }
     }
   } catch (e) {}
@@ -1150,7 +1488,7 @@ setInterval(() => {
   lastWatchdogTime = ct;
 }, 2000);
 
-// === Smart iPhone Landscape Fullscreen, Fit/Fill & Pinch-Zoom Engine (v9) ===
+// === Smart iPhone Landscape Fullscreen, Fit/Fill & Pinch-Zoom Engine (v11) ===
 const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const playerWrapEl = document.getElementById('playerWrap');
@@ -1251,7 +1589,6 @@ function updateFsGeometry() {
   const rotBtn = document.getElementById('fsRotBtn');
 
   if (vh > vw) {
-    // Phone held in portrait or iPhone Portrait Lock ON -> auto-rotate 90deg to fill landscape screen!
     fsEffectiveDeg = 90 * fsRotateDir;
     playerWrapEl.style.setProperty('--fs-side-pad', IS_IOS ? '56px' : '28px');
     playerWrapEl.style.left = (ox + vw / 2) + 'px';
@@ -1261,7 +1598,6 @@ function updateFsGeometry() {
     playerWrapEl.style.transform = `translate(-50%, -50%) rotate(${fsEffectiveDeg}deg)`;
     if (rotBtn) rotBtn.style.display = 'inline-flex';
   } else {
-    // Device physically in landscape or desktop monitor -> native 0deg full viewport
     fsEffectiveDeg = 0;
     playerWrapEl.style.setProperty('--fs-side-pad', IS_IOS ? '50px' : '24px');
     playerWrapEl.style.left = ox + 'px';
@@ -1294,7 +1630,10 @@ function syncHudControls() {
   const timeTxt = document.getElementById('hudTimeText');
 
   if (playBtn && activeVid) playBtn.textContent = activeVid.paused ? '▶' : '⏸';
-  if (muteBtn && activeVid) muteBtn.textContent = (activeVid.muted || !soundUnlocked) ? '🔇' : '🔊';
+  if (muteBtn && activeVid) {
+    const isMuted = isDualMode ? (activeVid.muted && standbyVid.muted) : (activeVid.muted || !soundUnlocked);
+    muteBtn.textContent = isMuted ? '🔇' : '🔊';
+  }
   if (fsBtn) fsBtn.textContent = isSmartFs ? '⤡ 退出' : '⛶ 全屏';
 
   const shortCam = isDualMode ? '双路2K同屏' : currentCam.replace('_小米摄像机2K', ' 2K').replace('_小米智能门铃4Pro', '门铃');
@@ -1350,7 +1689,7 @@ function togglePlayPause() {
 
 function toggleMuteHud() {
   if (!activeVid) return;
-  if (activeVid.muted || !soundUnlocked) {
+  if (activeVid.muted && (!isDualMode || standbyVid.muted)) {
     enableSound();
   } else {
     activeVid.muted = true;
@@ -1439,7 +1778,7 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
   let lastTapTs = 0;
   let singleTapTid = null;
 
-  document.querySelectorAll('.hud-bar, .btn-unmute').forEach(el => {
+  document.querySelectorAll('.hud-bar, .btn-unmute, .dual-cam-pill').forEach(el => {
     el.addEventListener('touchstart', e => { e.stopPropagation(); bumpHudTimer(); }, { passive: true });
     el.addEventListener('click', e => { e.stopPropagation(); setTimeout(syncHudControls, 15); bumpHudTimer(); });
   });
@@ -1448,7 +1787,7 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
     if (!IS_MOBILE) bumpHudTimer();
   });
   playerWrapEl.addEventListener('dblclick', e => {
-    if (e.target.closest('.hud-bar, .btn-unmute')) return;
+    if (e.target.closest('.hud-bar, .btn-unmute, .dual-cam-pill')) return;
     if (!IS_MOBILE) toggleSmartFullscreen();
   });
 
@@ -1558,12 +1897,11 @@ document.addEventListener('fullscreenchange', () => {
 ['playing', 'canplay'].forEach(evName => {
   activeVid.addEventListener(evName, hideLoadingToast);
 });
-activeVid.addEventListener('waiting', () => { if (!isLiveMode) showLoadingToast('☁️ 正在缓冲 2K 录像...'); });
+activeVid.addEventListener('waiting', () => { if (!isLiveMode) showLoadingToast('☁️ 正在缓冲 2K 录像...', 5000); });
 setInterval(syncHudControls, 500);
 applyFsFitUI();
 syncHudControls();
 bumpHudTimer();
-
 </script>
 </body>
 </html>
