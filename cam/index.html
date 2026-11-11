@@ -249,7 +249,33 @@
   .hud-pill.fs-exit-btn { background: rgba(239,68,68,0.90); border-color: rgba(248,113,113,0.92); padding: 6px 12px; font-size: 12.5px; }
   .hud-pill.fs-enter-btn { background: rgba(59,130,246,0.90); border-color: rgba(96,165,250,0.95); padding: 6px 12px; font-size: 12.5px; }
   .hud-seek-wrap { display: none; align-items: center; gap: 7px; flex: 1; min-width: 150px; margin: 0 4px; }
-  .hud-seek-wrap input[type=range] { flex: 1; accent-color: #38bdf8; height: 6px; cursor: pointer; }
+  .hud-track-box {
+    position: relative; flex: 1; height: 24px; display: flex; align-items: center; min-width: 90px;
+  }
+  .hud-track-canvas {
+    position: absolute; left: 0; right: 0; top: 5px; width: 100%; height: 14px;
+    border-radius: 7px; background: rgba(15,23,42,0.85);
+    border: 1px solid rgba(148,163,184,0.32); pointer-events: none; z-index: 1;
+  }
+  .hud-seek-wrap input[type=range] {
+    position: relative; z-index: 3; width: 100%; flex: 1; height: 24px; margin: 0;
+    -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer;
+  }
+  .hud-seek-wrap input[type=range]::-webkit-slider-runnable-track { height: 14px; background: transparent; border: none; }
+  .hud-seek-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 14px; height: 20px; border-radius: 5px;
+    background: #ffffff; border: 2px solid #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.9); margin-top: -3px;
+  }
+  .hud-seek-wrap input[type=range]::-moz-range-track { height: 14px; background: transparent; border: none; }
+  .hud-seek-wrap input[type=range]::-moz-range-thumb {
+    width: 14px; height: 20px; border-radius: 5px; background: #ffffff; border: 2px solid #ef4444;
+  }
+  .hud-scrub-tip {
+    position: absolute; bottom: 27px; transform: translateX(-50%); background: rgba(15,23,42,0.95);
+    border: 1px solid rgba(251,191,36,0.7); color: #fef3c7; font-size: 11px; font-weight: 800;
+    padding: 2px 8px; border-radius: 99px; white-space: nowrap; pointer-events: none; display: none; z-index: 10;
+    font-variant-numeric: tabular-nums;
+  }
   .hud-time { font-size: 11.5px; color: #e2e8f0; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .hud-live-tag { font-size: 12px; font-weight: 700; color: #f8fafc; text-shadow: 0 1px 3px rgba(0,0,0,0.85); white-space: nowrap; }
   .btn-fs-toolbar { background: #1d4ed8; border-color: #3b82f6; color: #fff; margin-left: auto; }
@@ -345,7 +371,11 @@
         </div>
         <div class="hud-seek-wrap" id="hudSeekWrap">
           <button class="hud-pill" style="padding:4px 8px;" onclick="nudgeVideo(-15)">-15s</button>
-          <input type="range" id="hudSeekRange" min="0" max="60" step="0.5" value="0" oninput="onHudSeekInput(this.value)">
+          <div class="hud-track-box" id="hudTrackBox">
+            <canvas id="hudTrackCanvas" class="hud-track-canvas"></canvas>
+            <input type="range" id="hudSeekRange" min="0" max="60" step="0.5" value="0" oninput="onHudSeekInput(this.value)">
+            <div class="hud-scrub-tip" id="hudScrubTip">00:00</div>
+          </div>
           <span class="hud-time" id="hudTimeText">00:00</span>
           <button class="hud-pill" style="padding:4px 8px;" onclick="nudgeVideo(15)">+15s</button>
           <button class="hud-pill" id="hudSpdBtn" style="padding:4px 8px;" onclick="cyclePlaybackSpeed()">1.0x</button>
@@ -416,6 +446,28 @@
     </div>
     <div id="cloudSubHint" style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（内存预热，点击 5ms 级秒开）：</div>
     <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:10px;"></div>
+
+    <div id="cloudTimelineBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+        <span style="font-size:12.5px;color:#f8fafc;font-weight:700;" id="cloudRulerTitle">📊 当前 2 小时人声与人员活动进度条（左右拖动秒跳）：</span>
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+          <button class="f-pill" onclick="jumpCloudEvent(-1, false)">⏮ 上一处动静</button>
+          <button class="f-pill" onclick="jumpCloudEvent(1, false)">⏭ 下一处动静</button>
+          <button class="f-pill" style="border-color:rgba(245,158,11,0.6);color:#fbbf24;" onclick="jumpCloudEvent(1, true)">🔊 下一处人声</button>
+        </div>
+      </div>
+      <div class="ruler-box" id="cloudRulerBox" style="height:48px;">
+        <canvas class="ruler-canvas" id="cloudRulerCanvas"></canvas>
+        <div class="ruler-playhead" id="cloudRulerPlayhead" style="left:0%;"></div>
+        <div class="ruler-bubble" id="cloudRulerBubble">00:00:00</div>
+      </div>
+      <div class="heatmap-legend" style="margin-bottom:4px;">
+        <span>👆 拖动或点击上方彩色进度条秒定画面：</span>
+        <span style="color:#fbbf24;font-weight:700;">🟠 人声说话 (<span id="cloudSndCnt">0</span>段)</span>
+        <span style="color:#34d399;font-weight:700;">🟢 人员活动 (<span id="cloudMotCnt">0</span>段)</span>
+        <span style="margin-left:auto;color:#38bdf8;font-weight:700;font-variant-numeric:tabular-nums;" id="cloudCurClock">00:00:00</span>
+      </div>
+    </div>
 
     <div id="intra2hBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
       <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内每 10 分钟快速定位：</div>
@@ -684,7 +736,7 @@ function probeLanFast(extraIpv6) {
   const candidates = [
     'http://192.168.1.138:15443',
     'http://192.168.137.1:15443',
-    'http://1999.config.com:15443'
+    'http://1999.config.com:15443', 'http://117.65.227.59:15443'
   ];
   const v6 = extraIpv6 || ((EMBEDDED_IPV6 && !EMBEDDED_IPV6.startsWith('__')) ? EMBEDDED_IPV6 : (localStorage.getItem('nvr_ipv6_direct') || ''));
   if (v6 && v6.startsWith('http://[')) {
@@ -1704,19 +1756,355 @@ function playCloudFile(f, offsetSec) {
     const startH = parseInt(m[1], 10);
     intraBox.style.display = 'block';
     document.getElementById('intra2hTitle').textContent = `⚡ ${m[1]}:00 - ${m[2]}:00 录像内每 10 分钟快速定位：`;
+    const blkEvts = getCloudBlockEvents(f);
     for (let minOff = 0; minOff < 120; minOff += 10) {
       const hh = startH + Math.floor(minOff / 60);
       const mm = minOff % 60;
+      const wStart = minOff * 60;
+      const wEnd = wStart + 600;
+      const sliceEvts = blkEvts.filter(e => e.offset_sec < wEnd && (e.offset_sec + e.dur_sec) > wStart);
+      const hasS = sliceEvts.some(e => e.has_sound);
+      const hasM = sliceEvts.some(e => e.strong_motion);
       const chip = document.createElement('button');
-      chip.className = 'm-chip' + (Math.abs(currentCloudOffset - minOff * 60) < 300 ? ' cloud-playing' : '');
-      chip.textContent = `⏱️ ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-      chip.onclick = () => playCloudFile(f, minOff * 60);
+      let cCls = 'm-chip';
+      if (hasS) cCls += ' has-snd';
+      else if (hasM) cCls += ' has-act';
+      if (Math.abs(currentCloudOffset - wStart) < 300) cCls += ' cloud-playing';
+      chip.className = cCls;
+      const prefix = hasS ? '🔊' : (hasM ? '🏃' : '⏱️');
+      const jumpTarget = sliceEvts.length ? (sliceEvts.find(e => e.has_sound) || sliceEvts.find(e => e.strong_motion) || { offset_sec: wStart }).offset_sec : wStart;
+      chip.textContent = `${prefix} ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+      chip.onclick = () => playCloudFile(f, jumpTarget);
       intraGrid.appendChild(chip);
     }
+    drawCloudTimeRuler(currentCloudOffset);
   } else {
     intraBox.style.display = 'none';
+    const ctb = document.getElementById('cloudTimelineBox');
+    if (ctb) ctb.style.display = 'none';
   }
 }
+
+function parseCloudBlockStartHour(fileObj) {
+  if (!fileObj || !fileObj.name) return null;
+  const m = fileObj.name.match(/^(\d{2})时00分-(\d{2})时00分/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function getCloudBlockEvents(fileObj) {
+  const f = fileObj || currentCloudFile;
+  if (!f || !cloudData || !Array.isArray(cloudData.highlights)) return [];
+  const raw = cloudData.highlights.filter(h => h.file === f.name);
+  if (!raw.length) return [];
+  const kbpsVals = raw.map(h => {
+    if (typeof h.kbps === 'number') return h.kbps;
+    const km = (h.desc || '').match(/(\d+)\s*kbps/i);
+    return km ? parseInt(km[1], 10) : 0;
+  }).filter(v => v > 0);
+  const sortedK = [...kbpsVals].sort((a, b) => a - b);
+  const medKbps = sortedK.length ? sortedK[Math.floor(sortedK.length / 2)] : 0;
+  const isDaylightCbr = (medKbps >= 1560 && medKbps <= 1615 && raw.length >= 40);
+
+  return raw.map(h => {
+    const desc = h.desc || '';
+    const hasSnd = Boolean(h.has_sound || desc.indexOf('🔊') !== -1);
+    const hasMot = Boolean(h.has_motion || desc.indexOf('🏃') !== -1);
+    const sm = desc.match(/活跃度\s*(\d+)%/);
+    const km = desc.match(/(\d+)\s*kbps/i);
+    const sndPct = (typeof h.sound_pct === 'number') ? h.sound_pct : (sm ? parseInt(sm[1], 10) : (hasSnd ? 25 : 0));
+    const kbps = (typeof h.kbps === 'number') ? h.kbps : (km ? parseInt(km[1], 10) : 0);
+    const dur = (typeof h.dur_sec === 'number' && h.dur_sec > 0) ? h.dur_sec : 62;
+    let strongMot = hasMot;
+    if (hasMot && isDaylightCbr && kbps > 0) {
+      strongMot = Math.abs(kbps - medKbps) >= 6 || kbps >= 1606 || kbps <= 1592;
+    }
+    return {
+      offset_sec: Math.max(0, h.offset_sec || 0),
+      dur_sec: dur,
+      time: h.time || '',
+      has_sound: hasSnd,
+      has_motion: hasMot,
+      strong_motion: strongMot,
+      sound_pct: sndPct,
+      kbps: kbps,
+      desc: desc
+    };
+  });
+}
+
+function getCloudSpanSec() {
+  const dur = (activeVid && isFinite(activeVid.duration) && activeVid.duration > 120) ? activeVid.duration : 7200;
+  return Math.max(300, dur);
+}
+
+function findCloudEventAtOffset(evts, offSec) {
+  for (let i = 0; i < evts.length; i++) {
+    const e = evts[i];
+    if (offSec >= e.offset_sec - 2 && offSec <= e.offset_sec + e.dur_sec + 2) return e;
+  }
+  return null;
+}
+
+function formatWallClockFromOffset(startH, offSec) {
+  const base = (startH !== null ? startH * 3600 : 0) + Math.max(0, Math.round(offSec || 0));
+  const hh = String(Math.floor(base / 3600) % 24).padStart(2, '0');
+  const mm = String(Math.floor((base % 3600) / 60)).padStart(2, '0');
+  const ss = String(base % 60).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function drawCloudTimeRuler(curOffSec) {
+  const wrap = document.getElementById('cloudTimelineBox');
+  const box = document.getElementById('cloudRulerBox');
+  const cvs = document.getElementById('cloudRulerCanvas');
+  const head = document.getElementById('cloudRulerPlayhead');
+  if (!wrap || !box || !cvs) return;
+  const startH = parseCloudBlockStartHour(currentCloudFile);
+  if (currentTab !== 'cloud' || !currentCloudFile || startH === null) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(280, box.clientWidth || 340);
+  const h = 48;
+  if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) {
+    cvs.width = Math.round(w * dpr);
+    cvs.height = Math.round(h * dpr);
+  }
+  const ctx = cvs.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const span = getCloudSpanSec();
+  const evts = getCloudBlockEvents(currentCloudFile);
+  const sndCnt = evts.filter(e => e.has_sound).length;
+  const motCnt = evts.filter(e => e.strong_motion).length || evts.filter(e => e.has_motion).length;
+  const sndEl = document.getElementById('cloudSndCnt');
+  const motEl = document.getElementById('cloudMotCnt');
+  if (sndEl) sndEl.textContent = sndCnt;
+  if (motEl) motEl.textContent = motCnt;
+  const titleEl = document.getElementById('cloudRulerTitle');
+  if (titleEl) {
+    const endH = String(startH + 2).padStart(2, '0');
+    titleEl.textContent = `📊 ${String(startH).padStart(2, '0')}:00-${endH}:00 人声与人员活动进度条：`;
+  }
+
+  // Base background rail
+  ctx.fillStyle = 'rgba(59, 130, 246, 0.10)';
+  ctx.fillRect(0, h - 10, w, 10);
+
+  // Played progress tint
+  const curS = Math.max(0, Math.min(span, (curOffSec !== undefined ? curOffSec : (activeVid ? activeVid.currentTime || 0 : 0))));
+  const curX = (curS / span) * w;
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+  ctx.fillRect(0, 0, curX, h);
+
+  // Draw person activity & human voice bars
+  evts.forEach(e => {
+    const x0 = (e.offset_sec / span) * w;
+    const bw = Math.max(2.2, (e.dur_sec / span) * w);
+    if (e.has_sound) {
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.85)';
+      ctx.fillRect(x0, 2, bw, h - 2);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(x0, 0, bw, 3.5);
+    } else if (e.strong_motion) {
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.78)';
+      ctx.fillRect(x0, 11, bw, h - 11);
+      ctx.fillStyle = '#6ee7b7';
+      ctx.fillRect(x0, 9, bw, 2.5);
+    } else if (e.has_motion) {
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.28)';
+      ctx.fillRect(x0, 24, bw, h - 24);
+    }
+  });
+
+  // Draw time ticks every 5 / 20 minutes
+  ctx.font = '600 10px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  for (let offMin = 0; offMin <= Math.floor(span / 60); offMin += 5) {
+    const x = ((offMin * 60) / span) * w;
+    const isMajor = (offMin % 20 === 0);
+    const isMid = (offMin % 10 === 0);
+    ctx.fillStyle = isMajor ? 'rgba(248,250,252,0.88)' : (isMid ? 'rgba(148,163,184,0.55)' : 'rgba(148,163,184,0.25)');
+    const th = isMajor ? 14 : (isMid ? 9 : 5);
+    ctx.fillRect(x, h - th, 1, th);
+    if (isMajor && x > 18 && x < w - 18) {
+      const totMin = startH * 60 + offMin;
+      const lbl = `${String(Math.floor(totMin / 60) % 24).padStart(2, '0')}:${String(totMin % 60).padStart(2, '0')}`;
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(lbl, x, 13);
+    }
+  }
+
+  if (head) {
+    head.style.left = ((curS / span) * 100).toFixed(2) + '%';
+  }
+  const clkEl = document.getElementById('cloudCurClock');
+  if (clkEl) {
+    const hit = findCloudEventAtOffset(evts, curS);
+    const tag = hit ? (hit.has_sound ? ' 🔊人声' : (hit.strong_motion ? ' 🏃活动' : '')) : '';
+    clkEl.textContent = formatWallClockFromOffset(startH, curS) + tag;
+  }
+}
+
+function drawHudEventTrack(dur, ct) {
+  const cvs = document.getElementById('hudTrackCanvas');
+  const box = document.getElementById('hudTrackBox');
+  if (!cvs || !box || !dur || dur <= 0) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(90, box.clientWidth || 180);
+  const h = 14;
+  if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) {
+    cvs.width = Math.round(w * dpr);
+    cvs.height = Math.round(h * dpr);
+  }
+  const ctx = cvs.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  // Played fill
+  const pctX = Math.max(0, Math.min(w, (ct / dur) * w));
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.34)';
+  ctx.fillRect(0, 0, pctX, h);
+
+  if (currentTab === 'cloud' && currentCloudFile) {
+    const evts = getCloudBlockEvents(currentCloudFile);
+    evts.forEach(e => {
+      const x0 = (e.offset_sec / dur) * w;
+      const bw = Math.max(2, (e.dur_sec / dur) * w);
+      if (e.has_sound) {
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.92)';
+        ctx.fillRect(x0, 0, bw, h);
+      } else if (e.strong_motion) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.82)';
+        ctx.fillRect(x0, 2, bw, h - 2);
+      } else if (e.has_motion) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.fillRect(x0, 6, bw, h - 6);
+      }
+    });
+  } else if (currentTab === 'recent') {
+    const segs = getCamSegs();
+    const curSeg = (curSegIndex >= 0 && segs[curSegIndex]) ? segs[curSegIndex] : null;
+    if (curSeg && (curSeg.has_sound || curSeg.has_motion)) {
+      ctx.fillStyle = curSeg.has_sound ? 'rgba(245, 158, 11, 0.55)' : 'rgba(16, 185, 129, 0.45)';
+      ctx.fillRect(0, 0, w, h);
+    }
+  }
+}
+
+function jumpCloudEvent(dir, onlySound) {
+  if (!currentCloudFile || !activeVid) return;
+  const evts = getCloudBlockEvents(currentCloudFile);
+  let pool = onlySound ? evts.filter(e => e.has_sound) : evts.filter(e => e.has_sound || e.strong_motion);
+  if (!onlySound && pool.length === 0) pool = evts.filter(e => e.has_motion);
+  const ct = activeVid.currentTime || 0;
+  const startH = parseCloudBlockStartHour(currentCloudFile);
+
+  if (dir > 0) {
+    const nextEvt = pool.find(e => e.offset_sec > ct + 4);
+    if (nextEvt) {
+      activeVid.currentTime = nextEvt.offset_sec;
+      currentCloudOffset = nextEvt.offset_sec;
+      activeVid.play().catch(() => {});
+      const lbl = formatWallClockFromOffset(startH, nextEvt.offset_sec);
+      showLoadingToast(`${nextEvt.has_sound ? '🔊' : '🏃'} 已跳至 ${lbl}`, 1500);
+      drawCloudTimeRuler(nextEvt.offset_sec);
+      return;
+    }
+    // Check next 2h files of the same day!
+    const files = (cloudData && cloudData.files) || [];
+    const curIdx = files.findIndex(x => x.name === currentCloudFile.name);
+    for (let i = curIdx + 1; i < files.length; i++) {
+      const nextEvts = getCloudBlockEvents(files[i]);
+      const cand = onlySound ? nextEvts.find(e => e.has_sound) : (nextEvts.find(e => e.has_sound || e.strong_motion) || nextEvts[0]);
+      if (cand) {
+        playCloudFile(files[i], cand.offset_sec);
+        showLoadingToast(`⏭ 已跨段跳至 ${cand.time} ${cand.has_sound ? '人声' : '人员活动'}`, 2000);
+        return;
+      }
+    }
+    showLoadingToast(onlySound ? '💡 后续时段暂无检测到人声' : '💡 已是最后一段动静记录', 1800);
+  } else {
+    const prevPool = pool.filter(e => e.offset_sec < ct - 5);
+    if (prevPool.length > 0) {
+      const prevEvt = prevPool[prevPool.length - 1];
+      activeVid.currentTime = prevEvt.offset_sec;
+      currentCloudOffset = prevEvt.offset_sec;
+      activeVid.play().catch(() => {});
+      const lbl = formatWallClockFromOffset(startH, prevEvt.offset_sec);
+      showLoadingToast(`${prevEvt.has_sound ? '🔊' : '🏃'} 已回跳至 ${lbl}`, 1500);
+      drawCloudTimeRuler(prevEvt.offset_sec);
+      return;
+    }
+    showLoadingToast('💡 已是本段最早一处动静', 1600);
+  }
+}
+
+(function initCloudRulerScrub() {
+  const box = document.getElementById('cloudRulerBox');
+  const bub = document.getElementById('cloudRulerBubble');
+  const head = document.getElementById('cloudRulerPlayhead');
+  if (!box) return;
+  let dragging = false;
+  let targetOff = null;
+
+  function updateFromX(clientX) {
+    if (!currentCloudFile) return null;
+    const rect = box.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+    const span = getCloudSpanSec();
+    const offSec = Math.round(ratio * span);
+    if (head) head.style.left = (ratio * 100).toFixed(2) + '%';
+    const startH = parseCloudBlockStartHour(currentCloudFile);
+    const evts = getCloudBlockEvents(currentCloudFile);
+    const hit = findCloudEventAtOffset(evts, offSec);
+    if (bub) {
+      const tag = hit ? (hit.has_sound ? ' · 🔊人声' : (hit.strong_motion ? ' · 🏃活动' : '')) : '';
+      bub.textContent = formatWallClockFromOffset(startH, offSec) + tag;
+      bub.style.background = (hit && hit.has_sound) ? 'rgba(245,158,11,0.96)' : ((hit && hit.strong_motion) ? 'rgba(16,185,129,0.96)' : 'rgba(239,68,68,0.95)');
+      bub.style.left = Math.max(48, Math.min(rect.width - 48, ratio * rect.width)) + 'px';
+      bub.style.display = 'block';
+    }
+    return offSec;
+  }
+
+  box.addEventListener('pointerdown', e => {
+    dragging = true;
+    hudScrubbing = true;
+    try { box.setPointerCapture(e.pointerId); } catch (err) {}
+    targetOff = updateFromX(e.clientX);
+  });
+  box.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    targetOff = updateFromX(e.clientX);
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    hudScrubbing = false;
+    if (bub) bub.style.display = 'none';
+    if (targetOff !== null && currentCloudFile) {
+      soundUnlocked = true;
+      document.getElementById('unmuteBtn').style.display = 'none';
+      currentCloudOffset = targetOff;
+      if (activeVid && activeVid.readyState >= 1) {
+        try { activeVid.currentTime = targetOff; } catch (e) {}
+        activeVid.play().catch(() => {});
+      } else {
+        playCloudFile(currentCloudFile, targetOff);
+      }
+      drawCloudTimeRuler(targetOff);
+      targetOff = null;
+    }
+  }
+  box.addEventListener('pointerup', endDrag);
+  box.addEventListener('pointercancel', endDrag);
+})();
+
 
 async function openInWMP() {
   const segs = getCamSegs();
@@ -1978,11 +2366,14 @@ function syncHudControls() {
     if (timeTxt) {
       timeTxt.textContent = dur > 0 ? `${formatSec(ct)} / ${formatSec(dur)}` : formatSec(ct);
     }
+    drawHudEventTrack(dur, ct);
     if (currentTab === 'recent') {
       const segs = getCamSegs();
       if (curSegIndex >= 0 && segs[curSegIndex]) {
         drawTimeRuler(segs, segs[curSegIndex].start_sec + ct);
       }
+    } else if (currentTab === 'cloud' && currentCloudFile) {
+      drawCloudTimeRuler(ct);
     }
   }
 }
@@ -2018,10 +2409,33 @@ function onHudSeekInput(val) {
   if (!activeVid) return;
   hudScrubbing = true;
   const v = parseFloat(val);
-  if (isFinite(v)) activeVid.currentTime = v;
+  if (isFinite(v)) {
+    activeVid.currentTime = v;
+    const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
+    if (dur > 0) drawHudEventTrack(dur, v);
+    if (currentTab === 'cloud' && currentCloudFile) {
+      currentCloudOffset = Math.floor(v);
+      drawCloudTimeRuler(v);
+      const tip = document.getElementById('hudScrubTip');
+      const box = document.getElementById('hudTrackBox');
+      const startH = parseCloudBlockStartHour(currentCloudFile);
+      if (tip && box && dur > 0 && startH !== null) {
+        const hit = findCloudEventAtOffset(getCloudBlockEvents(currentCloudFile), v);
+        const tag = hit ? (hit.has_sound ? ' · 🔊人声' : (hit.strong_motion ? ' · 🏃活动' : '')) : '';
+        tip.textContent = formatWallClockFromOffset(startH, v) + tag;
+        const pct = Math.max(0.08, Math.min(0.92, v / dur));
+        tip.style.left = (pct * 100).toFixed(1) + '%';
+        tip.style.display = 'block';
+      }
+    }
+  }
   bumpHudTimer();
   clearTimeout(window._hudScrubEndTid);
-  window._hudScrubEndTid = setTimeout(() => { hudScrubbing = false; }, 400);
+  window._hudScrubEndTid = setTimeout(() => {
+    hudScrubbing = false;
+    const tip = document.getElementById('hudScrubTip');
+    if (tip) tip.style.display = 'none';
+  }, 550);
 }
 
 function enterSmartFullscreen() {
@@ -2197,7 +2611,14 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
 window.addEventListener('resize', () => {
   updateFsGeometry();
   renderTimeline();
+  if (currentTab === 'cloud' && currentCloudFile) drawCloudTimeRuler();
+  if (activeVid && isFinite(activeVid.duration) && activeVid.duration > 0) drawHudEventTrack(activeVid.duration, activeVid.currentTime || 0);
 });
+try {
+  if (new URLSearchParams(window.location.search).get('tab') === 'cloud') {
+    setTimeout(() => switchTab('cloud'), 180);
+  }
+} catch (e) {}
 window.addEventListener('orientationchange', () => {
   updateFsGeometry();
   setTimeout(updateFsGeometry, 150);
