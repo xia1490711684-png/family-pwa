@@ -194,6 +194,15 @@
     bottom: 64px; right: max(var(--fs-side-pad), 28px); z-index: 35;
   }
   .btn-unmute { z-index: 35; bottom: 52px; }
+
+  .loading-toast {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 22; background: rgba(15,23,42,0.85); color: #38bdf8;
+    border: 1px solid rgba(56,189,248,0.45); border-radius: 99px;
+    padding: 8px 16px; font-size: 13px; font-weight: 700;
+    pointer-events: none; white-space: nowrap; display: none;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
 </style>
 </head>
 <body>
@@ -226,6 +235,7 @@
   <!-- Video Player -->
   <div class="player-wrap" id="playerWrap" data-fit="contain">
     <div class="overlay-status" id="overlayText">正在连接 2K 原画流...</div>
+    <div class="loading-toast" id="loadingToast">☁️ 正在加载 2K 原画流...</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <div class="video-stage" id="videoStage">
       <video id="videoA" autoplay playsinline webkit-playsinline style="z-index:2;"></video>
@@ -241,6 +251,7 @@
           <button class="hud-pill" id="fsCamDual" onclick="selectDualLive()">🖼️ 双路</button>
         </div>
         <div class="hud-group">
+          <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
           <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
         </div>
@@ -346,7 +357,7 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
-let qualityMode = IS_CLOUD_SHELL ? (localStorage.getItem('nvr_qual_mode') || 'fast') : '2k';
+let qualityMode = localStorage.getItem('nvr_qual_mode_v3') || '2k';
 let detectedLanUrl = '';
 let directFailStreak = 0;
 let currentCam = '客厅_小米摄像机2K';
@@ -410,21 +421,27 @@ function getHlsPrefix() {
 
 function updateQualBadge() {
   const qb = document.getElementById('qualBadge');
-  if (!qb) return;
-  if (qualityMode === 'fast') {
-    qb.textContent = '⚡ 超清免卡顿 (点切2K)';
-    qb.style.color = '#10b981';
-    qb.style.borderColor = '#10b981';
-  } else {
-    qb.textContent = '💎 2K原画直出 (点切流畅)';
-    qb.style.color = '#38bdf8';
-    qb.style.borderColor = '#38bdf8';
+  const fsq = document.getElementById('fsQualBtn');
+  if (qb) {
+    if (qualityMode === 'fast') {
+      qb.textContent = '⚡ 1080P流畅 (点切2K原画)';
+      qb.style.color = '#10b981';
+      qb.style.borderColor = '#10b981';
+    } else {
+      qb.textContent = '💎 2K超清原画 (点切1080P)';
+      qb.style.color = '#38bdf8';
+      qb.style.borderColor = '#38bdf8';
+    }
+  }
+  if (fsq) {
+    fsq.textContent = (qualityMode === 'fast') ? '⚡ 1080P' : '💎 2K原画';
+    fsq.classList.toggle('active', qualityMode === '2k');
   }
 }
 
 function toggleQualityMode() {
   qualityMode = (qualityMode === 'fast') ? '2k' : 'fast';
-  localStorage.setItem('nvr_qual_mode', qualityMode);
+  localStorage.setItem('nvr_qual_mode_v3', qualityMode);
   updateQualBadge();
   if (isLiveMode) startLiveMode();
 }
@@ -839,6 +856,7 @@ function playSegmentAt(idx, offsetSec) {
   document.getElementById('overlayText').textContent = `${currentCam} ｜ 正在回放 ${segs[idx].start_hms} - ${segs[idx].end_hms}`;
 
   activeVid.onended = null;
+  activeVid.removeAttribute('data-cloud-url');
   activeVid.src = `${API_BASE}${segs[idx].url}`;
   activeVid.currentTime = Math.max(0, offsetSec || 0);
   activeVid.playbackRate = playbackRateVal;
@@ -889,14 +907,27 @@ function jumpToExactInput() {
   onSliderScrub(sec);
 }
 
+function showLoadingToast(msg) {
+  const el = document.getElementById('loadingToast');
+  if (!el) return;
+  el.textContent = msg || '☁️ 正在加载 2K 原画流...';
+  el.style.display = 'block';
+  clearTimeout(window._loadToastTid);
+  window._loadToastTid = setTimeout(() => { el.style.display = 'none'; }, 12000);
+}
+
+function hideLoadingToast() {
+  const el = document.getElementById('loadingToast');
+  if (el) el.style.display = 'none';
+  clearTimeout(window._loadToastTid);
+}
+
 function nudgeVideo(deltaSec) {
   if (!activeVid) return;
-  if (currentTab === 'cloud' && currentCloudFile && currentCloudFile.size_mb > 40 && API_BASE !== '') {
-    const newOff = Math.max(0, currentCloudOffset + (activeVid.currentTime || 0) + deltaSec);
-    playCloudFile(currentCloudFile, newOff);
-    return;
-  }
-  activeVid.currentTime = Math.max(0, (activeVid.currentTime || 0) + deltaSec);
+  const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 7200;
+  const target = Math.max(0, Math.min(dur - 0.5, (activeVid.currentTime || 0) + deltaSec));
+  activeVid.currentTime = target;
+  if (currentTab === 'cloud') currentCloudOffset = Math.floor(target);
   activeVid.play().catch(() => {});
 }
 
@@ -924,6 +955,7 @@ async function startLiveMode() {
   const hlsPref = getHlsPrefix();
   const hlsUrl = `${API_BASE}/${hlsPref}/${encodeURIComponent(currentCam)}/live.m3u8`;
   activeVid.playbackRate = 1.0;
+  activeVid.removeAttribute('data-cloud-url');
   hlsPlayer = attachHlsToVideo(activeVid, hlsUrl, false);
 }
 
@@ -1005,26 +1037,49 @@ function playCloudFile(f, offsetSec) {
 
   const offMin = Math.floor(currentCloudOffset / 60);
   const offSecRem = currentCloudOffset % 60;
-  document.getElementById('overlayText').textContent = `${currentCam} (${cloudData.selected_date}) ｜ ${f.name} (+${offMin}分${offSecRem}秒)`;
+  const selDate = (cloudData && cloudData.selected_date) || '';
+  document.getElementById('overlayText').textContent = `${currentCam} (${selDate}) ｜ ${f.name} (+${offMin}分${offSecRem}秒)`;
 
-  // On remote 5G tunnel (API_BASE !== ''), use instant lossless 3-minute slice for large 2-hour MP4s; on local LAN, play full 2-hour file with instant HTTP 206 byte-range seeking!
-  if (f.size_mb > 40 && API_BASE !== '') {
-    const sliceUrl = `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(cloudData.selected_date)}&file=${encodeURIComponent(f.name)}&offset=${currentCloudOffset}&dur=180`;
-    activeVid.src = sliceUrl;
-    activeVid.onended = () => {
-      playCloudFile(f, currentCloudOffset + 180);
-    };
+  // Stream full +faststart hvc1 2K MP4 directly via HTTP 206 Byte-Range (zero ffmpeg stall, full 2-hour timeline scrubbable!)
+  const fullUrl = `${API_BASE}${f.url}`;
+  const isSameCloudUrl = (activeVid.getAttribute('data-cloud-url') === f.url) && activeVid.readyState >= 1;
+  activeVid.onerror = () => { hideLoadingToast(); discoverApiBase(false); };
+
+  if (isSameCloudUrl) {
+    showLoadingToast('⚡ 正在定位时间点...');
+    try { activeVid.currentTime = currentCloudOffset; } catch (e) {}
+    activeVid.playbackRate = playbackRateVal;
+    tryPlayVideo(activeVid);
   } else {
-    const fullUrl = `${API_BASE}${f.url}`;
-    if (activeVid.src.indexOf(f.url) === -1) {
-      activeVid.onended = null;
-      activeVid.src = fullUrl;
-    }
-    activeVid.currentTime = currentCloudOffset;
+    showLoadingToast('☁️ 正在从谷歌云盘加载 2K 原画录像...');
+    activeVid.setAttribute('data-cloud-url', f.url);
+    const targetOffset = currentCloudOffset;
+    activeVid.onended = () => {
+      const files = (cloudData && cloudData.files) || [];
+      const idx = files.findIndex(x => x.name === f.name);
+      if (idx >= 0 && idx + 1 < files.length) {
+        playCloudFile(files[idx + 1], 0);
+      }
+    };
+    activeVid.onloadedmetadata = () => {
+      if (targetOffset > 0) {
+        try { activeVid.currentTime = targetOffset; } catch (e) {}
+      }
+      activeVid.playbackRate = playbackRateVal;
+      tryPlayVideo(activeVid);
+    };
+    activeVid.src = fullUrl;
+    activeVid.load();
+    activeVid.playbackRate = playbackRateVal;
+    tryPlayVideo(activeVid);
   }
-  activeVid.playbackRate = playbackRateVal;
-  tryPlayVideo(activeVid);
   renderCloudFiles();
+  setTimeout(() => {
+    const activeChip = document.querySelector('#cloudFileGrid .cloud-playing');
+    if (activeChip && activeChip.scrollIntoView) {
+      activeChip.scrollIntoView({ block: 'nearest' });
+    }
+  }, 30);
 
   // Build 10-minute quick-jump buttons if this is a 2-hour block (e.g. 08时00分-10时00分)
   const m = f.name.match(/^(\d{2})时00分-(\d{2})时00分/);
@@ -1500,6 +1555,10 @@ document.addEventListener('fullscreenchange', () => {
 ['play', 'pause', 'volumechange', 'timeupdate', 'loadedmetadata'].forEach(evName => {
   activeVid.addEventListener(evName, syncHudControls);
 });
+['playing', 'canplay'].forEach(evName => {
+  activeVid.addEventListener(evName, hideLoadingToast);
+});
+activeVid.addEventListener('waiting', () => { if (!isLiveMode) showLoadingToast('☁️ 正在缓冲 2K 录像...'); });
 setInterval(syncHudControls, 500);
 applyFsFitUI();
 syncHudControls();
