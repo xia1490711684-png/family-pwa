@@ -18,7 +18,7 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: radial-gradient(circle at 50% -10%, #132342 0%, var(--bg) 62%); color: var(--text);
-    padding: calc(8px + env(safe-area-inset-top)) 12px calc(22px + env(safe-area-inset-bottom)) 12px;
+    padding: max(12px, calc(6px + env(safe-area-inset-top))) 11px calc(20px + env(safe-area-inset-bottom)) 11px;
     max-width: 1280px; margin: 0 auto;
   }
   .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -143,10 +143,21 @@
   /* Mi-Home-Pro Precision Touch Scrubbable Time Ruler */
   .ruler-box {
     position: relative; width: 100%; height: 42px; background: #08101e; border-radius: 9px;
-    border: 1px solid rgba(56,189,248,0.22); overflow: hidden; margin: 4px 0 6px 0;
+    border: 1px solid rgba(56,189,248,0.26); overflow: visible; margin: 4px 0 6px 0;
     touch-action: none; user-select: none; -webkit-user-select: none; cursor: ew-resize;
   }
-  .ruler-canvas { width: 100%; height: 100%; display: block; }
+  .ruler-canvas { width: 100%; height: 100%; display: block; border-radius: 8px; }
+  .scrub-thumb-float {
+    position: absolute; bottom: 50px; transform: translateX(-50%); width: 148px;
+    background: rgba(6,11,22,0.96); border: 1.5px solid rgba(56,189,248,0.75);
+    border-radius: 9px; overflow: hidden; box-shadow: 0 8px 22px rgba(0,0,0,0.75);
+    pointer-events: none; display: none; z-index: 60;
+  }
+  .scrub-thumb-float img { width: 100%; height: 83px; object-fit: cover; display: block; background: #0b1426; }
+  .scrub-thumb-cap {
+    font-size: 11px; font-weight: 800; color: #f8fafc; padding: 3px 6px; text-align: center;
+    white-space: nowrap; font-variant-numeric: tabular-nums; background: rgba(15,23,42,0.95);
+  }
   .ruler-playhead {
     position: absolute; top: 0; bottom: 0; width: 2px; background: #ef4444; left: 100%;
     box-shadow: 0 0 8px rgba(239,68,68,0.9); pointer-events: none; transform: translateX(-1px);
@@ -409,6 +420,7 @@
       <canvas class="ruler-canvas" id="rulerCanvas"></canvas>
       <div class="ruler-playhead" id="rulerPlayhead"></div>
       <div class="ruler-bubble" id="rulerBubble">00:00:00</div>
+      <div class="scrub-thumb-float" id="recentThumbFloat"><img id="recentThumbImg" alt=""><div class="scrub-thumb-cap" id="recentThumbCap">00:00:00</div></div>
     </div>
     <div class="heatmap-legend">
       <span>🎯 左右拖动上方时间刻度尺秒定画面：</span>
@@ -434,6 +446,7 @@
         <canvas class="ruler-canvas" id="cloudRulerCanvas"></canvas>
         <div class="ruler-playhead" id="cloudRulerPlayhead" style="left:0%;"></div>
         <div class="ruler-bubble" id="cloudRulerBubble">00:00:00</div>
+        <div class="scrub-thumb-float" id="cloudThumbFloat"><img id="cloudThumbImg" alt=""><div class="scrub-thumb-cap" id="cloudThumbCap">00:00:00</div></div>
       </div>
       <div class="heatmap-legend" style="margin:2px 0 0 0;">
         <span>🎯 左右拖动进度条秒定：</span>
@@ -486,7 +499,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v12</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v18 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1313,14 +1326,15 @@ function drawTimeRuler(segs, currentSecVal) {
     const maxSec = Math.max(minSec + 60, segs[segs.length - 1].end_sec);
     const sec = Math.round(minSec + ratio * (maxSec - minSec));
     if (head) head.style.left = (ratio * 100).toFixed(2) + '%';
-    if (bub) {
-      const hh = String(Math.floor(sec / 3600)).padStart(2, '0');
-      const mm = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-      const ss = String(sec % 60).padStart(2, '0');
-      bub.textContent = `${hh}:${mm}:${ss}`;
-      bub.style.left = Math.max(36, Math.min(rect.width - 36, ratio * rect.width)) + 'px';
-      bub.style.display = 'block';
-    }
+    const hh = String(Math.floor(sec / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    const ss = String(sec % 60).padStart(2, '0');
+    let hitSeg = segs.find(s => sec >= s.start_sec && sec <= s.end_sec) || segs[segs.length - 1];
+    const rTag = hitSeg ? (hitSeg.has_sound ? ' · 🔊人声' : (hitSeg.has_motion ? ' · 🏃活动' : '')) : '';
+    const rOff = hitSeg ? Math.max(0, Math.floor((sec - hitSeg.start_sec) / 3) * 3) : 0;
+    const todayStr = (stateData && stateData.now) ? stateData.now.slice(0, 10) : '';
+    const rUrl = hitSeg ? ((API_BASE || '') + `/api/scrub_thumb?mode=recent&cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(todayStr)}&seg=${encodeURIComponent(hitSeg.name)}&offset=${rOff}`) : '';
+    updateScrubThumbCard('recentThumbFloat', 'recentThumbImg', 'recentThumbCap', ratio * rect.width, rect.width, `${hh}:${mm}:${ss}${rTag}`, rUrl, `r_${hitSeg ? hitSeg.name : ''}_${rOff}`);
     return sec;
   }
 
@@ -1337,6 +1351,7 @@ function drawTimeRuler(segs, currentSecVal) {
     if (!dragging) return;
     dragging = false;
     if (bub) bub.style.display = 'none';
+    hideScrubThumbCard('recentThumbFloat');
     if (pendingSec !== null) {
       if (currentTab === 'live') switchTab('recent');
       onSliderScrub(pendingSec);
@@ -1797,6 +1812,32 @@ function playCloudFile(f, offsetSec) {
   }
 }
 
+
+let _lastThumbKey = '';
+let _thumbReqTid = null;
+function updateScrubThumbCard(floatId, imgId, capId, xPx, boxWidth, capText, thumbUrl, keyTag) {
+  const fl = document.getElementById(floatId);
+  const im = document.getElementById(imgId);
+  const cp = document.getElementById(capId);
+  if (!fl || !im || !cp) return;
+  const clampedX = Math.max(76, Math.min(Math.max(76, boxWidth - 76), xPx));
+  fl.style.left = clampedX + 'px';
+  cp.textContent = capText;
+  fl.style.display = 'block';
+  if (keyTag !== _lastThumbKey && thumbUrl) {
+    _lastThumbKey = keyTag;
+    clearTimeout(_thumbReqTid);
+    _thumbReqTid = setTimeout(() => {
+      im.src = thumbUrl;
+    }, 65);
+  }
+}
+function hideScrubThumbCard(floatId) {
+  clearTimeout(_thumbReqTid);
+  const fl = document.getElementById(floatId);
+  if (fl) fl.style.display = 'none';
+}
+
 function parseCloudBlockStartHour(fileObj) {
   if (!fileObj || !fileObj.name) return null;
   const m = fileObj.name.match(/^(\d{2})时00分-(\d{2})时00分/);
@@ -2074,13 +2115,12 @@ function jumpCloudEvent(dir, onlySound) {
     const startH = parseCloudBlockStartHour(currentCloudFile);
     const evts = getCloudBlockEvents(currentCloudFile);
     const hit = findCloudEventAtOffset(evts, offSec);
-    if (bub) {
-      const tag = hit ? (hit.has_sound ? ' · 🔊人声' : (hit.strong_motion ? ' · 🏃活动' : '')) : '';
-      bub.textContent = formatWallClockFromOffset(startH, offSec) + tag;
-      bub.style.background = (hit && hit.has_sound) ? 'rgba(245,158,11,0.96)' : ((hit && hit.strong_motion) ? 'rgba(16,185,129,0.96)' : 'rgba(239,68,68,0.95)');
-      bub.style.left = Math.max(48, Math.min(rect.width - 48, ratio * rect.width)) + 'px';
-      bub.style.display = 'block';
-    }
+    const tag = hit ? (hit.has_sound ? ' · 🔊人声' : (hit.strong_motion ? ' · 🏃活动' : '')) : '';
+    const capTxt = formatWallClockFromOffset(startH, offSec) + tag;
+    const selDate = (cloudData && cloudData.selected_date) || '';
+    const qOff = Math.floor(offSec / 10) * 10;
+    const tUrl = (API_BASE || '') + `/api/scrub_thumb?mode=cloud&cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(currentCloudFile.name)}&offset=${qOff}`;
+    updateScrubThumbCard('cloudThumbFloat', 'cloudThumbImg', 'cloudThumbCap', ratio * rect.width, rect.width, capTxt, tUrl, `c_${currentCloudFile.name}_${qOff}`);
     return offSec;
   }
 
@@ -2099,6 +2139,7 @@ function jumpCloudEvent(dir, onlySound) {
     dragging = false;
     hudScrubbing = false;
     if (bub) bub.style.display = 'none';
+    hideScrubThumbCard('cloudThumbFloat');
     if (targetOff !== null && currentCloudFile) {
       soundUnlocked = true;
       document.getElementById('unmuteBtn').style.display = 'none';
@@ -2533,13 +2574,14 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
   });
 
   videoStageEl.addEventListener('touchstart', e => {
-    if (e.touches.length === 2 && isSmartFs) {
+    if (e.touches.length === 2) {
       e.preventDefault();
       touchMoved = true;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       pinchStartDist = Math.hypot(dx, dy) || 1;
       pinchStartZoom = fsZoom;
+      bumpHudTimer();
     } else if (e.touches.length === 1) {
       touchMoved = false;
       touchStartX = panLastX = e.touches[0].clientX;
@@ -2549,19 +2591,20 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
   }, { passive: false });
 
   videoStageEl.addEventListener('touchmove', e => {
-    if (e.touches.length === 2 && isSmartFs && pinchStartDist > 0) {
+    if (e.touches.length === 2 && pinchStartDist > 0) {
       e.preventDefault();
       touchMoved = true;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy) || 1;
-      fsZoom = Math.max(1, Math.min(4, pinchStartZoom * (dist / pinchStartDist)));
+      fsZoom = Math.max(1, Math.min(5, pinchStartZoom * (dist / pinchStartDist)));
       applyStageTransform();
+      bumpHudTimer();
     } else if (e.touches.length === 1) {
       const cx = e.touches[0].clientX;
       const cy = e.touches[0].clientY;
       if (Math.hypot(cx - touchStartX, cy - touchStartY) > 12) touchMoved = true;
-      if (isSmartFs && fsZoom > 1.02) {
+      if (fsZoom > 1.02) {
         e.preventDefault();
         const [sdx, sdy] = mapScreenDeltaToStage(cx - panLastX, cy - panLastY);
         fsPanX += sdx;
@@ -2597,9 +2640,13 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
       if (now - lastTapTs < 280) {
         lastTapTs = 0;
         if (singleTapTid) { clearTimeout(singleTapTid); singleTapTid = null; }
-        if (!isSmartFs) {
+        if (fsZoom > 1.05) {
+          resetFsZoom();
+          showLoadingToast('🔍 已恢复 1.0x 原画视野', 1000);
+          bumpHudTimer();
+        } else if (!isSmartFs) {
           enterSmartFullscreen();
-        } else if (fsZoom > 1.05) {
+        } else if (false) {
           resetFsZoom();
           bumpHudTimer();
         } else {
