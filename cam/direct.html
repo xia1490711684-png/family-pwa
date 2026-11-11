@@ -5,65 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="全屋2K直连">
+<meta name="apple-mobile-web-app-title" content="全屋2K监控">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>全屋 2K 原画监控 — 国内直连竞速导航</title>
+<title>全屋 2K 原画监控 — 智能秒连</title>
 <style>
   body { background:#060b16; color:#f8fafc; font-family:-apple-system,sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:92vh; margin:0; padding:20px; text-align:center; }
   .spinner { width:36px; height:36px; border:3px solid rgba(56,189,248,0.25); border-top-color:#10b981; border-radius:50%; animation:sp 0.7s linear infinite; margin-bottom:14px; }
   @keyframes sp { to { transform:rotate(360deg); } }
-  .sub { font-size:13px; color:#94a3b8; margin-top:8px; line-height:1.65; max-width:360px; }
-  .links { display:flex; flex-direction:column; gap:9px; margin-top:18px; width:100%; max-width:330px; }
+  .sub { font-size:13px; color:#94a3b8; margin-top:8px; line-height:1.6; max-width:340px; }
+  .links { display:flex; flex-direction:column; gap:9px; margin-top:18px; width:100%; max-width:320px; }
   .btn { display:block; padding:11px 16px; border-radius:10px; background:#111c2f; color:#38bdf8; text-decoration:none; font-weight:700; font-size:13.5px; border:1px solid #293d5e; }
   .btn.green { background:rgba(16,185,129,0.16); color:#34d399; border-color:#10b981; }
 </style>
 <script>
 (function() {
   var jumped = false;
-  function go(u) {
-    if (!jumped) { jumped = true; window.location.replace(u); }
-  }
-  function raceTargets(ep) {
-    var list = [
-      "http://192.168.1.138:15443",
-      "http://192.168.137.1:15443",
-      "http://1999.config.com:15443"
-    ];
-    if (ep) {
-      if (ep.cn_ipv6_15443) list.push(ep.cn_ipv6_15443);
-      if (ep.ipv6_direct) list.push(ep.ipv6_direct);
-      if (ep.cn_ipv4_direct) list.push(ep.cn_ipv4_direct);
-    } else {
-      if ("http://[240e:363:3d51:af00:168d:50d:f256:dae7]:15443".indexOf("http") === 0) list.push("http://[240e:363:3d51:af00:168d:50d:f256:dae7]:15443");
-      if ("http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822".indexOf("http") === 0) list.push("http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822");
-      if ("http://117.65.227.59:15443".indexOf("http") === 0) list.push("http://117.65.227.59:15443");
-    }
-    list.forEach(function(u) {
-      if (!u || u.indexOf("http") !== 0) return;
-      var img = new Image();
-      img.onload = function() { go(u + "/"); };
-      img.src = u + "/apple-touch-icon.png?t=" + Date.now();
-    });
-  }
-  raceTargets(null);
-  fetch("./endpoints.json?t=" + Date.now(), { cache: "no-store" })
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(d) { if (d) raceTargets(d); })
-    .catch(function() {});
-  setTimeout(function() { go("./index.html"); }, 1100);
+  function go(u) { if (!jumped) { jumped = true; window.location.replace(u); } }
+  var lanList = [
+    "http://192.168.1.138:15443",
+    "http://192.168.137.1:15443",
+    "http://1999.config.com:15443"
+  ];
+  lanList.forEach(function(u) {
+    var img = new Image();
+    img.onload = function() { go(u + "/"); };
+    img.src = u + "/apple-touch-icon.png?t=" + Date.now();
+  });
+  setTimeout(function() { go("./index.html"); }, 550);
 })();
 </script>
 </head>
 <body>
   <div class="spinner"></div>
-  <div style="font-size:16.5px;font-weight:800;">正在走国内网络毫秒级直连 2K 原画监控...</div>
-  <div class="sub">自动竞速：家里 Wi-Fi 局域网 (0.5ms) · 电信公网 IPv6 (14ms) · 电信公网 IPv4 (10ms)</div>
+  <div style="font-size:16.5px;font-weight:800;">正在智能连接全屋 2K 监控...</div>
+  <div class="sub">在家自动毫秒级直连内网 2K · 在外自动切换外网安全隧道</div>
   <div class="links">
-    <a class="btn green" href="http://192.168.1.138:15443/">🏠 家里光猫 Wi-Fi 直连 (192.168.1.138)</a>
-    <a class="btn green" href="http://192.168.137.1:15443/">📶 小米路由器 Wi-Fi 直连 (192.168.137.1)</a>
-    <a class="btn" href="http://[240e:363:3d51:af00:168d:50d:f256:dae7]:15443/">⚡ 电信 5G IPv6 国内直连 (2K 原画)</a>
-    <a class="btn" href="http://117.65.227.59:15443/">🚀 电信 5G IPv4 国内公网直连 (2K 原画)</a>
-    <a class="btn" href="./index.html">🌐 备用云端控制台</a>
+    <a class="btn green" href="./index.html">🌐 立即进入监控主画面（外网/5G 通用）</a>
+    <a class="btn" href="http://192.168.1.138:15443/">🏠 家里光猫 Wi-Fi 内网直连</a>
+    <a class="btn" href="http://192.168.137.1:15443/">📶 小米路由器 Wi-Fi 内网直连</a>
   </div>
 </body>
 </html>
