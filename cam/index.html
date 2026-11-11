@@ -396,22 +396,7 @@
     <button class="act-btn" id="syncLiveBtn" onclick="syncToLiveEdge()">⚡ 追平最新直播秒</button>
   </div>
 
-  <!-- Fast Seek & Multi-Speed Bar for Playback / Cloud Archive -->
-  <div class="seek-nudge-bar" id="nudgeBar" style="display:none;">
-    <button class="nudge-btn" onclick="nudgeVideo(-300)">⏪ -5分</button>
-    <button class="nudge-btn" onclick="nudgeVideo(-30)">-30秒</button>
-    <button class="nudge-btn" onclick="nudgeVideo(-10)">-10秒</button>
-    <button class="nudge-btn" onclick="nudgeVideo(10)">+10秒</button>
-    <button class="nudge-btn" onclick="nudgeVideo(30)">+30秒</button>
-    <button class="nudge-btn" onclick="nudgeVideo(300)">+5分 ⏩</button>
-    <button class="nudge-btn" id="spd0.5" onclick="setSpeed(0.5)">0.5x</button>
-    <button class="nudge-btn spd-active" id="spd1" onclick="setSpeed(1)">1.0x</button>
-    <button class="nudge-btn" id="spd2" onclick="setSpeed(2)">2.0x</button>
-    <button class="nudge-btn" id="spd4" onclick="setSpeed(4)">4.0x</button>
-    <button class="nudge-btn" id="spd8" onclick="setSpeed(8)">8.0x</button>
-  </div>
-
-  <!-- Panel 1 & 2: Precision Touch Time-Ruler + 2-Hour Timeline -->
+  <!-- Panel 1 & 2: Precision Touch Time-Ruler + 2-Hour Timeline (Top-Anchored Right Under Video!) -->
   <div class="card" id="panelRecent">
     <div class="card-title">
       <span id="blockTitle">🕒 近 2 小时丝滑刻度尺（左右滑动标尺秒看任意时刻）</span>
@@ -420,7 +405,6 @@
         <button class="btn" style="padding:5px 10px;font-size:12px;" onclick="jumpToExactInput()">跳转</button>
       </div>
     </div>
-    <!-- Interactive Canvas Time-Ruler (Surpasses Mi Home App!) -->
     <div class="ruler-box" id="recentHeatmap">
       <canvas class="ruler-canvas" id="rulerCanvas"></canvas>
       <div class="ruler-playhead" id="rulerPlayhead"></div>
@@ -435,39 +419,54 @@
     <div class="chip-grid" id="minuteGrid"></div>
   </div>
 
-  <!-- Panel 3: Google Drive Full 20TB Archive Browser -->
+  <!-- Panel 3: Google Drive Full 20TB Archive Browser (Progress Bar Top-Anchored at Exact Same Position as Live!) -->
   <div class="card" id="panelCloud" style="display:none;">
-    <div class="card-title">
-      <span id="cloudPanelTitle">☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--muted);">选择日期：</span>
-        <select id="cloudDateSelect" onchange="onCloudDateChange()"></select>
-      </div>
-    </div>
-    <div id="cloudSubHint" style="font-size:12px;color:var(--muted);margin-bottom:6px;">选择 2 小时录像段 / 门铃事件（内存预热，点击 5ms 级秒开）：</div>
-    <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:10px;"></div>
-
-    <div id="cloudTimelineBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
-        <span style="font-size:12.5px;color:#f8fafc;font-weight:700;" id="cloudRulerTitle">📊 当前 2 小时人声与人员活动进度条（左右拖动秒跳）：</span>
-        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
-          <button class="f-pill" onclick="jumpCloudEvent(-1, false)">⏮ 上一处动静</button>
-          <button class="f-pill" onclick="jumpCloudEvent(1, false)">⏭ 下一处动静</button>
-          <button class="f-pill" style="border-color:rgba(245,158,11,0.6);color:#fbbf24;" onclick="jumpCloudEvent(1, true)">🔊 下一处人声</button>
+    <div id="cloudTimelineBox" style="display:none;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+      <div class="card-title" style="margin-bottom:5px;">
+        <span id="cloudRulerTitle">📊 00:00-02:00 人声与活动刻度尺</span>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <button class="f-pill" style="padding:3px 8px;" onclick="jumpCloudEvent(-1, false)">⏮ 上一动静</button>
+          <button class="f-pill" style="padding:3px 8px;" onclick="jumpCloudEvent(1, false)">⏭ 下一动静</button>
+          <button class="f-pill" style="padding:3px 8px;border-color:rgba(245,158,11,0.6);color:#fbbf24;" onclick="jumpCloudEvent(1, true)">🔊 下一声</button>
         </div>
       </div>
-      <div class="ruler-box" id="cloudRulerBox" style="height:48px;">
+      <div class="ruler-box" id="cloudRulerBox" style="height:44px;margin:3px 0 5px 0;">
         <canvas class="ruler-canvas" id="cloudRulerCanvas"></canvas>
         <div class="ruler-playhead" id="cloudRulerPlayhead" style="left:0%;"></div>
         <div class="ruler-bubble" id="cloudRulerBubble">00:00:00</div>
       </div>
-      <div class="heatmap-legend" style="margin-bottom:4px;">
-        <span>👆 拖动或点击上方彩色进度条秒定画面：</span>
-        <span style="color:#fbbf24;font-weight:700;">🟠 人声说话 (<span id="cloudSndCnt">0</span>段)</span>
-        <span style="color:#34d399;font-weight:700;">🟢 人员活动 (<span id="cloudMotCnt">0</span>段)</span>
-        <span style="margin-left:auto;color:#38bdf8;font-weight:700;font-variant-numeric:tabular-nums;" id="cloudCurClock">00:00:00</span>
+      <div class="heatmap-legend" style="margin:2px 0 0 0;">
+        <span>🎯 左右拖动进度条秒定：</span>
+        <span style="color:#fbbf24;font-weight:700;">🟠 人声 (<span id="cloudSndCnt">0</span>段)</span>
+        <span style="color:#34d399;font-weight:700;">🟢 活动 (<span id="cloudMotCnt">0</span>段)</span>
+        <span style="margin-left:auto;color:#38bdf8;font-weight:800;font-variant-numeric:tabular-nums;" id="cloudCurClock">00:00:00</span>
       </div>
     </div>
+
+    <!-- Fast Seek & Multi-Speed Bar placed right below the top progress bar so it never pushes the bar down! -->
+    <div class="seek-nudge-bar" id="nudgeBar" style="display:none;margin-bottom:8px;">
+      <button class="nudge-btn" onclick="nudgeVideo(-300)">⏪ -5分</button>
+      <button class="nudge-btn" onclick="nudgeVideo(-30)">-30秒</button>
+      <button class="nudge-btn" onclick="nudgeVideo(-10)">-10秒</button>
+      <button class="nudge-btn" onclick="nudgeVideo(10)">+10秒</button>
+      <button class="nudge-btn" onclick="nudgeVideo(30)">+30秒</button>
+      <button class="nudge-btn" onclick="nudgeVideo(300)">+5分 ⏩</button>
+      <button class="nudge-btn" id="spd0.5" onclick="setSpeed(0.5)">0.5x</button>
+      <button class="nudge-btn spd-active" id="spd1" onclick="setSpeed(1)">1.0x</button>
+      <button class="nudge-btn" id="spd2" onclick="setSpeed(2)">2.0x</button>
+      <button class="nudge-btn" id="spd4" onclick="setSpeed(4)">4.0x</button>
+      <button class="nudge-btn" id="spd8" onclick="setSpeed(8)">8.0x</button>
+    </div>
+
+    <div class="card-title" style="margin-bottom:6px;">
+      <span id="cloudPanelTitle" style="font-size:12.5px;">☁️ 切换日期与 2 小时录像段</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:12px;color:var(--muted);">日期：</span>
+        <select id="cloudDateSelect" onchange="onCloudDateChange()"></select>
+      </div>
+    </div>
+    <div id="cloudSubHint" style="display:none;"></div>
+    <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:8px;"></div>
 
     <div id="intra2hBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
       <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内每 10 分钟快速定位：</div>
@@ -935,7 +934,22 @@ function updatePanelsVisibility() {
   document.getElementById('panelRecent').style.display = showCloud ? 'none' : 'block';
   document.getElementById('panelCloud').style.display = showCloud ? 'block' : 'none';
   const inPlayback = (currentTab !== 'live') || isDoorbell;
-  document.getElementById('nudgeBar').style.display = inPlayback ? 'flex' : 'none';
+  const nb = document.getElementById('nudgeBar');
+  if (nb) {
+    nb.style.display = inPlayback ? 'flex' : 'none';
+    if (!showCloud && currentTab === 'recent') {
+      const mGrid = document.getElementById('minuteGrid');
+      if (mGrid && mGrid.parentNode && nb.nextSibling !== mGrid) {
+        mGrid.parentNode.insertBefore(nb, mGrid);
+      }
+    } else if (showCloud) {
+      const cPanel = document.getElementById('panelCloud');
+      const cTimeline = document.getElementById('cloudTimelineBox');
+      if (cPanel && cTimeline && cTimeline.nextSibling !== nb) {
+        cPanel.insertBefore(nb, cTimeline.nextSibling);
+      }
+    }
+  }
   document.getElementById('dlClipBtn').style.display = inPlayback ? 'inline-flex' : 'none';
   document.getElementById('syncLiveBtn').style.display = (!inPlayback) ? 'inline-flex' : 'none';
   const lcp = document.getElementById('liveCornerPill');
@@ -944,11 +958,9 @@ function updatePanelsVisibility() {
   const cTitle = document.getElementById('cloudPanelTitle');
   const cHint = document.getElementById('cloudSubHint');
   if (isDoorbell) {
-    cTitle.textContent = '🚪 大门智能门铃 4Pro（双摄高清事件库）— 自动连播最新事件';
-    cHint.textContent = '选择门铃触发事件（按最新优先，点击秒播）：';
+    cTitle.textContent = '🚪 大门智能门铃 4Pro 事件库（点击秒播）';
   } else {
-    cTitle.textContent = '☁️ 谷歌云盘 (20TB) 历史录像库 — 任意日期与时间段点播';
-    cHint.textContent = '选择 2 小时录像段（内存预热头部索引，点击 5ms 级秒开）：';
+    cTitle.textContent = '☁️ 选择日期与 2 小时录像段（5ms 秒开）';
   }
 }
 
@@ -1684,8 +1696,8 @@ function renderCloudFiles() {
     const btn = document.createElement('button');
     const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
     btn.className = 'm-chip' + (isPlaying ? ' cloud-playing' : '');
-    const cleanLabel = isDoorbell ? formatDoorbellLabel(f.name) : `🎬 ${f.name.replace('_2小时连续录像.mp4', '')}`;
-    btn.textContent = `${cleanLabel} (${f.size_mb}M)`;
+    const cleanLabel = isDoorbell ? formatDoorbellLabel(f.name) : `🎬 ${f.name.replace('_2小时连续录像.mp4', '').replace(/时/g, ':').replace(/分/g, '')}`;
+    btn.textContent = `${cleanLabel} (${Math.round(f.size_mb)}M)`;
     btn.onclick = () => playCloudFile(f, 0);
     fGrid.appendChild(btn);
   });
@@ -1868,7 +1880,7 @@ function drawCloudTimeRuler(curOffSec) {
 
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = Math.max(280, box.clientWidth || 340);
-  const h = 48;
+  const h = 44;
   if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) {
     cvs.width = Math.round(w * dpr);
     cvs.height = Math.round(h * dpr);
@@ -1888,7 +1900,7 @@ function drawCloudTimeRuler(curOffSec) {
   const titleEl = document.getElementById('cloudRulerTitle');
   if (titleEl) {
     const endH = String(startH + 2).padStart(2, '0');
-    titleEl.textContent = `📊 ${String(startH).padStart(2, '0')}:00-${endH}:00 人声与人员活动进度条：`;
+    titleEl.textContent = `📊 ${String(startH).padStart(2, '0')}:00-${endH}:00 人声与活动刻度尺`;
   }
 
   // Base background rail
