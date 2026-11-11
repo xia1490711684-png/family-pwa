@@ -458,7 +458,7 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
-let qualityMode = localStorage.getItem('nvr_qual_mode_v3') || '2k';
+let qualityMode = localStorage.getItem('nvr_qual_mode_v4') || 'auto';
 let detectedLanUrl = '';
 let directFailStreak = 0;
 let currentCam = '客厅_小米摄像机2K';
@@ -584,37 +584,49 @@ function cyclePlaybackSpeed() {
   bumpHudTimer();
 }
 
+function isEffectiveFastStream() {
+  if (qualityMode === 'fast') return true;
+  if (qualityMode === '2k') return false;
+  return IS_CLOUD_SHELL;
+}
+
 function getHlsPrefix() {
-  return (qualityMode === 'fast') ? 'hls_fast' : 'hls';
+  return isEffectiveFastStream() ? 'hls_fast' : 'hls';
 }
 
 function updateQualBadge() {
   const qb = document.getElementById('qualBadge');
   const fsq = document.getElementById('fsQualBtn');
   const cp = document.getElementById('cornerTelemetryText');
+  const effFast = isEffectiveFastStream();
   if (qb) {
-    if (qualityMode === 'fast') {
-      qb.textContent = '⚡ 1080P高帧 (点切2K)';
+    if (qualityMode === 'auto') {
+      qb.textContent = effFast ? '🤖 智能超清·免卡 (点切2K)' : '🤖 智能2K原画 (内网直连)';
       qb.style.color = '#10b981';
       qb.style.borderColor = '#10b981';
-    } else {
-      qb.textContent = '💎 2K无损原画 (点切1080P)';
+    } else if (qualityMode === '2k') {
+      qb.textContent = '💎 强制2K原画 (点切流畅)';
       qb.style.color = '#38bdf8';
       qb.style.borderColor = '#38bdf8';
+    } else {
+      qb.textContent = '⚡ 极速超清免卡 (点切智能)';
+      qb.style.color = '#34d399';
+      qb.style.borderColor = '#34d399';
     }
   }
   if (fsq) {
-    fsq.textContent = (qualityMode === 'fast') ? '⚡ 1080P' : '💎 2K原画';
-    fsq.classList.toggle('active', qualityMode === '2k');
+    fsq.textContent = (qualityMode === 'auto') ? '🤖 智能超清' : ((qualityMode === '2k') ? '💎 2K原画' : '⚡ 极速流畅');
+    fsq.classList.toggle('active', !effFast);
   }
   if (cp && isLiveMode) {
-    cp.textContent = (qualityMode === 'fast') ? '1080P · 准实时' : '2K原画 · 准实时';
+    cp.textContent = effFast ? '900P超清 · 零卡顿' : '2K原画 · 准实时';
   }
 }
 
 function toggleQualityMode() {
-  qualityMode = (qualityMode === 'fast') ? '2k' : 'fast';
-  localStorage.setItem('nvr_qual_mode_v3', qualityMode);
+  const order = ['auto', '2k', 'fast'];
+  qualityMode = order[(order.indexOf(qualityMode) + 1) % order.length] || 'auto';
+  localStorage.setItem('nvr_qual_mode_v4', qualityMode);
   updateQualBadge();
   if (isLiveMode) {
     destroyAllHls();
@@ -931,11 +943,10 @@ function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
       const inst = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        backBufferLength: 10,
-        maxBufferLength: 10,
-        liveSyncDurationCount: 1.4,
-        liveMaxLatencyDurationCount: 3.5,
-        maxLiveSyncPlaybackRate: 1.06
+        backBufferLength: 14,
+        maxBufferLength: 24,
+        liveSyncDurationCount: 1.8,
+        liveMaxLatencyDurationCount: 5.5
       });
       inst.loadSource(hlsUrl);
       inst.attachMedia(vid);
@@ -983,7 +994,7 @@ function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
 function scheduleSiblingHotPreload() {
   clearTimeout(hotPreloadTid);
   if (!isLiveMode || isDualMode || !CAMS_2K.includes(currentCam)) return;
-  if (IS_CLOUD_SHELL && !API_BASE) return;
+  if (IS_CLOUD_SHELL) return;
   const sibling = (currentCam === CAMS_2K[0]) ? CAMS_2K[1] : CAMS_2K[0];
   if (hotStandbyCam === sibling && hotStandbyReady && !standbyVid.paused) {
     updateHotDots();
@@ -1052,6 +1063,7 @@ function selectCam(camName, idx) {
     destroyAllHls();
     loadCloudArchive(currentCam, document.getElementById('cloudDateSelect').value || '', true);
   } else if (currentTab === 'live') {
+    destroyAllHls();
     startLiveMode();
   } else {
     destroyAllHls();
@@ -1469,7 +1481,9 @@ function downloadCurrentVideo() {
   a.remove();
 }
 
+let lastLiveStartTs = 0;
 async function startLiveMode() {
+  lastLiveStartTs = Date.now();
   if (currentCam === '大门_小米智能门铃4Pro') {
     updatePanelsVisibility();
     loadCloudArchive('大门_小米智能门铃4Pro', '', true);
@@ -1700,8 +1714,8 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (isLiveMode && activeVid && activeVid.seekable && activeVid.seekable.length > 0) {
       const edge = activeVid.seekable.end(activeVid.seekable.length - 1);
-      if (edge - activeVid.currentTime > 3.5) {
-        activeVid.currentTime = Math.max(0, edge - 1.4);
+      if (edge - activeVid.currentTime > 12.0) {
+        activeVid.currentTime = Math.max(0, edge - 4.5);
       }
       activeVid.play().catch(() => {});
     }
@@ -1713,48 +1727,45 @@ window.addEventListener('online', () => discoverApiBase(true));
 window.addEventListener('pageshow', () => discoverApiBase(false));
 setInterval(fetchState, 5000);
 
-// Smooth WebRTC-Style 1.06x Micro-Catchup Loop (keeps live delay permanently ~1.3s-1.8s without stutter!)
+// Rock-Solid Steady 1.0x Live Monitor (never drains safety buffer, zero premature restart loops!)
 setInterval(() => {
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
   const ct = activeVid.currentTime || 0;
   try {
+    if (activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
     if (!activeVid.paused && activeVid.readyState >= 3 && ct > 0.5 && activeVid.seekable && activeVid.seekable.length > 0) {
       const liveEdge = activeVid.seekable.end(activeVid.seekable.length - 1);
       const lag = Math.max(0, liveEdge - ct);
       const cp = document.getElementById('cornerTelemetryText');
-      if (cp && isFinite(lag) && lag < 60) {
-        const qTag = (qualityMode === 'fast') ? '1080P' : '2K原画';
-        cp.textContent = `${qTag} · 延迟 ${lag.toFixed(1)}s`;
+      if (cp && isFinite(lag) && lag < 90) {
+        const qTag = isEffectiveFastStream() ? '超清免卡' : '2K原画';
+        cp.textContent = `${qTag} · 流畅直播`;
       }
-      if (lag > 8.0 && liveEdge > 4.0) {
-        activeVid.currentTime = Math.max(0, liveEdge - 1.5);
-        activeVid.playbackRate = 1.0;
-      } else if (lag > 2.5) {
-        if (activeVid.playbackRate !== 1.06) activeVid.playbackRate = 1.06;
-      } else if (lag < 1.6) {
-        if (activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
+      if (lag > 22.0 && liveEdge > 8.0) {
+        activeVid.currentTime = Math.max(0, liveEdge - 4.5);
       }
     }
-    // Keep standby hot stream trimmed to live edge too so instant switch is never stale!
     if (hotStandbyReady && standbyVid && !standbyVid.paused && standbyVid.seekable && standbyVid.seekable.length > 0) {
       const sEdge = standbyVid.seekable.end(standbyVid.seekable.length - 1);
-      if (sEdge - standbyVid.currentTime > 4.5) {
-        standbyVid.currentTime = Math.max(0, sEdge - 1.5);
+      if (sEdge - standbyVid.currentTime > 12.0) {
+        standbyVid.currentTime = Math.max(0, sEdge - 4.0);
       }
     }
   } catch (e) {}
 
-  if (!activeVid.paused && ct > 0 && Math.abs(ct - lastWatchdogTime) < 0.05) {
+  const sinceStartMs = Date.now() - lastLiveStartTs;
+  if (sinceStartMs > 18000 && !activeVid.paused && ct > 1.0 && Math.abs(ct - lastWatchdogTime) < 0.02) {
     stallCount++;
-    if (stallCount >= 4) {
+    if (stallCount >= 9) {
       stallCount = 0;
+      destroyAllHls();
       startLiveMode();
     }
   } else {
     stallCount = 0;
   }
   lastWatchdogTime = ct;
-}, 1500);
+}, 2000);
 
 // === Smart iPhone Landscape Fullscreen, Swipe-to-Switch, Fit/Fill & Pinch-Zoom Engine (v12) ===
 const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
