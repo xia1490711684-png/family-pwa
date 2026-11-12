@@ -462,6 +462,7 @@
     <div class="card-title" style="margin-bottom:5px;">
       <span id="blockTitle">🕒 近 2 小时实时时移刻度尺</span>
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+        <button class="f-pill" id="recentDualSyncBtn" style="padding:3px 8px;border-color:rgba(56,189,248,0.55);color:#38bdf8;" onclick="toggleDualPlaybackMode()">🖼️ 双摄同屏回放</button>
         <button class="f-pill" style="padding:3px 8px;" onclick="quickTimeShift(-30)">⏪ -30秒</button>
         <button class="f-pill" style="padding:3px 8px;" onclick="jumpRecentEvent(-1, false)">⏮ 上一动静</button>
         <button class="f-pill" style="padding:3px 8px;border-color:rgba(245,158,11,0.6);color:#fbbf24;" onclick="jumpRecentEvent(-1, true)">🔊 最近人声</button>
@@ -555,7 +556,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v24 · 直播回溯30秒一键存iPhone相册 · 长按画面2.5x倍速快进 · 双击边缘±15s精准快退快进 · 0.03s双摄瞬切 · 5G云盘零转圈切片</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v25 · 客厅+餐厅双摄同屏历史同步回放 · 直播回溯30秒存iPhone相册 · 长按2.5x倍速 · 0.03s双摄瞬切 · 5G云盘零转圈切片</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -694,7 +695,7 @@ function switchDualAudio(idx) {
 
 function setSpeed(rate) {
   playbackRateVal = rate;
-  if (activeVid && !isLiveMode) activeVid.playbackRate = rate;
+  if (activeVid && !isLiveMode) { activeVid.playbackRate = rate; if (isDualMode && standbyVid) standbyVid.playbackRate = rate; }
   [0.5, 1, 2, 4, 8].forEach(r => {
     const b = document.getElementById('spd' + r);
     if (b) b.classList.toggle('spd-active', r === rate);
@@ -1023,6 +1024,7 @@ function updatePanelsVisibility() {
     }
   }
   if (typeof updateClipBtnLabel === 'function') updateClipBtnLabel();
+  if (typeof updateDualSyncButtonsUI === 'function') updateDualSyncButtonsUI();
   document.getElementById('syncLiveBtn').style.display = (!inPlayback) ? 'inline-flex' : 'none';
   const lcp = document.getElementById('liveCornerPill');
   if (lcp) lcp.style.display = (isLiveMode && !isDoorbell) ? 'inline-flex' : 'none';
@@ -1043,9 +1045,7 @@ function switchTab(tab) {
   document.getElementById('tabLive').classList.toggle('active', tab === 'live');
   document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
   document.getElementById('tabCloud').classList.toggle('active', tab === 'cloud');
-  document.getElementById('camBtnDual').style.display = (tab === 'live') ? 'inline-flex' : 'none';
-
-  if (tab !== 'live') exitDualMode();
+  if (typeof updateDualSyncButtonsUI === 'function') updateDualSyncButtonsUI();
   updatePanelsVisibility();
 
   if (currentCam === '大门_小米智能门铃4Pro') {
@@ -1234,21 +1234,227 @@ function selectCam(camName, idx) {
   }
 }
 
+
+// === v25 Dual-Camera Synchronized Historical Playback Engine (Living Room + Dining Room Lockstep) ===
+let _dualCompanionSliceBase = 0;
+
+function updateDualSyncButtonsUI() {
+  const bMain = document.getElementById('camBtnDual');
+  const bFs = document.getElementById('fsCamDual');
+  const bRec = document.getElementById('recentDualSyncBtn');
+  const bCld = document.getElementById('cloudDualSyncBtn');
+  const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
+  if (bMain) {
+    bMain.style.display = isDoorbell ? 'none' : 'inline-flex';
+    bMain.classList.toggle('active', isDualMode);
+    bMain.innerHTML = isLiveMode ? '🖼️ 双路同屏' : '🖼️ 双摄同步回放';
+  }
+  if (bFs) {
+    bFs.style.display = isDoorbell ? 'none' : 'inline-flex';
+    bFs.classList.toggle('active', isDualMode);
+  }
+  if (bRec) {
+    bRec.classList.toggle('active', isDualMode);
+    bRec.innerHTML = isDualMode ? '🖼️ 双摄同屏中(点此单摄)' : '🖼️ 双摄同屏回放';
+  }
+  if (bCld) {
+    bCld.style.display = isDoorbell ? 'none' : 'inline-flex';
+    bCld.classList.toggle('active', isDualMode);
+    bCld.innerHTML = isDualMode ? '🖼️ 双摄同屏中(点此单摄)' : '🖼️ 双摄同屏回放';
+  }
+}
+
+function toggleDualPlaybackMode() {
+  if (isDualMode) {
+    exitDualMode();
+    document.getElementById('camBtn0').classList.toggle('active', currentCam === '客厅_小米摄像机2K');
+    document.getElementById('camBtn1').classList.toggle('active', currentCam === '餐厅_小米摄像机2K');
+    updateDualSyncButtonsUI();
+    showLoadingToast('👤 已切回单摄像机画面', 1200);
+    if (isLiveMode) startLiveMode();
+    else if (currentTab === 'cloud' && currentCloudFile) playCloudFile(currentCloudFile, getCloudVirtualTime());
+    else if (curSegIndex >= 0) playSegmentAt(curSegIndex, (activeVid && activeVid.currentTime) || 0);
+  } else {
+    selectDualLive();
+  }
+}
+
+function syncDualCompanionRecent(targetWallSec) {
+  if (!isDualMode || isLiveMode) return;
+  const vB = document.getElementById('videoB');
+  if (!vB) return;
+  const dineSegs = (stateData && stateData.staging && stateData.staging['餐厅_小米摄像机2K']) || [];
+  if (!dineSegs.length) return;
+
+  let matchSeg = null;
+  for (let i = 0; i < dineSegs.length; i++) {
+    if (targetWallSec >= dineSegs[i].start_sec && targetWallSec <= dineSegs[i].end_sec) {
+      matchSeg = dineSegs[i];
+      break;
+    }
+  }
+  if (!matchSeg) {
+    let bestDiff = 999999;
+    for (let i = 0; i < dineSegs.length; i++) {
+      const d = Math.abs(dineSegs[i].start_sec - targetWallSec);
+      if (d < bestDiff) {
+        bestDiff = d;
+        matchSeg = dineSegs[i];
+      }
+    }
+  }
+  if (!matchSeg) return;
+
+  const targetUrl = `${API_BASE}${matchSeg.url}`;
+  const subOff = Math.max(0, Math.min((matchSeg.dur || 60) - 0.5, targetWallSec - matchSeg.start_sec));
+  const curAttr = vB.getAttribute('data-dual-seg') || '';
+  vB.removeAttribute('poster');
+  if (curAttr === matchSeg.url && vB.readyState >= 1) {
+    try {
+      if (Math.abs((vB.currentTime || 0) - subOff) > 0.45) vB.currentTime = subOff;
+    } catch (e) {}
+    vB.playbackRate = (activeVid && activeVid.playbackRate) || playbackRateVal || 1.0;
+    if (activeVid && !activeVid.paused) vB.play().catch(() => {});
+  } else {
+    vB.setAttribute('data-dual-seg', matchSeg.url);
+    vB.onloadedmetadata = () => {
+      try { vB.currentTime = subOff; } catch (e) {}
+      vB.playbackRate = (activeVid && activeVid.playbackRate) || playbackRateVal || 1.0;
+      if (activeVid && !activeVid.paused) vB.play().catch(() => {});
+    };
+    vB.src = targetUrl;
+    vB.load();
+  }
+  switchDualAudio(dualAudioIdx);
+}
+
+function syncDualCompanionCloud(f, offsetSec) {
+  if (!isDualMode || isLiveMode || !f) return;
+  const vB = document.getElementById('videoB');
+  if (!vB) return;
+  const useSlice = shouldUseCloudFastSlice(f);
+  const selDate = (cloudData && cloudData.selected_date) || '';
+  const alignedBase = useSlice ? (Math.floor(offsetSec / 30) * 30) : 0;
+  const subOffset = useSlice ? Math.max(0, offsetSec - alignedBase) : offsetSec;
+  const companionCam = '餐厅_小米摄像机2K';
+  const companionRawUrl = f.url.replace(encodeURIComponent('客厅_小米摄像机2K'), encodeURIComponent(companionCam)).replace('客厅_小米摄像机2K', companionCam);
+  const sliceKey = useSlice ? `dual_${companionCam}_${f.name}#slice_${alignedBase}` : `dual_${companionCam}_${f.name}`;
+  const fullUrl = useSlice
+    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(companionCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}`
+    : `${API_BASE}${companionRawUrl}`;
+
+  const curKey = vB.getAttribute('data-cloud-url') || '';
+  const canSeekInLoaded = useSlice
+    && curKey.startsWith(`dual_${companionCam}_${f.name}#slice_`)
+    && vB.readyState >= 1
+    && offsetSec >= _dualCompanionSliceBase
+    && offsetSec <= (_dualCompanionSliceBase + (vB.duration || cloudSliceDur) - 2);
+  const isSameFull = (!useSlice) && (curKey === sliceKey) && vB.readyState >= 1;
+
+  vB.removeAttribute('poster');
+  if (canSeekInLoaded) {
+    try { vB.currentTime = offsetSec - _dualCompanionSliceBase; } catch (e) {}
+    vB.playbackRate = (activeVid && activeVid.playbackRate) || playbackRateVal || 1.0;
+    if (activeVid && !activeVid.paused) vB.play().catch(() => {});
+  } else if (isSameFull) {
+    try { vB.currentTime = offsetSec; } catch (e) {}
+    vB.playbackRate = (activeVid && activeVid.playbackRate) || playbackRateVal || 1.0;
+    if (activeVid && !activeVid.paused) vB.play().catch(() => {});
+  } else {
+    _dualCompanionSliceBase = alignedBase;
+    vB.setAttribute('data-cloud-url', sliceKey);
+    vB.onloadedmetadata = () => {
+      if (subOffset > 0) {
+        try { vB.currentTime = subOffset; } catch (e) {}
+      }
+      vB.playbackRate = (activeVid && activeVid.playbackRate) || playbackRateVal || 1.0;
+      if (activeVid && !activeVid.paused) vB.play().catch(() => {});
+    };
+    vB.src = fullUrl;
+    vB.load();
+  }
+  switchDualAudio(dualAudioIdx);
+}
+
+// Periodic 1s Drift-Guard for Dual Synchronized Historical Playback
+setInterval(() => {
+  if (!isDualMode || isLiveMode || !activeVid || !standbyVid) return;
+  try {
+    if (activeVid.paused && !standbyVid.paused) standbyVid.pause();
+    else if (!activeVid.paused && standbyVid.paused && standbyVid.readyState >= 2) standbyVid.play().catch(() => {});
+    if (standbyVid.playbackRate !== activeVid.playbackRate) {
+      standbyVid.playbackRate = activeVid.playbackRate;
+    }
+    if (currentTab === 'cloud' && currentCloudFile && standbyVid.readyState >= 2) {
+      const targetSub = cloudSliceMode ? (getCloudVirtualTime() - _dualCompanionSliceBase) : getCloudVirtualTime();
+      if (targetSub >= 0 && Math.abs((standbyVid.currentTime || 0) - targetSub) > 0.75) {
+        standbyVid.currentTime = targetSub;
+      }
+    } else if (currentTab !== 'cloud' && curSegIndex >= 0) {
+      const segs = getCamSegs();
+      if (segs[curSegIndex]) {
+        const wallSec = segs[curSegIndex].start_sec + (activeVid.currentTime || 0);
+        syncDualCompanionRecent(wallSec);
+      }
+    }
+  } catch (e) {}
+}, 1000);
+
 function selectDualLive() {
-  if (currentTab !== 'live') switchTab('live');
   destroyAllHls();
   isDualMode = true;
-  isLiveMode = true;
-  curSegIndex = -1;
   const vA = document.getElementById('videoA');
   const vB = document.getElementById('videoB');
   activeVid = vA;
   standbyVid = vB;
+  vA.style.zIndex = '2'; vA.style.opacity = '1'; vA.style.pointerEvents = 'auto';
+  vB.style.zIndex = '2'; vB.style.opacity = '1'; vB.style.pointerEvents = 'auto';
   document.getElementById('camBtn0').classList.remove('active');
   document.getElementById('camBtn1').classList.remove('active');
   document.getElementById('camBtn2').classList.remove('active');
   document.getElementById('camBtnDual').classList.add('active');
   document.getElementById('playerWrap').classList.add('dual-mode');
+
+  const prevCam = currentCam;
+  currentCam = '客厅_小米摄像机2K';
+  updatePanelsVisibility();
+  updateDualSyncButtonsUI();
+
+  if (currentTab === 'cloud') {
+    isLiveMode = false;
+    const badge = document.getElementById('modeBadge');
+    badge.textContent = '🖼️ 双摄云盘同屏';
+    badge.style.background = '#8b5cf6';
+    showLoadingToast('🖼️ 已开启客厅+餐厅「云盘历史双摄同屏同步回放」', 2000);
+    if (prevCam !== '客厅_小米摄像机2K' || !cloudData || !cloudData.files || !cloudData.files.length) {
+      loadCloudArchive('客厅_小米摄像机2K', document.getElementById('cloudDateSelect').value || '', true);
+    } else if (currentCloudFile) {
+      playCloudFile(currentCloudFile, getCloudVirtualTime());
+    } else {
+      playCloudFile(cloudData.files[cloudData.files.length - 1], 0);
+    }
+    switchDualAudio(dualAudioIdx);
+    return;
+  }
+
+  if (currentTab === 'recent' || !isLiveMode) {
+    isLiveMode = false;
+    const badge = document.getElementById('modeBadge');
+    badge.textContent = '🖼️ 双摄历史同步';
+    badge.style.background = '#3b82f6';
+    showLoadingToast('🖼️ 已开启客厅+餐厅「近2小时双摄同屏同步回放」', 2000);
+    const segs = getCamSegs();
+    if (segs.length > 0) {
+      const targetIdx = (curSegIndex >= 0 && curSegIndex < segs.length) ? curSegIndex : (segs.length - 1);
+      const curOff = (curSegIndex >= 0 && activeVid) ? (activeVid.currentTime || 0) : 0;
+      playSegmentAt(targetIdx, curOff);
+    }
+    switchDualAudio(dualAudioIdx);
+    return;
+  }
+
+  isLiveMode = true;
+  curSegIndex = -1;
   const badge = document.getElementById('modeBadge');
   badge.textContent = '🖼️ 双路2K同屏';
   badge.style.background = '#ef4444';
@@ -1479,7 +1685,10 @@ function playSegmentAt(idx, offsetSec) {
   activeVid.playbackRate = playbackRateVal;
   tryPlayVideo(activeVid);
 
-  if (idx + 1 < segs.length) {
+  if (isDualMode) {
+    badge.textContent = `🖼️ 双摄同步 ${segs[idx].start_hms}`;
+    syncDualCompanionRecent(segs[idx].start_sec + Math.max(0, offsetSec || 0));
+  } else if (idx + 1 < segs.length) {
     standbyVid.src = `${API_BASE}${segs[idx + 1].url}`;
     standbyVid.load();
   }
@@ -1537,6 +1746,13 @@ function nudgeVideo(deltaSec) {
   activeVid.currentTime = target;
   if (currentTab === 'cloud') currentCloudOffset = Math.floor(target);
   activeVid.play().catch(() => {});
+  if (isDualMode && standbyVid) {
+    if (currentTab === 'cloud' && currentCloudFile) syncDualCompanionCloud(currentCloudFile, currentCloudOffset);
+    else if (curSegIndex >= 0) {
+      const segs = getCamSegs();
+      if (segs[curSegIndex]) syncDualCompanionRecent(segs[curSegIndex].start_sec + target);
+    }
+  }
 }
 
 function syncToLiveEdge() {
@@ -1685,7 +1901,7 @@ async function exportSmartClip(durSec = 30) {
 
     const qs = new URLSearchParams({
       mode,
-      cam: currentCam,
+      cam: (isDualMode && CAMS_2K[dualAudioIdx]) ? CAMS_2K[dualAudioIdx] : currentCam,
       date: dateStr,
       file: fileName,
       offset: String(offsetSec),
@@ -1821,7 +2037,11 @@ async function loadCloudArchive(cam, dateStr, autoPlayLatest) {
       if (d === cloudData.selected_date) opt.selected = true;
       sel.appendChild(opt);
     });
-    renderCloudFiles();
+    if (isDualMode && currentCam !== '大门_小米智能门铃4Pro') {
+    badge.textContent = '🖼️ 双摄云盘同屏';
+    syncDualCompanionCloud(f, currentCloudOffset);
+  }
+  renderCloudFiles();
     const files = (cloudData && cloudData.files) || [];
     if (autoPlayLatest && files.length > 0) {
       playCloudFile(files[files.length - 1], 0);
@@ -2868,7 +3088,7 @@ function syncHudControls() {
   if (c2) c2.classList.toggle('active', !isDualMode && currentCam === '大门_小米智能门铃4Pro');
   if (cd) {
     cd.classList.toggle('active', isDualMode);
-    cd.style.display = (currentTab === 'live') ? 'inline-flex' : 'none';
+    cd.style.display = (currentCam === '大门_小米智能门铃4Pro') ? 'none' : 'inline-flex';
   }
 
   const showSeek = !isLiveMode || currentCam === '大门_小米智能门铃4Pro';
@@ -3042,7 +3262,7 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
     if (_isHoldingSpeed) {
       _isHoldingSpeed = false;
       if (activeVid) {
-        try { activeVid.playbackRate = isLiveMode ? 1.0 : (_preHoldRate || currentPlaybackRate || 1.0); } catch (e) {}
+        try { const r = isLiveMode ? 1.0 : (_preHoldRate || playbackRateVal || 1.0); activeVid.playbackRate = r; if (isDualMode && standbyVid) standbyVid.playbackRate = r; } catch (e) {}
       }
       if (holdBadgeEl) holdBadgeEl.style.display = 'none';
       syncHudControls();
@@ -3092,7 +3312,7 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
           if (!touchMoved && fsZoom <= 1.02 && !isLiveMode && activeVid) {
             _preHoldRate = activeVid.playbackRate || currentPlaybackRate || 1.0;
             _isHoldingSpeed = true;
-            try { activeVid.playbackRate = 2.5; } catch (err) {}
+            try { activeVid.playbackRate = 2.5; if (isDualMode && standbyVid) standbyVid.playbackRate = 2.5; } catch (err) {}
             if (holdBadgeEl) holdBadgeEl.style.display = 'inline-flex';
             try { if (navigator.vibrate) navigator.vibrate(14); } catch (err) {}
           }
