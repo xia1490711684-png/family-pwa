@@ -708,6 +708,7 @@
     <button class="act-btn intercom-btn-call" id="intercomCallBtn" onclick="toggleIntercomCall(false)">📞 实时语音对讲</button>
     <button class="act-btn" id="hdDirectListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.68);color:#7dd3fc;font-weight:700;">🎧 零延迟超清直听</button>
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
+    <button class="act-btn primary" id="xiaoaiStatusPill" onclick="showXiaoaiBridgeInfo()" style="border-color:rgba(16,185,129,0.45);color:#a7f3d0;">🎙️ 小爱Pro通道待命(:4399)</button>
     <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 纯净柔音人声: 开</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
@@ -889,7 +890,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v35 全时通透人声版 · 远场说话全时洪亮清晰 · 仅削减瞬间磕碰尖峰不压人声</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v36 小爱音箱Pro 6麦阵列音画同步与双向通话版 · 内置4399端口16-bit无损收音与12W喇叭对讲总控</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -4870,6 +4871,47 @@ setInterval(() => {
 }, 2000);
 
 setInterval(syncHudControls, 500);
+
+let _lastXiaoaiBridgeInfo = null;
+async function pollXiaoaiBridgeStatus() {
+  try {
+    const r = await fetch(`${API_BASE}/api/intercom/status`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const j = await r.json();
+    const xb = j.xiaoai_bridge || {};
+    _lastXiaoaiBridgeInfo = xb;
+    const pill = document.getElementById('xiaoaiStatusPill');
+    if (pill) {
+      if (xb.connected && xb.audio_streaming) {
+        pill.textContent = '🎙️ 小爱Pro 6麦阵列收音+通话中';
+        pill.style.borderColor = '#10b981';
+        pill.style.background = 'rgba(16,185,129,0.20)';
+        pill.style.color = '#6ee7b7';
+      } else if (xb.connected) {
+        pill.textContent = '🎙️ 小爱Pro已连机(待音频帧)';
+        pill.style.borderColor = '#38bdf8';
+        pill.style.background = '';
+        pill.style.color = '#7dd3fc';
+      } else {
+        pill.textContent = '🎙️ 小爱Pro通道待命(:4399)';
+        pill.style.borderColor = 'rgba(148,163,184,0.4)';
+        pill.style.background = '';
+        pill.style.color = '#cbd5e1';
+      }
+    }
+  } catch (e) {}
+}
+function showXiaoaiBridgeInfo() {
+  const xb = _lastXiaoaiBridgeInfo || {};
+  if (xb.connected) {
+    showLoadingToast(`✅ 小爱音箱Pro (${xb.peer_addr}) 已接管客厅/餐厅收音与12W双向通话 · 已收 ${xb.rx_chunks || 0} 帧`, 3200);
+  } else {
+    showLoadingToast('💡 小爱Pro服务端 ws://192.168.1.138:4399 已就绪，音箱连入后自动接管收音与双向通话', 3200);
+  }
+}
+setInterval(pollXiaoaiBridgeStatus, 4000);
+setTimeout(pollXiaoaiBridgeStatus, 800);
+
 applyFsFitUI();
 applyVoiceBoostState();
 syncHudControls();
