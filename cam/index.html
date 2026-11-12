@@ -882,7 +882,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v28 · 静音可视化实时声波谱 · 突发高分贝声响红色预警刻度 · 零延迟全双工双向语音对讲 · 4维共振峰人声识别 · 24h智能简报</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v29 终极完全体 · 零延迟全双工双向语音对讲 · 4维共振峰人声识别 · 静音声波谱 · 双摄历史同步 · 24h智能简报 · 直播30s回溯存相册 · 0.03s瞬切</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -4658,6 +4658,55 @@ setInterval(async () => {
     }
   } catch (e) {}
 }, 1250);
+
+
+// === v29 Network-Aware Adaptive Slice & Pre-Warm Controller (5G / Weak-Signal Zero-Stall) ===
+let _netTier = 'fast'; // 'lan' | 'fast' | 'weak'
+let _prefetchedNextSliceKey = '';
+
+function evaluateNetworkTier() {
+  const h = window.location.hostname;
+  if (!IS_CLOUD_SHELL && (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost' || h.includes(':'))) {
+    _netTier = 'lan';
+    cloudSliceDur = 240;
+    return;
+  }
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (conn) {
+    const eff = String(conn.effectiveType || '').toLowerCase();
+    const dl = typeof conn.downlink === 'number' ? conn.downlink : 10;
+    if (conn.saveData || eff === '2g' || eff === 'slow-2g' || eff === '3g' || dl < 2.2) {
+      _netTier = 'weak';
+      cloudSliceDur = 120;
+      return;
+    }
+  }
+  _netTier = 'fast';
+  cloudSliceDur = 240;
+}
+evaluateNetworkTier();
+if (navigator.connection && navigator.connection.addEventListener) {
+  navigator.connection.addEventListener('change', evaluateNetworkTier);
+}
+
+// Proactive Next-Slice Pre-Warmer at 72% of current Cloud Slice playback
+setInterval(() => {
+  if (document.hidden || currentTab !== 'cloud' || isLiveMode || !cloudSliceMode || !currentCloudFile || !activeVid) return;
+  const ct = activeVid.currentTime || 0;
+  const dur = activeVid.duration || cloudSliceDur;
+  if (dur > 30 && ct >= dur * 0.72) {
+    const nextOff = cloudSliceBaseOffset + Math.round(dur);
+    if (nextOff < 7170) {
+      const selDate = (cloudData && cloudData.selected_date) || '';
+      const key = `${currentCam}_${selDate}_${currentCloudFile.name}_${nextOff}`;
+      if (_prefetchedNextSliceKey !== key) {
+        _prefetchedNextSliceKey = key;
+        const preUrl = `${API_BASE || ''}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(currentCloudFile.name)}&offset=${nextOff}&dur=${cloudSliceDur}`;
+        fetch(preUrl, { headers: { Range: 'bytes=0-65535' } }).catch(() => {});
+      }
+    }
+  }
+}, 2000);
 
 setInterval(syncHudControls, 500);
 applyFsFitUI();
