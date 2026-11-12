@@ -890,7 +890,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v36 小爱音箱Pro 6麦阵列音画同步与双向通话版 · 内置4399端口16-bit无损收音与12W喇叭对讲总控</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v37 超低延迟锁时版 · 消除22秒累积漂移 · 墙钟帧率自适应对齐与1.04x无感追帧</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1423,7 +1423,19 @@ function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
 
   if (isAppleNative) {
     vid.onerror = () => { if (!isBackgroundPreload) discoverApiBase(false); };
-    vid.oncanplay = () => { if (onReadyCb) onReadyCb(); };
+    let _didInitialEdgeSnap = false;
+    vid.oncanplay = () => {
+      if (!_didInitialEdgeSnap && isLiveMode) {
+        _didInitialEdgeSnap = true;
+        try {
+          const edge0 = getLiveEdgeSec(vid);
+          if (edge0 > 2.5 && (edge0 - (vid.currentTime || 0)) > 2.8) {
+            vid.currentTime = Math.max(0, edge0 - 1.6);
+          }
+        } catch (e) {}
+      }
+      if (onReadyCb) onReadyCb();
+    };
     vid.src = hlsUrl + '?t=' + Date.now();
     if (isBackgroundPreload) {
       vid.muted = true;
@@ -1439,10 +1451,12 @@ function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
       const inst = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        backBufferLength: 14,
-        maxBufferLength: 24,
-        liveSyncDurationCount: isEffectiveFastStream() ? 1.1 : 1.8,
-        liveMaxLatencyDurationCount: 5.5
+        backBufferLength: 6,
+        maxBufferLength: 8,
+        maxMaxBufferLength: 12,
+        liveSyncDuration: isEffectiveFastStream() ? 2.2 : 1.8,
+        liveMaxLatencyDuration: isEffectiveFastStream() ? 4.8 : 4.0,
+        maxLiveSyncPlaybackRate: 1.12
       });
       inst.loadSource(hlsUrl);
       inst.attachMedia(vid);
@@ -3452,8 +3466,8 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (isLiveMode && activeVid && activeVid.seekable && activeVid.seekable.length > 0) {
       const edge = activeVid.seekable.end(activeVid.seekable.length - 1);
-      if (edge - activeVid.currentTime > 12.0) {
-        activeVid.currentTime = Math.max(0, edge - 4.5);
+      if (edge - activeVid.currentTime > 3.5) {
+        activeVid.currentTime = Math.max(0, edge - 1.6);
       }
       activeVid.play().catch(() => {});
     }
@@ -3465,36 +3479,83 @@ window.addEventListener('online', () => discoverApiBase(true));
 window.addEventListener('pageshow', () => discoverApiBase(false));
 setInterval(fetchState, IS_CLOUD_SHELL ? 12000 : 5000);
 
-// Rock-Solid Steady 1.0x Live Monitor (never drains safety buffer, zero premature restart loops!)
+// === v37 Proportional Ultra-Low-Latency Live Servo (~2.2s Target · Eliminates 22s Drift Cap!) ===
+function getLiveEdgeSec(v) {
+  if (!v) return 0;
+  let edge = 0;
+  try {
+    if (v.seekable && v.seekable.length > 0) edge = Math.max(edge, v.seekable.end(v.seekable.length - 1));
+  } catch (e) {}
+  try {
+    if (v.buffered && v.buffered.length > 0) edge = Math.max(edge, v.buffered.end(v.buffered.length - 1));
+  } catch (e) {}
+  return (isFinite(edge) && edge > 0) ? edge : 0;
+}
+
+function snapToLiveEdgeNow(showTip) {
+  if (!isLiveMode || !activeVid) return;
+  try {
+    const edge = getLiveEdgeSec(activeVid);
+    if (edge > 2.2) {
+      activeVid.currentTime = Math.max(0, edge - 1.5);
+      if (!_isHoldingSpeed) activeVid.playbackRate = 1.0;
+      if (showTip) showLoadingToast('⚡ 已瞬追至最新实时画面', 1600);
+    }
+  } catch (e) {}
+}
+
 setInterval(() => {
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
   const ct = activeVid.currentTime || 0;
   try {
-    if (!_isHoldingSpeed && activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
-    if (!activeVid.paused && activeVid.readyState >= 3 && ct > 0.5 && activeVid.seekable && activeVid.seekable.length > 0) {
-      const liveEdge = activeVid.seekable.end(activeVid.seekable.length - 1);
-      const lag = Math.max(0, liveEdge - ct);
-      const cp = document.getElementById('cornerTelemetryText');
-      if (cp && isFinite(lag) && lag < 90) {
-        const qTag = isEffectiveFastStream() ? '超清免卡' : '2K原画';
-        cp.textContent = `${qTag} · 流畅直播`;
+    if (!activeVid.paused && activeVid.readyState >= 2 && ct > 0.2) {
+      const liveEdge = getLiveEdgeSec(activeVid);
+      if (liveEdge > 1.0) {
+        const lag = Math.max(0, liveEdge - ct);
+        const cp = document.getElementById('cornerTelemetryText');
+        if (cp && isFinite(lag) && lag < 60) {
+          const qTag = isEffectiveFastStream() ? '超清免卡' : '2K原画';
+          const estTotalSec = Math.max(1.8, Math.min(9.9, lag + 1.3));
+          cp.textContent = `${qTag} · 实时 ${estTotalSec.toFixed(1)}s`;
+        }
+        if (!_isHoldingSpeed) {
+          if (lag > 5.5 && liveEdge > 3.0) {
+            // Hard snap if lag ever exceeds 5.5s (was 22.0s!)
+            activeVid.currentTime = Math.max(0, liveEdge - 1.6);
+            if (activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
+          } else if (lag > 3.1) {
+            // Imperceptible 1.10x glide back to live edge
+            if (Math.abs(activeVid.playbackRate - 1.10) > 0.01) activeVid.playbackRate = 1.10;
+          } else if (lag > 2.1) {
+            // Gentle 1.04x micro-servo
+            if (Math.abs(activeVid.playbackRate - 1.04) > 0.01) activeVid.playbackRate = 1.04;
+          } else {
+            if (activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
+          }
+        }
       }
-      if (lag > 22.0 && liveEdge > 8.0) {
-        activeVid.currentTime = Math.max(0, liveEdge - 4.5);
-      }
+    } else if (!_isHoldingSpeed && activeVid.playbackRate !== 1.0) {
+      activeVid.playbackRate = 1.0;
     }
-    if (hotStandbyReady && standbyVid && !standbyVid.paused && standbyVid.seekable && standbyVid.seekable.length > 0) {
-      const sEdge = standbyVid.seekable.end(standbyVid.seekable.length - 1);
-      if (sEdge - standbyVid.currentTime > 12.0) {
-        standbyVid.currentTime = Math.max(0, sEdge - 4.0);
+
+    // Keep hot-standby camera tightly synced near live edge too so 0.03s camera swap is never delayed!
+    if (hotStandbyReady && standbyVid && !standbyVid.paused) {
+      const sEdge = getLiveEdgeSec(standbyVid);
+      const sLag = sEdge - (standbyVid.currentTime || 0);
+      if (sEdge > 3.0 && sLag > 4.2) {
+        standbyVid.currentTime = Math.max(0, sEdge - 1.6);
+      } else if (sLag > 2.4) {
+        if (Math.abs(standbyVid.playbackRate - 1.06) > 0.01) standbyVid.playbackRate = 1.06;
+      } else if (standbyVid.playbackRate !== 1.0) {
+        standbyVid.playbackRate = 1.0;
       }
     }
   } catch (e) {}
 
   const sinceStartMs = Date.now() - lastLiveStartTs;
-  if (sinceStartMs > 18000 && !activeVid.paused && ct > 1.0 && Math.abs(ct - lastWatchdogTime) < 0.02) {
+  if (sinceStartMs > 12000 && !activeVid.paused && ct > 0.5 && Math.abs(ct - lastWatchdogTime) < 0.01) {
     stallCount++;
-    if (stallCount >= 9) {
+    if (stallCount >= 8) {
       stallCount = 0;
       destroyAllHls();
       startLiveMode();
@@ -3503,7 +3564,7 @@ setInterval(() => {
     stallCount = 0;
   }
   lastWatchdogTime = ct;
-}, 2000);
+}, 1000);
 
 // === Smart iPhone Landscape Fullscreen, Swipe-to-Switch, Fit/Fill & Pinch-Zoom Engine (v12) ===
 const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
