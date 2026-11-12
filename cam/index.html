@@ -889,7 +889,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v31 播客级 32kHz 超宽频高清语音版 · 512点基频谐波梳状提纯 · 消除A-law颗粒噪与混响 · SBR高频泛音空气感重构 · 128k超清AAC</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v33 32kHz高清柔音防震版 · 16ms前瞻瞬态护盾彻底消除放东西/碗碟磕碰尖锐声 · 512点人声谐波提纯</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -2945,11 +2945,11 @@ function ensureVideoVoiceDsp(vid) {
     air.gain.value = 3.8;
 
     const comp = _audioCtx.createDynamicsCompressor();
-    comp.threshold.value = -24;
-    comp.knee.value = 16;
-    comp.ratio.value = 3.0;
-    comp.attack.value = 0.005;
-    comp.release.value = 0.18;
+    comp.threshold.value = -20;
+    comp.knee.value = 6;
+    comp.ratio.value = 12.0;
+    comp.attack.value = 0.001;
+    comp.release.value = 0.080;
 
     const gain = _audioCtx.createGain();
     gain.gain.value = 1.35;
@@ -2983,7 +2983,7 @@ function getClarityLabels(mode) {
     main: '💎 32k高清语音: 开',
     fs: '💎 高清语音',
     ic: '💎 32kHz高清语音',
-    toast: '💎 已开启「32kHz 超宽频高清语音」：基频谐波梳状提纯 + 消除A-law颗粒噪与混响 + 高频泛音重构'
+    toast: '💎 已开启「32kHz 高清柔音防震版」：微秒级瞬态护盾消除放东西/磕碰刺耳声 + 人声谐波提纯'
   };
 }
 
@@ -4300,20 +4300,21 @@ function ensureIntercomAudioGraph() {
     presence.type = 'peaking';
     presence.frequency.value = 3100;
     presence.Q.value = 0.95;
-    presence.gain.value = 3.0;
+    presence.gain.value = 1.8;
 
     // 32kHz Super-Wideband HD Air Shelf (7.2 kHz - brings out silky FaceTime/Podcast clarity!)
     const air = intercomAudioCtx.createBiquadFilter();
     air.type = 'highshelf';
     air.frequency.value = 7200;
-    air.gain.value = 3.6;
+    air.gain.value = 1.8;
 
+    // 1ms Ultra-Fast Anti-Clatter Transient Limiter (crushes any residual impact/click spikes before speaker!)
     const comp = intercomAudioCtx.createDynamicsCompressor();
-    comp.threshold.value = -21;
-    comp.knee.value = 14;
-    comp.ratio.value = 2.8;
-    comp.attack.value = 0.005;
-    comp.release.value = 0.16;
+    comp.threshold.value = -19;
+    comp.knee.value = 6;
+    comp.ratio.value = 12.0;
+    comp.attack.value = 0.001;
+    comp.release.value = 0.075;
 
     intercomDownGain = intercomAudioCtx.createGain();
     intercomDownGain.gain.value = getIntercomTargetGain();
@@ -4353,7 +4354,7 @@ function handleIntercomDownlinkFrame(u8) {
       roomTag.textContent = `🗣️ 32kHz 超宽频高清人声 (${voiceProb}%)`;
       roomTag.style.color = '#fbbf24';
     } else {
-      roomTag.textContent = (voiceClarityMode === 'raw') ? '🔊 环境原声直通' : '✨ 32kHz 播客级静谧底噪';
+      roomTag.textContent = (voiceClarityMode === 'raw') ? '🔊 环境原声直通' : '🛡️ 32kHz 瞬态防震静谧监听';
       roomTag.style.color = '#94a3b8';
     }
   }
