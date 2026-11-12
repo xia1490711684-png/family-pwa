@@ -437,6 +437,123 @@
   box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
 }
 
+
+.daily-brief-box {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 12px;
+  padding: 10px 11px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+.brief-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 9px;
+}
+@media (max-width: 480px) {
+  .brief-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.brief-kpi-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 9px;
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, transform 0.12s;
+}
+.brief-kpi-card:active {
+  transform: scale(0.98);
+}
+.brief-kpi-card:hover {
+  border-color: rgba(56, 189, 248, 0.55);
+}
+.brief-kpi-label {
+  font-size: 10.5px;
+  color: #94a3b8;
+  display: block;
+}
+.brief-kpi-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-top: 2px;
+  display: block;
+}
+.brief-kpi-sub {
+  font-size: 10px;
+  color: #38bdf8;
+  margin-top: 1px;
+  display: block;
+}
+.hourly-chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 54px;
+  padding: 6px 4px 2px 4px;
+  background: rgba(9, 14, 28, 0.78);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+.hr-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+.hr-bar-stack {
+  width: 100%;
+  max-width: 11px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: 3px 3px 0 0;
+  overflow: hidden;
+  min-height: 2px;
+  background: rgba(51, 65, 85, 0.45);
+}
+.hr-bar-snd {
+  background: #f59e0b;
+  width: 100%;
+}
+.hr-bar-mot {
+  background: #10b981;
+  width: 100%;
+}
+.hr-col.active-hr .hr-lbl {
+  color: #38bdf8;
+  font-weight: 800;
+}
+.hr-lbl {
+  font-size: 8.5px;
+  color: #64748b;
+  margin-top: 3px;
+  line-height: 1;
+}
+.ev-badge-zone {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(15, 23, 42, 0.84);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  backdrop-filter: blur(4px);
+}
+
 </style>
 </head>
 <body>
@@ -666,6 +783,38 @@
     <div id="cloudSubHint" style="display:none;"></div>
     <div class="chip-grid" id="cloudFileGrid" style="margin-bottom:8px;"></div>
 
+    
+    <!-- v27 Daily Smart Brief & 24-Hour Activity Bar Chart -->
+    <div class="daily-brief-box" id="dailyBriefBox" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
+        <span style="font-size:12px;font-weight:700;color:#e2e8f0;" id="dailyBriefTitle">📈 当日全屋智能简报与 24 小时活跃度分布（点击柱状图秒跳对应小时）</span>
+        <span style="font-size:11px;color:#94a3b8;" id="dailyBriefSummaryTxt"></span>
+      </div>
+      <div class="brief-kpi-grid">
+        <button class="brief-kpi-card" onclick="setCloudHlFilter('sound')">
+          <span class="brief-kpi-label">🗣️ 人声说话事件</span>
+          <span class="brief-kpi-val" id="kpiSoundCnt" style="color:#fbbf24;">0 次</span>
+          <span class="brief-kpi-sub" id="kpiSoundSub">点击仅看人声</span>
+        </button>
+        <button class="brief-kpi-card" onclick="setCloudHlFilter('motion')">
+          <span class="brief-kpi-label">🏃 人员活动事件</span>
+          <span class="brief-kpi-val" id="kpiMotionCnt" style="color:#34d399;">0 次</span>
+          <span class="brief-kpi-sub" id="kpiMotionSub">点击筛选活动</span>
+        </button>
+        <button class="brief-kpi-card" id="kpiPeakCard">
+          <span class="brief-kpi-label">🔥 全天最活跃时段</span>
+          <span class="brief-kpi-val" id="kpiPeakHour" style="color:#38bdf8;">--:--</span>
+          <span class="brief-kpi-sub" id="kpiPeakSub">点击秒跳峰值时刻</span>
+        </button>
+        <button class="brief-kpi-card" onclick="selectCam('大门_小米智能门铃4Pro', 2)">
+          <span class="brief-kpi-label">🚪 大门门铃动态</span>
+          <span class="brief-kpi-val" id="kpiDoorbellCnt" style="color:#c084fc;">0 起</span>
+          <span class="brief-kpi-sub">点击查看门铃抓拍</span>
+        </button>
+      </div>
+      <div class="hourly-chart-wrap" id="hourlyChartWrap"></div>
+    </div>
+
     <div id="intra2hBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
       <div style="font-size:12px;color:#38bdf8;font-weight:700;margin-bottom:6px;" id="intra2hTitle">⚡ 当前 2 小时录像内每 10 分钟快速定位：</div>
       <div class="chip-grid" id="intra10mGrid" style="margin-bottom:8px;"></div>
@@ -687,7 +836,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v26 旗舰完全体 · 零延迟全双工双向语音对讲 · 4维声学共振峰人声识别 · 双摄同屏历史同步回放 · 直播回溯30秒存iPhone相册 · 0.03s双摄瞬切</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v27 · 零延迟全双工双向语音对讲 · 4维声学共振峰人声识别 · 全屋每日智能简报与24h活跃图 · 空间分区热力定位 · 双摄同屏历史同步</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -2169,11 +2318,7 @@ async function loadCloudArchive(cam, dateStr, autoPlayLatest) {
       if (d === cloudData.selected_date) opt.selected = true;
       sel.appendChild(opt);
     });
-    if (isDualMode && currentCam !== '大门_小米智能门铃4Pro') {
-    badge.textContent = '🖼️ 双摄云盘同屏';
-    syncDualCompanionCloud(f, currentCloudOffset);
-  }
-  renderCloudFiles();
+    renderCloudFiles();
     const files = (cloudData && cloudData.files) || [];
     if (autoPlayLatest && files.length > 0) {
       playCloudFile(files[files.length - 1], 0);
@@ -2191,6 +2336,7 @@ function setCloudHlFilter(mode) {
   document.querySelectorAll('#cloudHlFilterBar .f-pill').forEach(el => {
     el.classList.toggle('active', el.getAttribute('data-hlf') === mode);
   });
+  renderDailySmartBrief();
   renderCloudHighlightsOnly();
 }
 
@@ -2226,6 +2372,180 @@ function groupAdjacentCloudEvents(list) {
     grouped.push(cur);
   }
   return grouped;
+}
+
+
+// === v27 Spatial Activity Zone Classifier & 24-Hour Smart Daily Brief ===
+let cloudZoneFilter = 'all';
+
+function inferInitialSpatialZone(camName, h) {
+  if (camName === '大门_小米智能门铃4Pro') return '🚪 门前玄关';
+  const isSnd = h.desc && h.desc.indexOf('🔊') !== -1;
+  const kbpsMatch = (h.desc || '').match(/(\d+)\s*kbps/);
+  const kbps = kbpsMatch ? parseInt(kbpsMatch[1], 10) : 1550;
+  if (camName.indexOf('餐厅') !== -1) {
+    if (isSnd && kbps < 1680) return '🍽️ 餐桌交谈区';
+    if (kbps >= 1820) return '🍳 厨房/餐边区';
+    return '🍽️ 餐厅核心区';
+  }
+  // Living room zones (calibrated to camera view: top-left=玄关门厅, top-mid=楼梯通道, right=沙发休息区, center=客厅中央)
+  if (isSnd && kbps < 1660) return '🛋️ 沙发休息区';
+  if (kbps >= 1880) return '🚪 玄关/门厅区';
+  if (kbps >= 1720) return '🪜 楼梯/通道区';
+  return '🛋️ 客厅活动区';
+}
+
+const _zoneRefCanvas = document.createElement('canvas');
+_zoneRefCanvas.width = 32;
+_zoneRefCanvas.height = 18;
+const _zoneRefCtx = _zoneRefCanvas.getContext('2d', { willReadFrequently: true });
+let _prevZoneFrameMap = {};
+
+function refineCardZoneFromThumb(imgEl, camName, badgeEl, hKey) {
+  if (!imgEl || !badgeEl || !_zoneRefCtx || camName === '大门_小米智能门铃4Pro') return;
+  try {
+    _zoneRefCtx.drawImage(imgEl, 0, 0, 32, 18);
+    const data = _zoneRefCtx.getImageData(0, 0, 32, 18).data;
+    const luma = new Float32Array(32 * 18);
+    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+      luma[j] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    }
+    const prev = _prevZoneFrameMap[camName];
+    _prevZoneFrameMap[camName] = luma;
+
+    // Score 4 anatomical room regions in 32x18 grid
+    let zEntry = 0, zStair = 0, zSofa = 0, zCenter = 0;
+    for (let y = 2; y < 17; y++) {
+      for (let x = 1; x < 31; x++) {
+        const idx = y * 32 + x;
+        // Local spatial edge energy + temporal frame difference if prev exists
+        const grad = Math.abs(luma[idx] - luma[idx - 1]) + Math.abs(luma[idx] - luma[idx - 32]);
+        const tdiff = prev ? Math.abs(luma[idx] - prev[idx]) * 1.8 : 0;
+        const score = grad * 0.35 + tdiff;
+        if (x < 11 && y < 11) zEntry += score * 1.25;
+        else if (x >= 11 && x <= 18 && y < 11) zStair += score * 1.2;
+        else if (x > 16 && y >= 6) zSofa += score;
+        else zCenter += score * 0.95;
+      }
+    }
+    if (camName.indexOf('餐厅') !== -1) {
+      const bestDine = (zEntry > zSofa * 1.15) ? '🍳 厨房/餐边区' : ((zCenter > zSofa * 1.1) ? '🍽️ 餐桌用餐区' : '🚶 餐厅过道区');
+      badgeEl.textContent = bestDine;
+    } else {
+      const maxS = Math.max(zEntry, zStair, zSofa, zCenter);
+      if (maxS === zEntry) badgeEl.textContent = '🚪 玄关/门口区';
+      else if (maxS === zStair) badgeEl.textContent = '🪜 楼梯通道区';
+      else if (maxS === zSofa) badgeEl.textContent = '🛋️ 沙发休息区';
+      else badgeEl.textContent = '🧸 客厅中央区';
+    }
+  } catch (e) {}
+}
+
+function jumpToCloudHour(hourInt) {
+  const files = (cloudData && cloudData.files) || [];
+  if (!files.length) return;
+  const allHls = (cloudData && cloudData.highlights) || [];
+  const hrPrefix = String(hourInt).padStart(2, '0') + ':';
+  const firstEventInHour = allHls.find(h => (h.time || '').startsWith(hrPrefix));
+  if (firstEventInHour) {
+    const tf = files.find(x => x.name === firstEventInHour.file);
+    if (tf) {
+      playCloudFile(tf, firstEventInHour.offset_sec || 0);
+      showLoadingToast(`⚡ 已跳至 ${hourInt}:00 时段首处动静 (${firstEventInHour.time})`, 1800);
+      return;
+    }
+  }
+  const blockStart = Math.floor(hourInt / 2) * 2;
+  const blockPrefix = String(blockStart).padStart(2, '0') + '时';
+  const blockFile = files.find(x => x.name.startsWith(blockPrefix)) || files[files.length - 1];
+  const offSec = (hourInt % 2) * 3600;
+  playCloudFile(blockFile, offSec);
+  showLoadingToast(`⚡ 已跳至 ${String(hourInt).padStart(2, '0')}:00 整点画面`, 1600);
+}
+
+function renderDailySmartBrief() {
+  const box = document.getElementById('dailyBriefBox');
+  const chart = document.getElementById('hourlyChartWrap');
+  if (!box || !chart || !cloudData) return;
+  const files = cloudData.files || [];
+  const allHls = cloudData.highlights || [];
+  const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
+  if (isDoorbell || (files.length === 0 && allHls.length === 0)) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+
+  const hrSnd = new Array(24).fill(0);
+  const hrMot = new Array(24).fill(0);
+  let totalSnd = 0;
+  let totalMot = 0;
+
+  allHls.forEach(h => {
+    const hh = parseInt((h.time || '00').slice(0, 2), 10);
+    const isSnd = (h.desc || '').indexOf('🔊') !== -1;
+    if (hh >= 0 && hh < 24) {
+      if (isSnd) { hrSnd[hh]++; totalSnd++; }
+      else { hrMot[hh]++; totalMot++; }
+    }
+  });
+
+  let peakH = -1;
+  let peakCount = 0;
+  for (let h = 0; h < 24; h++) {
+    const tot = hrSnd[h] + hrMot[h];
+    if (tot > peakCount) {
+      peakCount = tot;
+      peakH = h;
+    }
+  }
+
+  const sEl = document.getElementById('kpiSoundCnt');
+  const mEl = document.getElementById('kpiMotionCnt');
+  const pEl = document.getElementById('kpiPeakHour');
+  const pSub = document.getElementById('kpiPeakSub');
+  const pCard = document.getElementById('kpiPeakCard');
+  const dbEl = document.getElementById('kpiDoorbellCnt');
+  const sumTxt = document.getElementById('dailyBriefSummaryTxt');
+
+  if (sEl) sEl.textContent = `${totalSnd} 次`;
+  if (mEl) mEl.textContent = `${totalMot} 次`;
+  if (pEl) pEl.textContent = peakH >= 0 ? `${String(peakH).padStart(2, '0')}:00-${String(peakH + 1).padStart(2, '0')}:00` : '暂无峰值';
+  if (pSub) pSub.textContent = peakCount > 0 ? `共 ${peakCount} 处动静 · 点此秒播` : '全天安静';
+  if (pCard) {
+    pCard.onclick = () => { if (peakH >= 0) jumpToCloudHour(peakH); };
+  }
+  const dbCnt = (stateData && stateData.doorbell_today_count) || 0;
+  if (dbEl) dbEl.textContent = `${dbCnt} 起`;
+  if (sumTxt) {
+    const camShort = currentCam.replace('_小米摄像机2K', '');
+    sumTxt.textContent = `${cloudData.selected_date || ''} · ${camShort}已归档 ${files.length} 段 2h 原画`;
+  }
+
+  const maxBar = Math.max(4, peakCount);
+  const curBlockStart = currentCloudFile ? (parseCloudBlockStartHour(currentCloudFile) || 0) : -1;
+  chart.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    const sc = hrSnd[h];
+    const mc = hrMot[h];
+    const tot = sc + mc;
+    const col = document.createElement('div');
+    const isCur = (curBlockStart >= 0 && (h === curBlockStart || h === curBlockStart + 1));
+    col.className = 'hr-col' + (isCur ? ' active-hr' : '');
+    col.title = `${String(h).padStart(2, '0')}:00 - ${String(h + 1).padStart(2, '0')}:00 (人声 ${sc} 次 / 活动 ${mc} 次)`;
+    const sndH = Math.round((sc / maxBar) * 36);
+    const motH = Math.round((mc / maxBar) * 36);
+    const emptyH = tot === 0 ? 3 : 0;
+    col.innerHTML = `
+      <div class="hr-bar-stack" style="height:${Math.max(3, sndH + motH + emptyH)}px;">
+        ${sc > 0 ? `<div class="hr-bar-snd" style="height:${Math.max(3, sndH)}px;"></div>` : ''}
+        ${mc > 0 ? `<div class="hr-bar-mot" style="height:${Math.max(3, motH)}px;"></div>` : ''}
+      </div>
+      <span class="hr-lbl">${h % 2 === 0 ? String(h).padStart(2, '0') : '·'}</span>
+    `;
+    col.onclick = () => jumpToCloudHour(h);
+    chart.appendChild(col);
+  }
 }
 
 function renderCloudHighlightsOnly() {
@@ -2284,10 +2604,12 @@ function renderCloudHighlightsOnly() {
     const durBadge = durMin > 1 ? `持续${durMin}分` : `${h.dur_total || 60}秒`;
     const badgeTxt = isSnd ? `🔊 人声 ${h.sound_pct ? h.sound_pct + '%' : ''}` : '🏃 人员活动';
     const subTxt = h.file.slice(0, 6).replace('时', ':').replace('分', '');
+    const initZone = inferInitialSpatialZone(currentCam, h);
     card.innerHTML = `
       <div class="ev-thumb-wrap">
-        <img loading="lazy" src="${thumbUrl}" alt="${h.time}">
+        <img loading="lazy" crossorigin="anonymous" src="${thumbUrl}" alt="${h.time}" onload="refineCardZoneFromThumb(this, '${currentCam}', this.parentNode.querySelector('.ev-badge-zone'), '${h.file}_${h.offset_sec}')">
         <span class="ev-badge-tl ${isSnd ? 'snd' : 'mot'}">${badgeTxt}</span>
+        <span class="ev-badge-zone">${initZone}</span>
         <span class="ev-badge-br">${durBadge}</span>
       </div>
       <div class="ev-meta">
@@ -2425,6 +2747,10 @@ function playCloudFile(f, offsetSec) {
     activeVid.load();
     activeVid.playbackRate = playbackRateVal;
     tryPlayVideo(activeVid);
+  }
+  if (isDualMode && currentCam !== '大门_小米智能门铃4Pro') {
+    badge.textContent = '🖼️ 双摄云盘同屏';
+    syncDualCompanionCloud(f, currentCloudOffset);
   }
   renderCloudFiles();
   setTimeout(() => {
