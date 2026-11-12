@@ -672,7 +672,7 @@
           <button class="hud-pill" onclick="exportSmartClip(30)">✂️ 30秒</button>
           <button class="hud-pill" id="fsIntercomBtn" onclick="toggleIntercomCall(false)" style="border-color:rgba(52,211,153,0.7);color:#6ee7b7;">📞 对讲</button>
           <button class="hud-pill" id="fsListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.65);color:#7dd3fc;">🎧 直听</button>
-          <button class="hud-pill active" id="fsVoiceBtn" onclick="toggleVoiceBoost()">💎 高清语音</button>
+          <button class="hud-pill active" id="fsVoiceBtn" onclick="toggleVoiceBoost()">💎 纯净人声</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
           <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
@@ -708,7 +708,7 @@
     <button class="act-btn intercom-btn-call" id="intercomCallBtn" onclick="toggleIntercomCall(false)">📞 实时语音对讲</button>
     <button class="act-btn" id="hdDirectListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.68);color:#7dd3fc;font-weight:700;">🎧 零延迟超清直听</button>
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
-    <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 32k高清语音: 开</button>
+    <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 纯净柔音人声: 开</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
     <button class="act-btn" id="dlFullSegBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 原片</button>
@@ -722,7 +722,7 @@
       <div class="intercom-status-pill" id="icStatusText">📞 零延迟全双工对讲准备中…</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="intercom-lat-pill" id="icLatencyPill">⚡ 实时通道连接中</span>
-        <button class="f-pill active" id="icClarityBtn" onclick="toggleVoiceBoost()" title="切换超清人声 / 远场轻声放大 / 原声">💎 32kHz高清语音</button>
+        <button class="f-pill active" id="icClarityBtn" onclick="toggleVoiceBoost()" title="切换超清人声 / 远场轻声放大 / 原声">💎 纯净柔音人声</button>
         <button class="f-pill" id="icRateBtn" onclick="cycleIntercomRateMode()" title="扬声器采样率自适应/微调">🎛️ 自动采样率</button>
       </div>
     </div>
@@ -889,7 +889,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v33 32kHz高清柔音防震版 · 16ms前瞻瞬态护盾彻底消除放东西/碗碟磕碰尖锐声 · 512点人声谐波提纯</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v34 纯净柔音广播版 · 零门控连续无损人声 · 柔化放东西与碗碟磕碰声 · 连续FIFO无断点混流</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -2925,36 +2925,24 @@ function ensureVideoVoiceDsp(vid) {
 
     const hp = _audioCtx.createBiquadFilter();
     hp.type = 'highpass';
-    hp.frequency.value = 125;
+    hp.frequency.value = 130;
 
-    const mud = _audioCtx.createBiquadFilter();
-    mud.type = 'peaking';
-    mud.frequency.value = 320;
-    mud.Q.value = 1.15;
-    mud.gain.value = -3.2;
+    const lpf = _audioCtx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = 5400;
 
-    const presence = _audioCtx.createBiquadFilter();
-    presence.type = 'peaking';
-    presence.frequency.value = 2600;
-    presence.Q.value = 1.0;
-    presence.gain.value = 3.2;
-
-    const air = _audioCtx.createBiquadFilter();
-    air.type = 'highshelf';
-    air.frequency.value = 6400;
-    air.gain.value = 3.8;
-
+    // Gentle smooth broadcast compressor ONLY used in 'farfield' live boost mode (never brickwall!)
     const comp = _audioCtx.createDynamicsCompressor();
-    comp.threshold.value = -20;
-    comp.knee.value = 6;
-    comp.ratio.value = 12.0;
-    comp.attack.value = 0.001;
-    comp.release.value = 0.080;
+    comp.threshold.value = -21;
+    comp.knee.value = 18;
+    comp.ratio.value = 2.4;
+    comp.attack.value = 0.020;
+    comp.release.value = 0.25;
 
     const gain = _audioCtx.createGain();
-    gain.gain.value = 1.35;
+    gain.gain.value = 1.48;
 
-    const bundle = { src, hp, mud, presence, air, comp, gain, active: false };
+    const bundle = { src, hp, lpf, comp, gain, active: false };
     _vidAudioNodes.set(vid, bundle);
     return bundle;
   } catch (e) {
@@ -2965,10 +2953,10 @@ function ensureVideoVoiceDsp(vid) {
 function getClarityLabels(mode) {
   if (mode === 'farfield') {
     return {
-      main: '👂 远场轻声放大 (+22dB)',
+      main: '👂 远场轻声放大',
       fs: '👂 远场放大',
       ic: '👂 远场轻声放大',
-      toast: '👂 已切换「远场轻声放大」：远距细语/隔间说话提升 +22dB + 强力消混响'
+      toast: '👂 已切换「远场轻声放大」：柔滑提升远距细语，同时压低放东西/磕碰声'
     };
   }
   if (mode === 'raw') {
@@ -2976,14 +2964,14 @@ function getClarityLabels(mode) {
       main: '🔊 环境原声直出',
       fs: '🔊 环境原声',
       ic: '🔊 环境原声',
-      toast: '🔊 已切换「环境原声」：保留轻微风声/雨声等全部环境背景细节'
+      toast: '🔊 已切换「环境原声」：保留摄像头原始环境声直出'
     };
   }
   return {
-    main: '💎 32k高清语音: 开',
-    fs: '💎 高清语音',
-    ic: '💎 32kHz高清语音',
-    toast: '💎 已开启「32kHz 高清柔音防震版」：微秒级瞬态护盾消除放东西/磕碰刺耳声 + 人声谐波提纯'
+    main: '💎 纯净柔音人声: 开',
+    fs: '💎 纯净人声',
+    ic: '💎 纯净柔音人声',
+    toast: '💎 已开启「纯净柔音人声」：零门控无损连续人声 · 柔化放东西与磕碰声'
   };
 }
 
@@ -3018,7 +3006,8 @@ function applyVoiceBoostState() {
   }
 
   if (IS_IOS_WEBKIT) return;
-  if (voiceClarityMode === 'raw' && !_audioCtx) return;
+  // In 'ultra' and 'raw', backend HLS/MP4 audio is ALREADY broadcast-mastered — play bit-pure without double WebAudio processing!
+  if (voiceClarityMode !== 'farfield' && !_audioCtx) return;
 
   [document.getElementById('videoA'), document.getElementById('videoB')].forEach(v => {
     const b = ensureVideoVoiceDsp(v);
@@ -3026,20 +3015,14 @@ function applyVoiceBoostState() {
     if (_audioCtx.state === 'suspended') {
       _audioCtx.resume().catch(() => {});
     }
-    [b.src, b.hp, b.mud, b.presence, b.air, b.comp, b.gain].forEach(n => {
+    [b.src, b.hp, b.lpf, b.comp, b.gain].forEach(n => {
       try { n.disconnect(); } catch (e) {}
     });
-    if (voiceClarityMode !== 'raw') {
-      const isFar = (voiceClarityMode === 'farfield');
-      b.mud.gain.value = isFar ? -4.8 : -3.0;
-      b.presence.gain.value = isFar ? 5.2 : 2.8;
-      b.air.gain.value = isFar ? 6.0 : 3.5;
-      b.gain.gain.value = isFar ? 2.15 : 1.38;
+    if (voiceClarityMode === 'farfield') {
+      b.gain.gain.value = 1.52;
       b.src.connect(b.hp);
-      b.hp.connect(b.mud);
-      b.mud.connect(b.presence);
-      b.presence.connect(b.air);
-      b.air.connect(b.comp);
+      b.hp.connect(b.lpf);
+      b.lpf.connect(b.comp);
       b.comp.connect(b.gain);
       b.gain.connect(_audioCtx.destination);
       b.active = true;
@@ -4258,20 +4241,14 @@ let intercomListenOnly = false;
 let intercomMicNodes = [];
 
 function getIntercomTargetGain() {
-  if (voiceClarityMode === 'farfield') return 2.20;
-  if (voiceClarityMode === 'raw') return 1.05;
-  return 1.55;
+  if (voiceClarityMode === 'farfield') return 1.38;
+  if (voiceClarityMode === 'raw') return 1.00;
+  return 1.08;
 }
 
 function updateIntercomClarityGain() {
   if (!intercomAudioCtx || !intercomDownGain) return;
-  if (intercomAudioCtx._mudNode) {
-    intercomAudioCtx._mudNode.gain.value = (voiceClarityMode === 'farfield') ? -4.0 : ((voiceClarityMode === 'raw') ? 0.0 : -2.4);
-  }
-  if (intercomAudioCtx._airNode) {
-    intercomAudioCtx._airNode.gain.value = (voiceClarityMode === 'farfield') ? 5.2 : ((voiceClarityMode === 'raw') ? 0.0 : 3.6);
-  }
-  intercomDownGain.gain.setTargetAtTime(getIntercomTargetGain(), intercomAudioCtx.currentTime, 0.03);
+  intercomDownGain.gain.setTargetAtTime(getIntercomTargetGain(), intercomAudioCtx.currentTime, 0.04);
 }
 
 function ensureIntercomAudioGraph() {
@@ -4279,56 +4256,30 @@ function ensureIntercomAudioGraph() {
   if (!AC) return null;
   if (!intercomAudioCtx) {
     intercomAudioCtx = new AC({ latencyHint: 'interactive' });
+    // Clean transparent pass-through for backend-mastered v34 32kHz PCM (no double EQ or 1ms brickwall!)
     const hpf = intercomAudioCtx.createBiquadFilter();
     hpf.type = 'highpass';
-    hpf.frequency.value = 110;
+    hpf.frequency.value = 120;
 
-    // Warm Condenser-Mic Fundamental Presence (175 Hz)
-    const warm = intercomAudioCtx.createBiquadFilter();
-    warm.type = 'peaking';
-    warm.frequency.value = 175;
-    warm.Q.value = 1.1;
-    warm.gain.value = 1.8;
+    const silkLpf = intercomAudioCtx.createBiquadFilter();
+    silkLpf.type = 'lowpass';
+    silkLpf.frequency.value = 5500;
 
-    const mud = intercomAudioCtx.createBiquadFilter();
-    mud.type = 'peaking';
-    mud.frequency.value = 350;
-    mud.Q.value = 1.15;
-    mud.gain.value = -2.4;
-
-    const presence = intercomAudioCtx.createBiquadFilter();
-    presence.type = 'peaking';
-    presence.frequency.value = 3100;
-    presence.Q.value = 0.95;
-    presence.gain.value = 1.8;
-
-    // 32kHz Super-Wideband HD Air Shelf (7.2 kHz - brings out silky FaceTime/Podcast clarity!)
-    const air = intercomAudioCtx.createBiquadFilter();
-    air.type = 'highshelf';
-    air.frequency.value = 7200;
-    air.gain.value = 1.8;
-
-    // 1ms Ultra-Fast Anti-Clatter Transient Limiter (crushes any residual impact/click spikes before speaker!)
     const comp = intercomAudioCtx.createDynamicsCompressor();
-    comp.threshold.value = -19;
-    comp.knee.value = 6;
-    comp.ratio.value = 12.0;
-    comp.attack.value = 0.001;
-    comp.release.value = 0.075;
+    comp.threshold.value = -14;
+    comp.knee.value = 16;
+    comp.ratio.value = 2.0;
+    comp.attack.value = 0.015;
+    comp.release.value = 0.22;
 
     intercomDownGain = intercomAudioCtx.createGain();
     intercomDownGain.gain.value = getIntercomTargetGain();
 
-    hpf.connect(warm);
-    warm.connect(mud);
-    mud.connect(presence);
-    presence.connect(air);
-    air.connect(comp);
+    hpf.connect(silkLpf);
+    silkLpf.connect(comp);
     comp.connect(intercomDownGain);
     intercomDownGain.connect(intercomAudioCtx.destination);
     intercomAudioCtx._entryNode = hpf;
-    intercomAudioCtx._mudNode = mud;
-    intercomAudioCtx._airNode = air;
   }
   if (intercomAudioCtx.state === 'suspended') {
     intercomAudioCtx.resume().catch(() => {});
@@ -4342,7 +4293,6 @@ function handleIntercomDownlinkFrame(u8) {
   const fType = u8[0];
   if (fType !== 0x12 && fType !== 0x11 && fType !== 0x01) return;
 
-  const camIdx = u8[1];
   const voiceProb = u8[2];
   const rmsPct = u8[3];
 
@@ -4351,10 +4301,10 @@ function handleIntercomDownlinkFrame(u8) {
   if (downBar) downBar.style.width = Math.max(3, Math.min(100, rmsPct)) + '%';
   if (roomTag) {
     if (voiceProb >= 42) {
-      roomTag.textContent = `🗣️ 32kHz 超宽频高清人声 (${voiceProb}%)`;
+      roomTag.textContent = `🗣️ 纯净清晰人声 (${voiceProb}%)`;
       roomTag.style.color = '#fbbf24';
     } else {
-      roomTag.textContent = (voiceClarityMode === 'raw') ? '🔊 环境原声直通' : '🛡️ 32kHz 瞬态防震静谧监听';
+      roomTag.textContent = (voiceClarityMode === 'raw') ? '🔊 环境原声直通' : '🍃 柔音防噪监听中';
       roomTag.style.color = '#94a3b8';
     }
   }
@@ -4387,12 +4337,13 @@ function handleIntercomDownlinkFrame(u8) {
   const userSpeaking = (!intercomListenOnly) && ((nowMs - intercomLastSpeechOutTs) < 220);
   if (intercomDownGain) {
     const targetG = userSpeaking ? 0.16 : getIntercomTargetGain();
-    intercomDownGain.gain.setTargetAtTime(targetG, ctx.currentTime, 0.025);
+    intercomDownGain.gain.setTargetAtTime(targetG, ctx.currentTime, 0.03);
   }
 
   const nowCtx = ctx.currentTime;
-  if (intercomNextPlayTime < nowCtx + 0.012 || intercomNextPlayTime > nowCtx + 0.115) {
-    intercomNextPlayTime = nowCtx + 0.040;
+  // Wide 450ms jitter window prevents 3-packet Tunnel TCP bursts from colliding/overlapping!
+  if (intercomNextPlayTime < nowCtx + 0.005 || intercomNextPlayTime > nowCtx + 0.450) {
+    intercomNextPlayTime = nowCtx + 0.085;
   }
   const src = ctx.createBufferSource();
   src.buffer = audioBuf;
