@@ -337,6 +337,19 @@
     pointer-events: none; white-space: nowrap; display: none;
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   }
+
+.hold-speed-badge {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 38; display: none; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(251, 191, 36, 0.75);
+  color: #fde68a; font-size: 12.5px; font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  pointer-events: none; letter-spacing: 0.2px;
+}
+
 </style>
 </head>
 <body>
@@ -381,6 +394,7 @@
       <span class="pulse-dot" style="width:6px;height:6px;"></span>
       <span id="cornerTelemetryText">2K · 准实时</span>
     </div>
+    <div class="hold-speed-badge" id="holdSpeedBadge">⏩ 2.5x 倍速快进中 · 松手恢复</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <div class="video-stage" id="videoStage">
       <video id="videoA" autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;opacity:1;"></video>
@@ -401,6 +415,7 @@
         </div>
         <div class="hud-group">
           <button class="hud-pill" onclick="captureSnapshot()">📸 抓拍</button>
+          <button class="hud-pill" onclick="exportSmartClip(30)">✂️ 30秒</button>
           <button class="hud-pill" id="fsVoiceBtn" onclick="toggleVoiceBoost()">🎙️ 人声</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
@@ -437,7 +452,8 @@
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
     <button class="act-btn" id="voiceBoostBtn" onclick="toggleVoiceBoost()">🎙️ 人声对白增强</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
-    <button class="act-btn" id="dlClipBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 保存当前录像段</button>
+    <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
+    <button class="act-btn" id="dlFullSegBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 原片</button>
     <button class="act-btn" id="syncLiveBtn" onclick="syncToLiveEdge()">⚡ 追平最新直播秒</button>
   </div>
 
@@ -539,7 +555,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v23 终审定本 · 0.03s双摄瞬切 · 5G云盘零转圈切片 · 语音频段人声识别 · 封面事件流 · 直播无缝时移 · 人声对白增强 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v24 · 直播回溯30秒一键存iPhone相册 · 长按画面2.5x倍速快进 · 双击边缘±15s精准快退快进 · 0.03s双摄瞬切 · 5G云盘零转圈切片</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1006,7 +1022,7 @@ function updatePanelsVisibility() {
       }
     }
   }
-  document.getElementById('dlClipBtn').style.display = inPlayback ? 'inline-flex' : 'none';
+  if (typeof updateClipBtnLabel === 'function') updateClipBtnLabel();
   document.getElementById('syncLiveBtn').style.display = (!inPlayback) ? 'inline-flex' : 'none';
   const lcp = document.getElementById('liveCornerPill');
   if (lcp) lcp.style.display = (isLiveMode && !isDoorbell) ? 'inline-flex' : 'none';
@@ -1615,6 +1631,120 @@ async function togglePictureInPicture() {
     }
   } catch (e) {
     showLoadingToast('💡 请先开始播放画面再开启画中画', 2000);
+  }
+}
+
+
+let _isHoldingSpeed = false;
+let _preHoldRate = 1.0;
+let _exportingClip = false;
+
+async function exportSmartClip(durSec = 30) {
+  if (_exportingClip) {
+    showLoadingToast('⏳ 正在打包 2K 原画片段，请稍候…', 1600);
+    return;
+  }
+  _exportingClip = true;
+  const btn = document.getElementById('dlClipBtn');
+  const origTxt = btn ? btn.innerHTML : '';
+  if (btn) btn.innerHTML = '⏳ 正在截取2K片段…';
+
+  try {
+    let mode = 'live';
+    let dateStr = '';
+    let fileName = '';
+    let offsetSec = 0;
+
+    if (currentCam === '大门_小米智能门铃4Pro' || (currentTab === 'cloud' && !isLiveMode)) {
+      mode = 'cloud';
+      dateStr = (cloudData && cloudData.selected_date) || '';
+      if (currentCloudFile && currentCloudFile.name) {
+        fileName = currentCloudFile.name;
+        offsetSec = Math.max(0, Math.round(getCloudVirtualTime()));
+      } else {
+        showLoadingToast('💡 请先点选一段云盘录像或事件卡片再截取', 2000);
+        return;
+      }
+    } else if (!isLiveMode) {
+      mode = 'recent';
+      const segs = getCamSegs();
+      const curSeg = (curSegIndex >= 0 && segs[curSegIndex]) ? segs[curSegIndex] : (segs.length ? segs[segs.length - 1] : null);
+      if (curSeg) {
+        fileName = curSeg.name || '';
+        offsetSec = Math.max(0, Math.round((activeVid && activeVid.currentTime) || 0));
+      }
+      if (stateData && stateData.now) dateStr = stateData.now.slice(0, 10);
+    } else {
+      mode = 'live';
+    }
+
+    const labelToast = (mode === 'live')
+      ? `✂️ 正在回溯截取刚才 ${durSec} 秒 2K 原画有声视频…`
+      : `✂️ 正在无损截取当前 ${durSec} 秒 2K 原画视频（免下整段大文件）…`;
+    showLoadingToast(labelToast, 4500);
+
+    const qs = new URLSearchParams({
+      mode,
+      cam: currentCam,
+      date: dateStr,
+      file: fileName,
+      offset: String(offsetSec),
+      dur: String(durSec),
+    });
+    const exportUrl = `${API_BASE || ''}/api/export_clip?${qs.toString()}`;
+    const resp = await fetch(exportUrl);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const blob = await resp.blob();
+    const camShort = currentCam.includes('客厅') ? '客厅2K' : (currentCam.includes('餐厅') ? '餐厅2K' : '大门门铃');
+    const niceName = `${camShort}_${mode === 'live' ? '回溯' : '片段'}_${durSec}s_${Date.now().toString().slice(-6)}.mp4`;
+    const fileObj = new File([blob], niceName, { type: 'video/mp4' });
+
+    if (IS_MOBILE && navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+      try {
+        await navigator.share({
+          files: [fileObj],
+          title: `${camShort} 2K原画视频片段`,
+        });
+        showLoadingToast(`✅ 已呼出系统分享面板（可一键存储到相册或发微信，${(blob.size / 1048576).toFixed(1)}MB）`, 2600);
+        return;
+      } catch (shareErr) {
+        if (shareErr && shareErr.name === 'AbortError') {
+          showLoadingToast('已取消分享面板', 1200);
+          return;
+        }
+      }
+    }
+
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = niceName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 25000);
+    showLoadingToast(`✅ 已保存 ${durSec} 秒 2K 原画片段（${(blob.size / 1048576).toFixed(1)} MB）`, 2600);
+  } catch (err) {
+    showLoadingToast('⚠️ 片段截取失败，请稍后重试', 2200);
+  } finally {
+    _exportingClip = false;
+    updateClipBtnLabel();
+  }
+}
+
+function updateClipBtnLabel() {
+  const btn = document.getElementById('dlClipBtn');
+  const fullBtn = document.getElementById('dlFullSegBtn');
+  if (!btn || _exportingClip) return;
+  const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
+  const inPlayback = (currentTab !== 'live') || !isLiveMode || isDoorbell;
+  btn.style.display = 'inline-flex';
+  if (!inPlayback) {
+    btn.innerHTML = '✂️ 回溯30秒存相册';
+    if (fullBtn) fullBtn.style.display = 'none';
+  } else {
+    btn.innerHTML = isDoorbell ? '📲 保存门铃视频存相册' : '✂️ 截取30秒存相册';
+    if (fullBtn) fullBtn.style.display = isDoorbell ? 'none' : 'inline-flex';
   }
 }
 
@@ -2533,7 +2663,7 @@ setInterval(() => {
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
   const ct = activeVid.currentTime || 0;
   try {
-    if (activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
+    if (!_isHoldingSpeed && activeVid.playbackRate !== 1.0) activeVid.playbackRate = 1.0;
     if (!activeVid.paused && activeVid.readyState >= 3 && ct > 0.5 && activeVid.seekable && activeVid.seekable.length > 0) {
       const liveEdge = activeVid.seekable.end(activeVid.seekable.length - 1);
       const lag = Math.max(0, liveEdge - ct);
@@ -2904,6 +3034,20 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
   let touchStartTs = 0;
   let lastTapTs = 0;
   let singleTapTid = null;
+  let holdSpeedTid = null;
+  const holdBadgeEl = document.getElementById('holdSpeedBadge');
+
+  function stopHoldSpeed() {
+    if (holdSpeedTid) { clearTimeout(holdSpeedTid); holdSpeedTid = null; }
+    if (_isHoldingSpeed) {
+      _isHoldingSpeed = false;
+      if (activeVid) {
+        try { activeVid.playbackRate = isLiveMode ? 1.0 : (_preHoldRate || currentPlaybackRate || 1.0); } catch (e) {}
+      }
+      if (holdBadgeEl) holdBadgeEl.style.display = 'none';
+      syncHudControls();
+    }
+  }
 
   document.querySelectorAll('.hud-bar, .btn-unmute, .dual-cam-pill, .live-corner-pill').forEach(el => {
     el.addEventListener('touchstart', e => { e.stopPropagation(); bumpHudTimer(); }, { passive: true });
@@ -2915,11 +3059,20 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
   });
   playerWrapEl.addEventListener('dblclick', e => {
     if (e.target.closest('.hud-bar, .btn-unmute, .dual-cam-pill, .live-corner-pill')) return;
-    if (!IS_MOBILE) toggleSmartFullscreen();
+    if (!IS_MOBILE) {
+      if (!isLiveMode && fsZoom <= 1.05) {
+        const rect = playerWrapEl.getBoundingClientRect();
+        const rx = (e.clientX - rect.left) / Math.max(1, rect.width);
+        if (rx < 0.28) { nudgeVideo(-15); showLoadingToast('⏪ 快退 15 秒', 950); return; }
+        if (rx > 0.72) { nudgeVideo(15); showLoadingToast('⏩ 快进 15 秒', 950); return; }
+      }
+      toggleSmartFullscreen();
+    }
   });
 
   videoStageEl.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
+      stopHoldSpeed();
       e.preventDefault();
       touchMoved = true;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -2928,10 +3081,23 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
       pinchStartZoom = fsZoom;
       bumpHudTimer();
     } else if (e.touches.length === 1) {
+      stopHoldSpeed();
       touchMoved = false;
       touchStartX = panLastX = e.touches[0].clientX;
       touchStartY = panLastY = e.touches[0].clientY;
       touchStartTs = Date.now();
+      if (!isLiveMode && fsZoom <= 1.02 && activeVid && !activeVid.paused) {
+        holdSpeedTid = setTimeout(() => {
+          holdSpeedTid = null;
+          if (!touchMoved && fsZoom <= 1.02 && !isLiveMode && activeVid) {
+            _preHoldRate = activeVid.playbackRate || currentPlaybackRate || 1.0;
+            _isHoldingSpeed = true;
+            try { activeVid.playbackRate = 2.5; } catch (err) {}
+            if (holdBadgeEl) holdBadgeEl.style.display = 'inline-flex';
+            try { if (navigator.vibrate) navigator.vibrate(14); } catch (err) {}
+          }
+        }, 340);
+      }
     }
   }, { passive: false });
 
@@ -2948,7 +3114,7 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
     } else if (e.touches.length === 1) {
       const cx = e.touches[0].clientX;
       const cy = e.touches[0].clientY;
-      if (Math.hypot(cx - touchStartX, cy - touchStartY) > 12) touchMoved = true;
+      if (Math.hypot(cx - touchStartX, cy - touchStartY) > 12) { touchMoved = true; stopHoldSpeed(); }
       if (fsZoom > 1.02) {
         e.preventDefault();
         const [sdx, sdy] = mapScreenDeltaToStage(cx - panLastX, cy - panLastY);
@@ -2961,7 +3127,13 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
     }
   }, { passive: false });
 
+  videoStageEl.addEventListener('touchcancel', () => stopHoldSpeed());
   videoStageEl.addEventListener('touchend', e => {
+    if (holdSpeedTid) { clearTimeout(holdSpeedTid); holdSpeedTid = null; }
+    if (_isHoldingSpeed && e.touches.length === 0) {
+      stopHoldSpeed();
+      return;
+    }
     if (e.touches.length < 2) pinchStartDist = 0;
     if (e.touches.length === 1) {
       panLastX = e.touches[0].clientX;
@@ -2985,9 +3157,17 @@ function mapScreenDeltaToStage(dxScreen, dyScreen) {
       if (now - lastTapTs < 280) {
         lastTapTs = 0;
         if (singleTapTid) { clearTimeout(singleTapTid); singleTapTid = null; }
+        const chTap = e.changedTouches && e.changedTouches[0];
+        const stageRect = playerWrapEl.getBoundingClientRect();
+        const relTapX = chTap ? ((chTap.clientX - stageRect.left) / Math.max(1, stageRect.width)) : 0.5;
         if (fsZoom > 1.05) {
           resetFsZoom();
           showLoadingToast('🔍 已恢复 1.0x 原画视野', 1000);
+          bumpHudTimer();
+        } else if (!isLiveMode && (relTapX < 0.28 || relTapX > 0.72)) {
+          const stepSec = (relTapX < 0.28) ? -15 : 15;
+          nudgeVideo(stepSec);
+          showLoadingToast(stepSec < 0 ? '⏪ 双击快退 15 秒' : '⏩ 双击快进 15 秒', 950);
           bumpHudTimer();
         } else if (!isSmartFs) {
           enterSmartFullscreen();
