@@ -401,6 +401,7 @@
         </div>
         <div class="hud-group">
           <button class="hud-pill" onclick="captureSnapshot()">📸 抓拍</button>
+          <button class="hud-pill" id="fsVoiceBtn" onclick="toggleVoiceBoost()">🎙️ 人声</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
           <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
@@ -434,6 +435,7 @@
   <!-- Quick Utility Strip -->
   <div class="action-strip">
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
+    <button class="act-btn" id="voiceBoostBtn" onclick="toggleVoiceBoost()">🎙️ 人声对白增强</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 保存当前录像段</button>
     <button class="act-btn" id="syncLiveBtn" onclick="syncToLiveEdge()">⚡ 追平最新直播秒</button>
@@ -441,11 +443,14 @@
 
   <!-- Panel 1 & 2: Precision Touch Time-Ruler + 2-Hour Timeline (Top-Anchored Right Under Video!) -->
   <div class="card" id="panelRecent">
-    <div class="card-title">
-      <span id="blockTitle">🕒 近 2 小时丝滑刻度尺（左右滑动标尺秒看任意时刻）</span>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <input type="time" id="exactTimeInput" step="1" onchange="jumpToExactInput()">
-        <button class="btn" style="padding:5px 10px;font-size:12px;" onclick="jumpToExactInput()">跳转</button>
+    <div class="card-title" style="margin-bottom:5px;">
+      <span id="blockTitle">🕒 近 2 小时实时时移刻度尺</span>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+        <button class="f-pill" style="padding:3px 8px;" onclick="quickTimeShift(-30)">⏪ -30秒</button>
+        <button class="f-pill" style="padding:3px 8px;" onclick="jumpRecentEvent(-1, false)">⏮ 上一动静</button>
+        <button class="f-pill" style="padding:3px 8px;border-color:rgba(245,158,11,0.6);color:#fbbf24;" onclick="jumpRecentEvent(-1, true)">🔊 最近人声</button>
+        <button class="f-pill" id="returnLivePill" style="display:none;padding:3px 9px;background:rgba(239,68,68,0.22);border-color:#ef4444;color:#fca5a5;" onclick="syncToLiveEdge()">🔴 回直播</button>
+        <input type="time" id="exactTimeInput" step="1" onchange="jumpToExactInput()" style="padding:3px 6px;font-size:12px;">
       </div>
     </div>
     <div class="ruler-box" id="recentHeatmap">
@@ -534,7 +539,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v21 · 旗舰级封面事件卡片流 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v22 · 直播左拉无缝时移 · WebAudio人声对白增强 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1004,7 +1009,9 @@ function updatePanelsVisibility() {
   document.getElementById('dlClipBtn').style.display = inPlayback ? 'inline-flex' : 'none';
   document.getElementById('syncLiveBtn').style.display = (!inPlayback) ? 'inline-flex' : 'none';
   const lcp = document.getElementById('liveCornerPill');
-  if (lcp) lcp.style.display = (!inPlayback) ? 'inline-flex' : 'none';
+  if (lcp) lcp.style.display = (isLiveMode && !isDoorbell) ? 'inline-flex' : 'none';
+  const rlp = document.getElementById('returnLivePill');
+  if (rlp) rlp.style.display = (!isLiveMode && currentTab !== 'cloud') ? 'inline-flex' : 'none';
 
   const cTitle = document.getElementById('cloudPanelTitle');
   const cHint = document.getElementById('cloudSubHint');
@@ -1391,7 +1398,6 @@ function drawTimeRuler(segs, currentSecVal) {
     if (bub) bub.style.display = 'none';
     hideScrubThumbCard('recentThumbFloat');
     if (pendingSec !== null) {
-      if (currentTab === 'live') switchTab('recent');
       onSliderScrub(pendingSec);
       pendingSec = null;
     }
@@ -2033,6 +2039,147 @@ function getCloudVirtualDuration() {
     return 7200;
   }
   return (activeVid && isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
+}
+
+
+// === v22 WebAudio Voice Clarity Boost DSP Engine (250Hz High-Pass + 1.85kHz Formant +7.5dB + 4.4kHz Low-Pass + 2.4x Compressor) ===
+let voiceBoostEnabled = (localStorage.getItem('nvr_voice_boost') === '1');
+let _audioCtx = null;
+const _vidAudioNodes = new WeakMap();
+
+function ensureVideoVoiceDsp(vid) {
+  if (!vid) return null;
+  if (_vidAudioNodes.has(vid)) return _vidAudioNodes.get(vid);
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    if (!_audioCtx) _audioCtx = new Ctx();
+    const src = _audioCtx.createMediaElementSource(vid);
+    const hp = _audioCtx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 250;
+    const peak = _audioCtx.createBiquadFilter();
+    peak.type = 'peaking';
+    peak.frequency.value = 1850;
+    peak.Q.value = 1.1;
+    peak.gain.value = 7.5;
+    const lp = _audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 4400;
+    const comp = _audioCtx.createDynamicsCompressor();
+    comp.threshold.value = -26;
+    comp.knee.value = 18;
+    comp.ratio.value = 4.0;
+    comp.attack.value = 0.005;
+    comp.release.value = 0.18;
+    const gain = _audioCtx.createGain();
+    gain.gain.value = 2.35;
+
+    const bundle = { src, hp, peak, lp, comp, gain, active: false };
+    _vidAudioNodes.set(vid, bundle);
+    return bundle;
+  } catch (e) {
+    return null;
+  }
+}
+
+function applyVoiceBoostState() {
+  const b1 = document.getElementById('voiceBoostBtn');
+  const b2 = document.getElementById('fsVoiceBtn');
+  if (b1) {
+    b1.classList.toggle('primary', voiceBoostEnabled);
+    b1.textContent = voiceBoostEnabled ? '🎙️ 人声增强: 开 (2.4x)' : '🎙️ 人声对白增强';
+  }
+  if (b2) {
+    b2.classList.toggle('active', voiceBoostEnabled);
+    b2.textContent = voiceBoostEnabled ? '🎙️ 增强开' : '🎙️ 人声';
+  }
+  if (!voiceBoostEnabled && !_audioCtx) return;
+  [document.getElementById('videoA'), document.getElementById('videoB')].forEach(v => {
+    const b = ensureVideoVoiceDsp(v);
+    if (!b || !_audioCtx) return;
+    if (_audioCtx.state === 'suspended') {
+      _audioCtx.resume().catch(() => {});
+    }
+    try { b.src.disconnect(); } catch (e) {}
+    try { b.hp.disconnect(); } catch (e) {}
+    try { b.peak.disconnect(); } catch (e) {}
+    try { b.lp.disconnect(); } catch (e) {}
+    try { b.comp.disconnect(); } catch (e) {}
+    try { b.gain.disconnect(); } catch (e) {}
+    if (voiceBoostEnabled) {
+      b.src.connect(b.hp);
+      b.hp.connect(b.peak);
+      b.peak.connect(b.lp);
+      b.lp.connect(b.comp);
+      b.comp.connect(b.gain);
+      b.gain.connect(_audioCtx.destination);
+      b.active = true;
+    } else {
+      b.src.connect(_audioCtx.destination);
+      b.active = false;
+    }
+  });
+}
+
+function toggleVoiceBoost() {
+  voiceBoostEnabled = !voiceBoostEnabled;
+  localStorage.setItem('nvr_voice_boost', voiceBoostEnabled ? '1' : '0');
+  soundUnlocked = true;
+  const ub = document.getElementById('unmuteBtn');
+  if (ub) ub.style.display = 'none';
+  if (activeVid) activeVid.muted = false;
+  applyVoiceBoostState();
+  showLoadingToast(voiceBoostEnabled ? '🎙️ 已开启人声对白清晰度增强 (2.4x放大+滤除底噪)' : '🔊 已恢复原声直出模式', 1800);
+}
+
+// === v22 Seamless Live Time-Shift & Quick Event Jump on Recent 2-Hour Ruler ===
+function quickTimeShift(deltaSec) {
+  soundUnlocked = true;
+  const ub = document.getElementById('unmuteBtn');
+  if (ub) ub.style.display = 'none';
+  const segs = getCamSegs();
+  if (!segs.length) return;
+  const maxSec = segs[segs.length - 1].end_sec;
+  const curPlaySec = (!isLiveMode && curSegIndex >= 0 && segs[curSegIndex])
+    ? (segs[curSegIndex].start_sec + (activeVid.currentTime || 0))
+    : maxSec;
+  const targetSec = Math.max(segs[0].start_sec, Math.min(maxSec - 2, curPlaySec + deltaSec));
+  onSliderScrub(targetSec);
+  const hh = String(Math.floor(targetSec / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((targetSec % 3600) / 60)).padStart(2, '0');
+  const ss = String(Math.floor(targetSec % 60)).padStart(2, '0');
+  showLoadingToast(`⏪ 已时移回看 ${hh}:${mm}:${ss}`, 1400);
+}
+
+function jumpRecentEvent(dir, onlySound) {
+  soundUnlocked = true;
+  const ub = document.getElementById('unmuteBtn');
+  if (ub) ub.style.display = 'none';
+  const segs = getCamSegs();
+  if (!segs.length) return;
+  const curIdx = (!isLiveMode && curSegIndex >= 0) ? curSegIndex : segs.length;
+  if (dir < 0) {
+    for (let i = Math.min(segs.length - 1, curIdx - 1); i >= 0; i--) {
+      if (onlySound ? segs[i].has_sound : (segs[i].has_sound || segs[i].has_motion)) {
+        playSegmentAt(i, 0);
+        showLoadingToast(`${segs[i].has_sound ? '🔊' : '🏃'} 已跳至 ${segs[i].start_hms}`, 1400);
+        return;
+      }
+    }
+    showLoadingToast(onlySound ? '💡 近2小时暂无更早人声片段' : '💡 已是近2小时最早一处动静', 1500);
+  } else {
+    const startIdx = (!isLiveMode && curSegIndex >= 0) ? (curSegIndex + 1) : 0;
+    for (let i = startIdx; i < segs.length; i++) {
+      if (onlySound ? segs[i].has_sound : (segs[i].has_sound || segs[i].has_motion)) {
+        playSegmentAt(i, 0);
+        showLoadingToast(`${segs[i].has_sound ? '🔊' : '🏃'} 已跳至 ${segs[i].start_hms}`, 1400);
+        return;
+      }
+    }
+    showLoadingToast('💡 已是最新一处动静，正在返回实时直播', 1400);
+    syncToLiveEdge();
+  }
 }
 
 function parseCloudBlockStartHour(fileObj) {
@@ -2913,6 +3060,7 @@ document.addEventListener('fullscreenchange', () => {
 
 setInterval(syncHudControls, 500);
 applyFsFitUI();
+applyVoiceBoostState();
 syncHudControls();
 bumpHudTimer();
 </script>
