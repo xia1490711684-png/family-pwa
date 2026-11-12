@@ -177,6 +177,38 @@
   .f-pill.active { background: rgba(16,185,129,0.18); border-color: #10b981; color: #34d399; }
 
   .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 205px; overflow-y: auto; padding-top: 2px; }
+  .ev-card-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    max-height: 310px; overflow-y: auto; padding-top: 3px;
+  }
+  @media (min-width: 720px) { .ev-card-grid { grid-template-columns: repeat(4, 1fr); max-height: 360px; } }
+  .ev-card {
+    cursor: pointer; background: #0b1426; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; display: flex; flex-direction: column; transition: transform 0.1s ease, border-color 0.14s ease;
+    text-align: left; padding: 0; color: #e2e8f0;
+  }
+  .ev-card:active { transform: scale(0.97); }
+  .ev-card.has-snd { border-color: rgba(245,158,11,0.65); }
+  .ev-card.has-act { border-color: rgba(16,185,129,0.52); }
+  .ev-card.playing { border-color: #a78bfa !important; box-shadow: 0 0 0 2px rgba(139,92,246,0.45); background: #191c38; }
+  .ev-thumb-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #060b16; overflow: hidden; }
+  .ev-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ev-badge-tl {
+    position: absolute; top: 5px; left: 5px; font-size: 10.5px; font-weight: 800; padding: 2px 6px;
+    border-radius: 6px; color: #fff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .ev-badge-tl.snd { background: rgba(217,119,6,0.92); }
+  .ev-badge-tl.mot { background: rgba(5,150,105,0.90); }
+  .ev-badge-tl.ring { background: rgba(220,38,38,0.92); }
+  .ev-badge-br {
+    position: absolute; bottom: 5px; right: 5px; font-size: 10px; font-weight: 800; padding: 1.5px 5px;
+    border-radius: 5px; background: rgba(6,11,22,0.86); color: #f8fafc; font-variant-numeric: tabular-nums;
+  }
+  .ev-meta {
+    padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; gap: 4px;
+    font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .ev-meta-sub { font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
   .m-chip {
     cursor: pointer; font-size: 12px; padding: 6px 10px; border-radius: 7px;
     background: #0b1426; border: 1px solid var(--border); color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px;
@@ -487,7 +519,10 @@
     </div>
 
     <div id="highlightsBox" style="display:none;border-top:1px solid var(--border);padding-top:10px;margin-top:8px;">
-      <div style="font-size:12px;color:#10b981;font-weight:700;margin-bottom:6px;">🔊🏃 当日声音与人员走动智能索引（点击直达对应秒）：</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+        <span style="font-size:12px;color:#10b981;font-weight:700;" id="hlSectionTitle">🖼️ 当日人声与人员活动封面卡片流（点击画面直达对应秒）：</span>
+        <button class="f-pill active" id="evViewModeBtn" onclick="toggleEventCardViewMode()">🖼️ 缩略图卡片</button>
+      </div>
       <div class="filter-bar" id="cloudHlFilterBar">
         <button class="f-pill active" data-hlf="all" onclick="setCloudHlFilter('all')">全部动态</button>
         <button class="f-pill" data-hlf="sound" onclick="setCloudHlFilter('sound')">🔊 仅看有声音</button>
@@ -499,7 +534,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v20 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v21 · 旗舰级封面事件卡片流 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1671,6 +1706,40 @@ function setCloudHlFilter(mode) {
   renderCloudHighlightsOnly();
 }
 
+let useEventThumbCards = (localStorage.getItem('nvr_ev_card_mode') !== 'chips');
+function toggleEventCardViewMode() {
+  useEventThumbCards = !useEventThumbCards;
+  localStorage.setItem('nvr_ev_card_mode', useEventThumbCards ? 'cards' : 'chips');
+  const b = document.getElementById('evViewModeBtn');
+  if (b) {
+    b.classList.toggle('active', useEventThumbCards);
+    b.textContent = useEventThumbCards ? '🖼️ 缩略图卡片' : '⚡ 紧凑标签';
+  }
+  renderCloudFiles();
+}
+
+function groupAdjacentCloudEvents(list) {
+  if (!list || list.length <= 1) return list || [];
+  const grouped = [];
+  for (let i = 0; i < list.length; i++) {
+    const cur = Object.assign({ dur_total: list[i].dur_sec || 60, seg_count: 1 }, list[i]);
+    while (
+      i + 1 < list.length &&
+      list[i + 1].file === cur.file &&
+      Math.abs((list[i + 1].offset_sec || 0) - ((cur.offset_sec || 0) + cur.dur_total)) <= 15 &&
+      Boolean(list[i + 1].desc.indexOf('🔊') !== -1) === Boolean(cur.desc.indexOf('🔊') !== -1) &&
+      cur.dur_total < 300
+    ) {
+      i++;
+      cur.dur_total += (list[i].dur_sec || 60);
+      cur.seg_count += 1;
+      if ((list[i].sound_pct || 0) > (cur.sound_pct || 0)) cur.sound_pct = list[i].sound_pct;
+    }
+    grouped.push(cur);
+  }
+  return grouped;
+}
+
 function renderCloudHighlightsOnly() {
   const hlBox = document.getElementById('highlightsBox');
   const hlGrid = document.getElementById('highlightsGrid');
@@ -1682,27 +1751,66 @@ function renderCloudHighlightsOnly() {
     return;
   }
   hlBox.style.display = 'block';
-  const filtered = allHls.filter(h => {
+  const filteredRaw = allHls.filter(h => {
     if (cloudHlFilter === 'sound') return h.desc.indexOf('🔊') !== -1;
     if (cloudHlFilter === 'motion') return h.desc.indexOf('🏃') !== -1;
     if (cloudHlFilter === 'curblock' && currentCloudFile) return h.file === currentCloudFile.name;
     return true;
   });
-  if (filtered.length === 0) {
+  if (filteredRaw.length === 0) {
+    hlGrid.className = 'chip-grid';
     hlGrid.innerHTML = '<span style="font-size:12px;color:var(--muted);">当前筛选条件下暂无动静记录</span>';
     return;
   }
-  filtered.forEach(h => {
-    const btn = document.createElement('button');
+
+  const selDate = (cloudData && cloudData.selected_date) || '';
+  if (!useEventThumbCards) {
+    hlGrid.className = 'chip-grid';
+    filteredRaw.forEach(h => {
+      const btn = document.createElement('button');
+      const isSnd = h.desc.indexOf('🔊') !== -1;
+      btn.className = 'm-chip ' + (isSnd ? 'has-snd' : 'has-act');
+      const shortDesc = isSnd ? '🔊 声音+活动' : '🏃 人员走动';
+      btn.textContent = `${h.time} ${shortDesc}`;
+      btn.onclick = () => {
+        const targetFile = files.find(x => x.name === h.file);
+        if (targetFile) playCloudFile(targetFile, h.offset_sec);
+      };
+      hlGrid.appendChild(btn);
+    });
+    return;
+  }
+
+  hlGrid.className = 'ev-card-grid';
+  // Group contiguous segments & show newest first for instant discovery
+  const grouped = groupAdjacentCloudEvents(filteredRaw).slice().reverse();
+  const curVirt = getCloudVirtualTime();
+  grouped.forEach(h => {
     const isSnd = h.desc.indexOf('🔊') !== -1;
-    btn.className = 'm-chip ' + (isSnd ? 'has-snd' : 'has-act');
-    const shortDesc = isSnd ? '🔊 声音+活动' : '🏃 人员走动';
-    btn.textContent = `${h.time} ${shortDesc}`;
-    btn.onclick = () => {
+    const isPlaying = currentCloudFile && currentCloudFile.name === h.file && curVirt >= h.offset_sec - 5 && curVirt <= h.offset_sec + (h.dur_total || 60);
+    const card = document.createElement('button');
+    card.className = 'ev-card ' + (isSnd ? 'has-snd' : 'has-act') + (isPlaying ? ' playing' : '');
+    const thumbOff = Math.floor(((h.offset_sec || 0) + 10) / 10) * 10;
+    const thumbUrl = (API_BASE || '') + `/api/scrub_thumb?mode=cloud&cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(h.file)}&offset=${thumbOff}`;
+    const durMin = Math.round((h.dur_total || 60) / 60);
+    const durBadge = durMin > 1 ? `持续${durMin}分` : `${h.dur_total || 60}秒`;
+    const badgeTxt = isSnd ? `🔊 人声 ${h.sound_pct ? h.sound_pct + '%' : ''}` : '🏃 人员活动';
+    const subTxt = h.file.slice(0, 6).replace('时', ':').replace('分', '');
+    card.innerHTML = `
+      <div class="ev-thumb-wrap">
+        <img loading="lazy" src="${thumbUrl}" alt="${h.time}">
+        <span class="ev-badge-tl ${isSnd ? 'snd' : 'mot'}">${badgeTxt}</span>
+        <span class="ev-badge-br">${durBadge}</span>
+      </div>
+      <div class="ev-meta">
+        <span>🕒 ${h.time}</span>
+        <span class="ev-meta-sub">${subTxt}段</span>
+      </div>`;
+    card.onclick = () => {
       const targetFile = files.find(x => x.name === h.file);
       if (targetFile) playCloudFile(targetFile, h.offset_sec);
     };
-    hlGrid.appendChild(btn);
+    hlGrid.appendChild(card);
   });
 }
 
@@ -1712,18 +1820,45 @@ function renderCloudFiles() {
   const files = (cloudData && cloudData.files) || [];
   const isDoorbell = (currentCam === '大门_小米智能门铃4Pro');
   if (files.length === 0) {
+    fGrid.className = 'chip-grid';
     fGrid.innerHTML = '<span style="font-size:12px;color:var(--muted);">该日期暂无已归档录像</span>';
   }
+  const selDate = (cloudData && cloudData.selected_date) || '';
   const displayList = isDoorbell ? [...files].reverse() : files;
-  displayList.forEach(f => {
-    const btn = document.createElement('button');
-    const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
-    btn.className = 'm-chip' + (isPlaying ? ' cloud-playing' : '');
-    const cleanLabel = isDoorbell ? formatDoorbellLabel(f.name) : `🎬 ${f.name.replace('_2小时连续录像.mp4', '').replace(/时/g, ':').replace(/分/g, '')}`;
-    btn.textContent = `${cleanLabel} (${Math.round(f.size_mb)}M)`;
-    btn.onclick = () => playCloudFile(f, 0);
-    fGrid.appendChild(btn);
-  });
+  if (isDoorbell && useEventThumbCards && displayList.length > 0) {
+    fGrid.className = 'ev-card-grid';
+    displayList.forEach(f => {
+      const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
+      const card = document.createElement('button');
+      const cleanLabel = formatDoorbellLabel(f.name);
+      const isRing = cleanLabel.indexOf('🔔') !== -1;
+      card.className = 'ev-card ' + (isRing ? 'has-snd' : 'has-act') + (isPlaying ? ' playing' : '');
+      const thumbUrl = (API_BASE || '') + `/api/scrub_thumb?mode=doorbell&cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=2`;
+      card.innerHTML = `
+        <div class="ev-thumb-wrap">
+          <img loading="lazy" src="${thumbUrl}" alt="${cleanLabel}">
+          <span class="ev-badge-tl ${isRing ? 'ring' : 'mot'}">${cleanLabel.split(' ')[0]} ${cleanLabel.split(' ')[1] || ''}</span>
+          <span class="ev-badge-br">${f.size_mb}M</span>
+        </div>
+        <div class="ev-meta">
+          <span>🕒 ${cleanLabel.split(' ').slice(-1)[0]}</span>
+          <span class="ev-meta-sub">双摄高清</span>
+        </div>`;
+      card.onclick = () => playCloudFile(f, 0);
+      fGrid.appendChild(card);
+    });
+  } else {
+    fGrid.className = 'chip-grid';
+    displayList.forEach(f => {
+      const btn = document.createElement('button');
+      const isPlaying = currentCloudFile && currentCloudFile.name === f.name;
+      btn.className = 'm-chip' + (isPlaying ? ' cloud-playing' : '');
+      const cleanLabel = isDoorbell ? formatDoorbellLabel(f.name) : `🎬 ${f.name.replace('_2小时连续录像.mp4', '').replace(/时/g, ':').replace(/分/g, '')}`;
+      btn.textContent = `${cleanLabel} (${Math.round(f.size_mb)}M)`;
+      btn.onclick = () => playCloudFile(f, 0);
+      fGrid.appendChild(btn);
+    });
+  }
   renderCloudHighlightsOnly();
 }
 
