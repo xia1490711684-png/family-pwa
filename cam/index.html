@@ -941,7 +941,7 @@ let currentCloudFile = null;
 let currentCloudOffset = 0;
 let cloudSliceMode = false;
 let cloudSliceBaseOffset = 0;
-let cloudSliceDur = 240;
+let cloudSliceDur = 120;
 let recentOnlyActive = false;
 let cloudHlFilter = 'all';
 let cachedPosters = {};
@@ -4864,7 +4864,7 @@ function evaluateNetworkTier() {
   const h = window.location.hostname;
   if (!IS_CLOUD_SHELL && (h.startsWith('192.168.') || h === '127.0.0.1' || h === 'localhost' || h.includes(':'))) {
     _netTier = 'lan';
-    cloudSliceDur = 240;
+    cloudSliceDur = 120;
     return;
   }
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -4878,7 +4878,7 @@ function evaluateNetworkTier() {
     }
   }
   _netTier = 'fast';
-  cloudSliceDur = 240;
+  cloudSliceDur = 120;
 }
 evaluateNetworkTier();
 if (navigator.connection && navigator.connection.addEventListener) {
