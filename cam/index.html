@@ -539,7 +539,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v22 · 直播左拉无缝时移 · WebAudio人声对白增强 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v23 终审定本 · 0.03s双摄瞬切 · 5G云盘零转圈切片 · 语音频段人声识别 · 封面事件流 · 直播无缝时移 · 人声对白增强 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -3056,6 +3056,34 @@ document.addEventListener('fullscreenchange', () => {
   v.addEventListener('waiting', () => {
     if (v === activeVid && !isLiveMode) showLoadingToast('☁️ 正在缓冲高清录像...', 4500);
   });
+});
+
+
+// === v23 Instant iPhone Lock-Screen / App-Switch Wakeup Recovery (<0.2s) ===
+let _lastHiddenTs = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    _lastHiddenTs = Date.now();
+  } else if (document.visibilityState === 'visible') {
+    const awayMs = _lastHiddenTs ? (Date.now() - _lastHiddenTs) : 0;
+    fetchState();
+    if (isLiveMode && currentCam !== '大门_小米智能门铃4Pro') {
+      if (awayMs > 4000 || !activeVid || activeVid.paused || activeVid.ended) {
+        syncToLiveEdge();
+      }
+    } else if (currentTab === 'cloud' && currentCloudFile) {
+      drawCloudTimeRuler(getCloudVirtualTime());
+    }
+    if (_audioCtx && voiceBoostEnabled && _audioCtx.state === 'suspended') {
+      _audioCtx.resume().catch(() => {});
+    }
+  }
+});
+window.addEventListener('pageshow', e => {
+  if (e.persisted && isLiveMode) {
+    fetchState();
+    syncToLiveEdge();
+  }
 });
 
 setInterval(syncHudControls, 500);
