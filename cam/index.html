@@ -499,7 +499,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v18 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v19 · 5G云盘零转圈切片引擎 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -553,6 +553,9 @@ let stallCount = 0;
 let cloudData = null;
 let currentCloudFile = null;
 let currentCloudOffset = 0;
+let cloudSliceMode = false;
+let cloudSliceBaseOffset = 0;
+let cloudSliceDur = 240;
 let recentOnlyActive = false;
 let cloudHlFilter = 'all';
 let cachedPosters = {};
@@ -1467,6 +1470,11 @@ function jumpToExactInput() {
 
 function nudgeVideo(deltaSec) {
   if (!activeVid) return;
+  if (currentTab === 'cloud' && currentCloudFile && cloudSliceMode) {
+    const target = Math.max(0, Math.min(7195, getCloudVirtualTime() + deltaSec));
+    playCloudFile(currentCloudFile, Math.floor(target));
+    return;
+  }
   const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 7200;
   const target = Math.max(0, Math.min(dur - 0.5, (activeVid.currentTime || 0) + deltaSec));
   activeVid.currentTime = target;
@@ -1734,21 +1742,49 @@ function playCloudFile(f, offsetSec) {
   const tSpec = document.getElementById('teleSpec');
   if (tSpec) tSpec.textContent = `正在回放: ${formatDoorbellLabel(f.name)} (${f.size_mb} MB)`;
 
-  const fullUrl = `${API_BASE}${f.url}`;
-  const isSameCloudUrl = (activeVid.getAttribute('data-cloud-url') === f.url) && activeVid.readyState >= 1;
+  const useSlice = shouldUseCloudFastSlice(f);
+  cloudSliceMode = useSlice;
+  const selDate = (cloudData && cloudData.selected_date) || '';
+  const alignedBase = useSlice ? (Math.floor(currentCloudOffset / 30) * 30) : 0;
+  const subOffset = useSlice ? Math.max(0, currentCloudOffset - alignedBase) : currentCloudOffset;
+  const sliceKey = useSlice ? `${f.url}#slice_${alignedBase}` : f.url;
+  const fullUrl = useSlice
+    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}`
+    : `${API_BASE}${f.url}`;
+
+  const curLoadedKey = activeVid.getAttribute('data-cloud-url') || '';
+  const canSeekInLoadedSlice = useSlice
+    && (curLoadedKey.startsWith(f.url + '#slice_'))
+    && activeVid.readyState >= 1
+    && currentCloudOffset >= cloudSliceBaseOffset
+    && currentCloudOffset <= (cloudSliceBaseOffset + (activeVid.duration || cloudSliceDur) - 2);
+  const isSameFullUrl = (!useSlice) && (curLoadedKey === f.url) && activeVid.readyState >= 1;
+
   activeVid.removeAttribute('poster');
   activeVid.onerror = () => { hideLoadingToast(); discoverApiBase(false); };
 
-  if (isSameCloudUrl) {
-    showLoadingToast('⚡ 正在秒跳目标时间点...', 1600);
+  if (canSeekInLoadedSlice) {
+    showLoadingToast('⚡ 切片内 0ms 瞬跳...', 900);
+    try { activeVid.currentTime = currentCloudOffset - cloudSliceBaseOffset; } catch (e) {}
+    activeVid.playbackRate = playbackRateVal;
+    tryPlayVideo(activeVid);
+  } else if (isSameFullUrl) {
+    showLoadingToast('⚡ 正在秒跳目标时间点...', 1200);
     try { activeVid.currentTime = currentCloudOffset; } catch (e) {}
     activeVid.playbackRate = playbackRateVal;
     tryPlayVideo(activeVid);
   } else {
-    showLoadingToast('☁️ 内存索引秒开云盘录像...', 6000);
-    activeVid.setAttribute('data-cloud-url', f.url);
-    const targetOffset = currentCloudOffset;
+    cloudSliceBaseOffset = alignedBase;
+    showLoadingToast(useSlice ? '⚡ 5G 极速切片秒开中...' : '☁️ 内存索引秒开云盘录像...', 3500);
+    activeVid.setAttribute('data-cloud-url', sliceKey);
     activeVid.onended = () => {
+      if (cloudSliceMode) {
+        const nextOff = cloudSliceBaseOffset + Math.round(activeVid.duration || cloudSliceDur);
+        if (nextOff < 7185) {
+          playCloudFile(f, nextOff);
+          return;
+        }
+      }
       const files = (cloudData && cloudData.files) || [];
       const idx = files.findIndex(x => x.name === f.name);
       if (idx >= 0 && idx + 1 < files.length) {
@@ -1756,8 +1792,8 @@ function playCloudFile(f, offsetSec) {
       }
     };
     activeVid.onloadedmetadata = () => {
-      if (targetOffset > 0) {
-        try { activeVid.currentTime = targetOffset; } catch (e) {}
+      if (subOffset > 0) {
+        try { activeVid.currentTime = subOffset; } catch (e) {}
       }
       activeVid.playbackRate = playbackRateVal;
       tryPlayVideo(activeVid);
@@ -1838,6 +1874,32 @@ function hideScrubThumbCard(floatId) {
   if (fl) fl.style.display = 'none';
 }
 
+
+function shouldUseCloudFastSlice(f) {
+  if (!f || !f.name || !f.name.includes('_2小时连续录像.mp4')) return false;
+  if (IS_CLOUD_SHELL) return true;
+  if (API_BASE && API_BASE.includes('trycloudflare.com')) return true;
+  if (location.hostname.includes('trycloudflare.com')) return true;
+  return false;
+}
+
+function getCloudVirtualTime() {
+  if (!activeVid) return currentCloudOffset || 0;
+  if (currentTab === 'cloud' && cloudSliceMode) {
+    return Math.min(7200, cloudSliceBaseOffset + (activeVid.currentTime || 0));
+  }
+  return activeVid.currentTime || 0;
+}
+
+function getCloudVirtualDuration() {
+  if (currentTab === 'cloud' && currentCloudFile && parseCloudBlockStartHour(currentCloudFile) !== null) {
+    if (cloudSliceMode) return 7200;
+    if (activeVid && isFinite(activeVid.duration) && activeVid.duration > 120) return activeVid.duration;
+    return 7200;
+  }
+  return (activeVid && isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
+}
+
 function parseCloudBlockStartHour(fileObj) {
   if (!fileObj || !fileObj.name) return null;
   const m = fileObj.name.match(/^(\d{2})时00分-(\d{2})时00分/);
@@ -1886,8 +1948,8 @@ function getCloudBlockEvents(fileObj) {
 }
 
 function getCloudSpanSec() {
-  const dur = (activeVid && isFinite(activeVid.duration) && activeVid.duration > 120) ? activeVid.duration : 7200;
-  return Math.max(300, dur);
+  const dur = getCloudVirtualDuration();
+  return Math.max(300, dur >= 120 ? dur : 7200);
 }
 
 function findCloudEventAtOffset(evts, offSec) {
@@ -2054,15 +2116,13 @@ function jumpCloudEvent(dir, onlySound) {
   const evts = getCloudBlockEvents(currentCloudFile);
   let pool = onlySound ? evts.filter(e => e.has_sound) : evts.filter(e => e.has_sound || e.strong_motion);
   if (!onlySound && pool.length === 0) pool = evts.filter(e => e.has_motion);
-  const ct = activeVid.currentTime || 0;
+  const ct = getCloudVirtualTime();
   const startH = parseCloudBlockStartHour(currentCloudFile);
 
   if (dir > 0) {
     const nextEvt = pool.find(e => e.offset_sec > ct + 4);
     if (nextEvt) {
-      activeVid.currentTime = nextEvt.offset_sec;
-      currentCloudOffset = nextEvt.offset_sec;
-      activeVid.play().catch(() => {});
+      playCloudFile(currentCloudFile, nextEvt.offset_sec);
       const lbl = formatWallClockFromOffset(startH, nextEvt.offset_sec);
       showLoadingToast(`${nextEvt.has_sound ? '🔊' : '🏃'} 已跳至 ${lbl}`, 1500);
       drawCloudTimeRuler(nextEvt.offset_sec);
@@ -2085,9 +2145,7 @@ function jumpCloudEvent(dir, onlySound) {
     const prevPool = pool.filter(e => e.offset_sec < ct - 5);
     if (prevPool.length > 0) {
       const prevEvt = prevPool[prevPool.length - 1];
-      activeVid.currentTime = prevEvt.offset_sec;
-      currentCloudOffset = prevEvt.offset_sec;
-      activeVid.play().catch(() => {});
+      playCloudFile(currentCloudFile, prevEvt.offset_sec);
       const lbl = formatWallClockFromOffset(startH, prevEvt.offset_sec);
       showLoadingToast(`${prevEvt.has_sound ? '🔊' : '🏃'} 已回跳至 ${lbl}`, 1500);
       drawCloudTimeRuler(prevEvt.offset_sec);
@@ -2143,13 +2201,7 @@ function jumpCloudEvent(dir, onlySound) {
     if (targetOff !== null && currentCloudFile) {
       soundUnlocked = true;
       document.getElementById('unmuteBtn').style.display = 'none';
-      currentCloudOffset = targetOff;
-      if (activeVid && activeVid.readyState >= 1) {
-        try { activeVid.currentTime = targetOff; } catch (e) {}
-        activeVid.play().catch(() => {});
-      } else {
-        playCloudFile(currentCloudFile, targetOff);
-      }
+      playCloudFile(currentCloudFile, targetOff);
       drawCloudTimeRuler(targetOff);
       targetOff = null;
     }
@@ -2410,8 +2462,8 @@ function syncHudControls() {
   const showSeek = !isLiveMode || currentCam === '大门_小米智能门铃4Pro';
   if (seekWrap) seekWrap.style.display = showSeek ? 'flex' : 'none';
   if (showSeek && activeVid && !hudScrubbing) {
-    const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
-    const ct = activeVid.currentTime || 0;
+    const dur = (currentTab === 'cloud') ? getCloudVirtualDuration() : ((isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0);
+    const ct = (currentTab === 'cloud') ? getCloudVirtualTime() : (activeVid.currentTime || 0);
     if (seekRange && dur > 0) {
       seekRange.max = dur;
       seekRange.value = Math.min(dur, ct);
@@ -2463,8 +2515,14 @@ function onHudSeekInput(val) {
   hudScrubbing = true;
   const v = parseFloat(val);
   if (isFinite(v)) {
-    activeVid.currentTime = v;
-    const dur = (isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0;
+    const dur = (currentTab === 'cloud') ? getCloudVirtualDuration() : ((isFinite(activeVid.duration) && activeVid.duration > 0) ? activeVid.duration : 0);
+    if (currentTab === 'cloud' && cloudSliceMode) {
+      if (v >= cloudSliceBaseOffset && v <= cloudSliceBaseOffset + (activeVid.duration || cloudSliceDur) - 2) {
+        activeVid.currentTime = v - cloudSliceBaseOffset;
+      }
+    } else {
+      activeVid.currentTime = v;
+    }
     if (dur > 0) drawHudEventTrack(dur, v);
     if (currentTab === 'cloud' && currentCloudFile) {
       currentCloudOffset = Math.floor(v);
@@ -2488,7 +2546,12 @@ function onHudSeekInput(val) {
     hudScrubbing = false;
     const tip = document.getElementById('hudScrubTip');
     if (tip) tip.style.display = 'none';
-  }, 550);
+    if (currentTab === 'cloud' && currentCloudFile && cloudSliceMode && isFinite(v)) {
+      if (v < cloudSliceBaseOffset || v > cloudSliceBaseOffset + (activeVid.duration || cloudSliceDur) - 2) {
+        playCloudFile(currentCloudFile, Math.floor(v));
+      }
+    }
+  }, 450);
 }
 
 function enterSmartFullscreen() {
