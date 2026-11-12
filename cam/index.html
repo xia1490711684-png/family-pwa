@@ -889,7 +889,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v34 纯净柔音广播版 · 零门控连续无损人声 · 柔化放东西与碗碟磕碰声 · 连续FIFO无断点混流</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v35 全时通透人声版 · 远场说话全时洪亮清晰 · 仅削减瞬间磕碰尖峰不压人声</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -2929,7 +2929,7 @@ function ensureVideoVoiceDsp(vid) {
 
     const lpf = _audioCtx.createBiquadFilter();
     lpf.type = 'lowpass';
-    lpf.frequency.value = 5400;
+    lpf.frequency.value = 7000;
 
     // Gentle smooth broadcast compressor ONLY used in 'farfield' live boost mode (never brickwall!)
     const comp = _audioCtx.createDynamicsCompressor();
@@ -4241,9 +4241,9 @@ let intercomListenOnly = false;
 let intercomMicNodes = [];
 
 function getIntercomTargetGain() {
-  if (voiceClarityMode === 'farfield') return 1.38;
-  if (voiceClarityMode === 'raw') return 1.00;
-  return 1.08;
+  if (voiceClarityMode === 'farfield') return 1.65;
+  if (voiceClarityMode === 'raw') return 1.15;
+  return 1.28;
 }
 
 function updateIntercomClarityGain() {
@@ -4263,7 +4263,7 @@ function ensureIntercomAudioGraph() {
 
     const silkLpf = intercomAudioCtx.createBiquadFilter();
     silkLpf.type = 'lowpass';
-    silkLpf.frequency.value = 5500;
+    silkLpf.frequency.value = 7000;
 
     const comp = intercomAudioCtx.createDynamicsCompressor();
     comp.threshold.value = -14;
