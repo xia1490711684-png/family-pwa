@@ -1,0 +1,30 @@
+{
+  "name": "全屋 2K 超清监控 Pro",
+  "short_name": "全屋监控",
+  "description": "小米全屋 2K 原画监控 · 32kHz 播客级高清语音 · 零延迟双向对讲 · 20TB 云归档",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#060b16",
+  "theme_color": "#060b16",
+  "icons": [
+    {
+      "src": "apple-touch-icon-v32.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png?v=32",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png?v=32",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
