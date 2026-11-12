@@ -499,7 +499,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v19 · 5G云盘零转圈切片引擎 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v20 · 语音频段人声识别 · 昼夜自适应动态时间轴 · 竖屏双指5x缩放 · 滑动缩略图预览</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1918,7 +1918,7 @@ function getCloudBlockEvents(fileObj) {
   }).filter(v => v > 0);
   const sortedK = [...kbpsVals].sort((a, b) => a - b);
   const medKbps = sortedK.length ? sortedK[Math.floor(sortedK.length / 2)] : 0;
-  const isDaylightCbr = (medKbps >= 1560 && medKbps <= 1615 && raw.length >= 40);
+  const isDaylightCbr = (medKbps >= 1560 && medKbps <= 1615 && raw.length >= 65);
 
   return raw.map(h => {
     const desc = h.desc || '';
