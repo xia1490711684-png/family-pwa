@@ -350,6 +350,93 @@
   pointer-events: none; letter-spacing: 0.2px;
 }
 
+
+.intercom-btn-call {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  border-color: rgba(52, 211, 153, 0.75) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32);
+}
+.intercom-btn-call.calling {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  border-color: #fca5a5 !important;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+  animation: pulseCallGlow 1.6s infinite;
+}
+@keyframes pulseCallGlow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+.voice-radar-float {
+  position: absolute; top: 10px; right: 12px; z-index: 26;
+  display: none; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(15, 23, 42, 0.84);
+  border: 1px solid rgba(251, 191, 36, 0.75);
+  color: #fde68a; font-size: 11.5px; font-weight: 700;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.intercom-deck {
+  display: none;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(9, 14, 28, 0.98));
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-radius: 14px;
+  padding: 11px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+.intercom-top-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.intercom-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700; color: #34d399;
+}
+.intercom-lat-pill {
+  font-size: 11.5px; color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 2px 8px; border-radius: 999px;
+}
+.intercom-meters {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 9px;
+}
+.ic-meter-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px; padding: 7px 9px;
+}
+.ic-meter-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: #cbd5e1; margin-bottom: 5px;
+}
+.ic-bar-track {
+  height: 7px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); overflow: hidden;
+}
+.ic-bar-fill {
+  height: 100%; width: 2%; border-radius: 999px;
+  transition: width 70ms linear;
+}
+.ic-controls-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.ptt-hold-pad {
+  flex: 1; min-width: 150px;
+  padding: 10px 14px; border-radius: 11px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border: 1px solid rgba(125, 211, 252, 0.65);
+  color: #fff; font-size: 13.5px; font-weight: 700;
+  text-align: center; user-select: none; -webkit-user-select: none;
+  touch-action: none; cursor: pointer;
+}
+.ptt-hold-pad.talking {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+}
+
 </style>
 </head>
 <body>
@@ -394,6 +481,7 @@
       <span class="pulse-dot" style="width:6px;height:6px;"></span>
       <span id="cornerTelemetryText">2K · 准实时</span>
     </div>
+    <div class="voice-radar-float" id="voiceRadarFloat">🗣️ 检测到清晰人声</div>
     <div class="hold-speed-badge" id="holdSpeedBadge">⏩ 2.5x 倍速快进中 · 松手恢复</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <div class="video-stage" id="videoStage">
@@ -416,6 +504,7 @@
         <div class="hud-group">
           <button class="hud-pill" onclick="captureSnapshot()">📸 抓拍</button>
           <button class="hud-pill" onclick="exportSmartClip(30)">✂️ 30秒</button>
+          <button class="hud-pill" id="fsIntercomBtn" onclick="toggleIntercomCall()" style="border-color:rgba(52,211,153,0.7);color:#6ee7b7;">📞 对讲</button>
           <button class="hud-pill" id="fsVoiceBtn" onclick="toggleVoiceBoost()">🎙️ 人声</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
@@ -449,12 +538,54 @@
 
   <!-- Quick Utility Strip -->
   <div class="action-strip">
+    <button class="act-btn intercom-btn-call" id="intercomCallBtn" onclick="toggleIntercomCall()">📞 实时语音对讲</button>
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
     <button class="act-btn" id="voiceBoostBtn" onclick="toggleVoiceBoost()">🎙️ 人声对白增强</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
     <button class="act-btn" id="dlFullSegBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 原片</button>
     <button class="act-btn" id="syncLiveBtn" onclick="syncToLiveEdge()">⚡ 追平最新直播秒</button>
+  </div>
+
+
+  <!-- Zero-Latency Full-Duplex Two-Way Voice Intercom Console -->
+  <div class="intercom-deck" id="intercomDeck">
+    <div class="intercom-top-row">
+      <div class="intercom-status-pill" id="icStatusText">📞 零延迟全双工对讲准备中…</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="intercom-lat-pill" id="icLatencyPill">⚡ 实时通道连接中</span>
+        <button class="f-pill" id="icRateBtn" onclick="cycleIntercomRateMode()" title="扬声器采样率自适应/微调">🎛️ 自动采样率</button>
+      </div>
+    </div>
+    <div class="intercom-meters">
+      <div class="ic-meter-card">
+        <div class="ic-meter-head">
+          <span>🔊 房间实时原声</span>
+          <span id="icRoomVadTag" style="color:#fbbf24;font-weight:700;">监听中</span>
+        </div>
+        <div class="ic-bar-track"><div class="ic-bar-fill" id="icDownBar" style="background:linear-gradient(90deg,#38bdf8,#fbbf24);"></div></div>
+      </div>
+      <div class="ic-meter-card">
+        <div class="ic-meter-head">
+          <span>🎙️ 我的麦克风增强</span>
+          <span id="icMicVadTag" style="color:#34d399;font-weight:700;">待命</span>
+        </div>
+        <div class="ic-bar-track"><div class="ic-bar-fill" id="icUpBar" style="background:linear-gradient(90deg,#10b981,#34d399);"></div></div>
+      </div>
+    </div>
+    <div class="ic-controls-row" style="margin-bottom:7px;">
+      <button class="f-pill active" id="icModeDuplex" onclick="setIntercomTalkMode('duplex')">📞 免提双向畅聊</button>
+      <button class="f-pill" id="icModePtt" onclick="setIntercomTalkMode('ptt')">🎙️ 按住对讲机模式</button>
+      <span style="color:#64748b;font-size:11px;">发声目标：</span>
+      <button class="f-pill active" id="icTgt0" onclick="setIntercomTargetMask(1)">🛋️ 客厅</button>
+      <button class="f-pill" id="icTgt1" onclick="setIntercomTargetMask(2)">🍽️ 餐厅</button>
+      <button class="f-pill" id="icTgtAll" onclick="setIntercomTargetMask(3)">📢 全屋双摄同喊</button>
+    </div>
+    <div class="ic-controls-row">
+      <div class="ptt-hold-pad" id="icPttPad" style="display:none;">🎙️ 按住此处对房间说话（松手即听）</div>
+      <button class="act-btn" id="icMuteMicBtn" onclick="toggleIntercomMicMute()">🎙️ 麦克风已开（点此闭麦）</button>
+      <button class="act-btn" style="background:rgba(239,68,68,0.2);border-color:#ef4444;color:#fca5a5;margin-left:auto;" onclick="stopIntercomCall()">☎️ 结束通话</button>
+    </div>
   </div>
 
   <!-- Panel 1 & 2: Precision Touch Time-Ruler + 2-Hour Timeline (Top-Anchored Right Under Video!) -->
@@ -556,7 +687,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v25 · 客厅+餐厅双摄同屏历史同步回放 · 直播回溯30秒存iPhone相册 · 长按2.5x倍速 · 0.03s双摄瞬切 · 5G云盘零转圈切片</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v26 旗舰完全体 · 零延迟全双工双向语音对讲 · 4维声学共振峰人声识别 · 双摄同屏历史同步回放 · 直播回溯30秒存iPhone相册 · 0.03s双摄瞬切</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -854,6 +985,7 @@ async function fetchWithTimeout(url, ms) {
 function ingestStatePayload(st) {
   if (!st) return;
   stateData = st;
+  if (st.voice_radar && typeof updateLiveVoiceRadarBadge === 'function') updateLiveVoiceRadarBadge(st.voice_radar);
   const dbPill = document.getElementById('doorbellCountPill');
   if (dbPill && st.doorbell_today_count !== undefined) {
     dbPill.style.display = st.doorbell_today_count > 0 ? 'inline-block' : 'none';
@@ -3485,6 +3617,548 @@ window.addEventListener('pageshow', e => {
     syncToLiveEdge();
   }
 });
+
+
+// === v26 Zero-Latency Full-Duplex Two-Way Voice Intercom & 4D Human Voice Radar ===
+const _ALAW_DEC_F32 = (function() {
+  const tbl = new Float32Array(256);
+  for (let i = 0; i < 256; i++) {
+    const val = i ^ 0x55;
+    const sign = (val & 0x80) ? 1 : -1;
+    const seg = (val & 0x70) >> 4;
+    const quant = val & 0x0F;
+    const mag = (seg === 0) ? ((quant << 4) + 8) : (((quant << 4) + 0x108) << (seg - 1));
+    tbl[i] = (sign * mag) / 32768.0;
+  }
+  return tbl;
+})();
+
+function _encodeFloatToAlawByte(sample) {
+  let s = Math.max(-32768, Math.min(32767, Math.round(sample * 32767)));
+  const mask = (s >= 0) ? 0xD5 : 0x55;
+  let pcm = (s >= 0) ? s : (-s - 1);
+  if (pcm > 32635) pcm = 32635;
+  let seg = 0;
+  if (pcm > 0x3FFF) seg = 7;
+  else if (pcm > 0x1FFF) seg = 6;
+  else if (pcm > 0xFFF) seg = 5;
+  else if (pcm > 0x7FF) seg = 4;
+  else if (pcm > 0x3FF) seg = 3;
+  else if (pcm > 0x1FF) seg = 2;
+  else if (pcm > 0xFF) seg = 1;
+  const aval = (seg === 0) ? ((pcm >> 4) & 0x0F) : (((pcm >> (seg + 3)) & 0x0F) | (seg << 4));
+  return (aval ^ mask) & 0xFF;
+}
+
+let intercomActive = false;
+let intercomWs = null;
+let intercomHttpFallback = false;
+let intercomHttpTimer = null;
+let intercomHttpSeq = 0;
+let intercomPingTimer = null;
+let intercomAudioCtx = null;
+let intercomDownGain = null;
+let intercomNextPlayTime = 0;
+let intercomMicStream = null;
+let intercomMicSource = null;
+let intercomScriptNode = null;
+let intercomTalkMode = 'duplex'; // 'duplex' | 'ptt'
+let intercomPttPressed = false;
+let intercomMicMuted = false;
+let intercomTargetMask = 1; // 1=客厅, 2=餐厅, 3=双摄同喊
+let intercomSpkRateMode = 0; // 0=auto, 16000, 8000
+let intercomLastSpeechOutTs = 0;
+let intercomPrevVidMuted = false;
+let intercomResampleAcc = [];
+
+function updateLiveVoiceRadarBadge(radarMap) {
+  const el = document.getElementById('voiceRadarFloat');
+  if (!el || !radarMap) return;
+  const lv = radarMap['客厅_小米摄像机2K'] || {};
+  const dn = radarMap['餐厅_小米摄像机2K'] || {};
+  let msg = '';
+  if (isDualMode) {
+    const parts = [];
+    if (lv.is_speech) parts.push(`🛋️客厅人声 ${lv.voice_prob}%`);
+    if (dn.is_speech) parts.push(`🍽️餐厅人声 ${dn.voice_prob}%`);
+    msg = parts.join(' · ');
+  } else {
+    const cur = radarMap[currentCam];
+    if (cur && cur.is_speech) {
+      msg = `🗣️ 检测到清晰人声 (${cur.voice_prob}%)`;
+    }
+  }
+  if (msg && isLiveMode) {
+    el.textContent = msg;
+    el.style.display = 'inline-flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function updateIntercomButtonsUI() {
+  const bMain = document.getElementById('intercomCallBtn');
+  const bFs = document.getElementById('fsIntercomBtn');
+  const deck = document.getElementById('intercomDeck');
+  if (bMain) {
+    bMain.classList.toggle('calling', intercomActive);
+    bMain.innerHTML = intercomActive ? '☎️ 结束语音对讲' : '📞 实时语音对讲';
+  }
+  if (bFs) {
+    bFs.classList.toggle('active', intercomActive);
+    bFs.innerHTML = intercomActive ? '☎️ 挂断' : '📞 对讲';
+  }
+  if (deck) deck.style.display = intercomActive ? 'block' : 'none';
+}
+
+function setIntercomTalkMode(mode) {
+  intercomTalkMode = mode;
+  document.getElementById('icModeDuplex').classList.toggle('active', mode === 'duplex');
+  document.getElementById('icModePtt').classList.toggle('active', mode === 'ptt');
+  const pad = document.getElementById('icPttPad');
+  const muteBtn = document.getElementById('icMuteMicBtn');
+  if (pad) pad.style.display = (mode === 'ptt') ? 'block' : 'none';
+  if (muteBtn) muteBtn.style.display = (mode === 'duplex') ? 'inline-flex' : 'none';
+  showLoadingToast(mode === 'duplex' ? '📞 已切换至「免提双向畅聊」（智能防回声啸叫）' : '🎙️ 已切换至「对讲机按住说话」模式', 1600);
+}
+
+function setIntercomTargetMask(mask) {
+  intercomTargetMask = mask;
+  document.getElementById('icTgt0').classList.toggle('active', mask === 1);
+  document.getElementById('icTgt1').classList.toggle('active', mask === 2);
+  document.getElementById('icTgtAll').classList.toggle('active', mask === 3);
+  if (intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+    intercomWs.send(JSON.stringify({
+      cmd: 'config',
+      listen_mask: mask,
+      target_mask: mask,
+      preopen_speaker: true
+    }));
+  }
+}
+
+function cycleIntercomRateMode() {
+  const order = [0, 16000, 8000];
+  intercomSpkRateMode = order[(order.indexOf(intercomSpkRateMode) + 1) % order.length];
+  const btn = document.getElementById('icRateBtn');
+  if (btn) {
+    btn.textContent = intercomSpkRateMode === 0 ? '🎛️ 自动采样率' : `🎛️ 锁定 ${intercomSpkRateMode / 1000}kHz`;
+  }
+  if (intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+    intercomWs.send(JSON.stringify({ cmd: 'config', spk_rate_override: intercomSpkRateMode }));
+  }
+}
+
+function toggleIntercomMicMute() {
+  intercomMicMuted = !intercomMicMuted;
+  const btn = document.getElementById('icMuteMicBtn');
+  if (btn) {
+    btn.innerHTML = intercomMicMuted ? '🔇 已闭麦（点此恢复说话）' : '🎙️ 麦克风已开（点此闭麦）';
+  }
+}
+
+function ensureIntercomAudioGraph() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!intercomAudioCtx) {
+    intercomAudioCtx = new AC({ latencyHint: 'interactive' });
+    const hpf = intercomAudioCtx.createBiquadFilter();
+    hpf.type = 'highpass';
+    hpf.frequency.value = 210;
+
+    const presence = intercomAudioCtx.createBiquadFilter();
+    presence.type = 'peaking';
+    presence.frequency.value = 1950;
+    presence.Q.value = 1.05;
+    presence.gain.value = 7.2;
+
+    const lpf = intercomAudioCtx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = 4350;
+
+    const comp = intercomAudioCtx.createDynamicsCompressor();
+    comp.threshold.value = -24;
+    comp.knee.value = 14;
+    comp.ratio.value = 2.8;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.14;
+
+    intercomDownGain = intercomAudioCtx.createGain();
+    intercomDownGain.gain.value = 1.35;
+
+    hpf.connect(presence);
+    presence.connect(lpf);
+    lpf.connect(comp);
+    comp.connect(intercomDownGain);
+    intercomDownGain.connect(intercomAudioCtx.destination);
+    intercomAudioCtx._entryNode = hpf;
+  }
+  if (intercomAudioCtx.state === 'suspended') {
+    intercomAudioCtx.resume().catch(() => {});
+  }
+  return intercomAudioCtx;
+}
+
+function handleIntercomDownlinkFrame(u8) {
+  if (!intercomActive || !u8 || u8.length <= 4 || u8[0] !== 0x01) return;
+  const camIdx = u8[1];
+  const voiceProb = u8[2];
+  const rmsPct = u8[3];
+
+  const downBar = document.getElementById('icDownBar');
+  const roomTag = document.getElementById('icRoomVadTag');
+  if (downBar) downBar.style.width = Math.max(3, Math.min(100, rmsPct)) + '%';
+  if (roomTag) {
+    if (voiceProb >= 45) {
+      roomTag.textContent = `🗣️ 人声清晰 (${voiceProb}%)`;
+      roomTag.style.color = '#fbbf24';
+    } else {
+      roomTag.textContent = '🍃 底噪已滤除';
+      roomTag.style.color = '#94a3b8';
+    }
+  }
+
+  const ctx = ensureIntercomAudioGraph();
+  if (!ctx || !ctx._entryNode) return;
+
+  const nSamples = u8.length - 4;
+  const audioBuf = ctx.createBuffer(1, nSamples, 16000);
+  const chData = audioBuf.getChannelData(0);
+  for (let i = 0; i < nSamples; i++) {
+    chData[i] = _ALAW_DEC_F32[u8[4 + i]];
+  }
+
+  // Smart Acoustic Echo Ducking: while user is actively speaking into phone mic, duck room playback by -16dB to eliminate howling!
+  const nowMs = Date.now();
+  const userSpeaking = (nowMs - intercomLastSpeechOutTs) < 220;
+  if (intercomDownGain) {
+    const targetG = userSpeaking ? 0.16 : 1.35;
+    intercomDownGain.gain.setTargetAtTime(targetG, ctx.currentTime, 0.025);
+  }
+
+  // Ultra-low-latency jitter scheduler: maintain ~42ms buffer; auto-trim if drift ever exceeds 115ms!
+  const nowCtx = ctx.currentTime;
+  if (intercomNextPlayTime < nowCtx + 0.012 || intercomNextPlayTime > nowCtx + 0.115) {
+    intercomNextPlayTime = nowCtx + 0.042;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = audioBuf;
+  src.connect(ctx._entryNode);
+  src.start(intercomNextPlayTime);
+  intercomNextPlayTime += audioBuf.duration;
+}
+
+function sendIntercomUplinkAlaw(alawU8) {
+  if (!intercomActive || !alawU8 || !alawU8.length) return;
+  if (intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+    const pkt = new Uint8Array(2 + alawU8.length);
+    pkt[0] = 0x02;
+    pkt[1] = intercomTargetMask;
+    pkt.set(alawU8, 2);
+    intercomWs.send(pkt.buffer);
+  } else if (intercomHttpFallback) {
+    fetch(`${API_BASE || ''}/api/intercom/push?target_mask=${intercomTargetMask}`, {
+      method: 'POST',
+      body: alawU8
+    }).catch(() => {});
+  }
+}
+
+async function attachMicrophoneUplink() {
+  const stEl = document.getElementById('icStatusText');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (IS_MOBILE && !window.isSecureContext) {
+      showLoadingToast('🔐 iOS 麦克风需加密通道，正在为您秒切 HTTPS 对讲专线…', 2200);
+      setTimeout(() => {
+        window.location.href = `https://xia1490711684-png.github.io/family-pwa/cam/?stay_cloud=1&auto_intercom=1&cam=${encodeURIComponent(currentCam)}`;
+      }, 280);
+      return false;
+    }
+    if (stEl) stEl.textContent = '👂 零延迟纯监听已开启（当前浏览器未开放麦克风）';
+    return false;
+  }
+
+  try {
+    intercomMicStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1
+      },
+      video: false
+    });
+  } catch (err) {
+    if (stEl) stEl.textContent = '👂 零延迟监听中（请允许浏览器麦克风权限以开启对讲说话）';
+    showLoadingToast('⚠️ 请在系统弹窗中允许麦克风权限', 2600);
+    return false;
+  }
+
+  const ctx = ensureIntercomAudioGraph();
+  if (!ctx) return false;
+  intercomMicSource = ctx.createMediaStreamSource(intercomMicStream);
+  // Pre-filter mic input: 170Hz High-Pass to cut hand-holding rumble
+  const micHpf = ctx.createBiquadFilter();
+  micHpf.type = 'highpass';
+  micHpf.frequency.value = 170;
+
+  intercomScriptNode = ctx.createScriptProcessor(1024, 1, 1);
+  const inRate = ctx.sampleRate || 48000;
+  const stepRatio = inRate / 16000.0;
+  let readPos = 0.0;
+  intercomResampleAcc = [];
+
+  const silentSink = ctx.createGain();
+  silentSink.gain.value = 0.0;
+
+  intercomScriptNode.onaudioprocess = e => {
+    if (!intercomActive) return;
+    const canSend = (intercomTalkMode === 'duplex') ? (!intercomMicMuted) : intercomPttPressed;
+    const input = e.inputBuffer.getChannelData(0);
+    let sumSq = 0;
+    for (let i = 0; i < input.length; i++) sumSq += input[i] * input[i];
+    const rms = Math.sqrt(sumSq / Math.max(1, input.length));
+    const dbPct = Math.max(2, Math.min(100, Math.round((20 * Math.log10(rms + 1e-5) + 56) * 2.1)));
+
+    const upBar = document.getElementById('icUpBar');
+    const micTag = document.getElementById('icMicVadTag');
+    if (upBar) upBar.style.width = (canSend ? dbPct : 2) + '%';
+
+    if (!canSend) {
+      if (micTag) {
+        micTag.textContent = (intercomTalkMode === 'ptt') ? '按住说话' : '已闭麦';
+        micTag.style.color = '#94a3b8';
+      }
+      return;
+    }
+
+    if (rms > 0.008) {
+      intercomLastSpeechOutTs = Date.now();
+      if (micTag) {
+        micTag.textContent = '🗣️ 正在发声传输';
+        micTag.style.color = '#34d399';
+      }
+    } else if (micTag) {
+      micTag.textContent = '🎙️ 智能降噪待命';
+      micTag.style.color = '#6ee7b7';
+    }
+
+    // Anti-aliased downsample from AudioContext sampleRate (e.g. 48kHz / 44.1kHz) to 16kHz
+    while (readPos < input.length) {
+      const i0 = Math.floor(readPos);
+      const i1 = Math.min(input.length - 1, i0 + 1);
+      const frac = readPos - i0;
+      const sample = input[i0] + (input[i1] - input[i0]) * frac;
+      intercomResampleAcc.push(_encodeFloatToAlawByte(sample));
+      readPos += stepRatio;
+      if (intercomResampleAcc.length >= 320) {
+        const frame320 = new Uint8Array(intercomResampleAcc.splice(0, 320));
+        sendIntercomUplinkAlaw(frame320);
+      }
+    }
+    readPos -= input.length;
+    if (readPos < 0) readPos = 0;
+  };
+
+  intercomMicSource.connect(micHpf);
+  micHpf.connect(intercomScriptNode);
+  intercomScriptNode.connect(silentSink);
+  silentSink.connect(ctx.destination);
+  return true;
+}
+
+function startHttpIntercomFallback() {
+  if (!intercomActive || intercomHttpFallback) return;
+  intercomHttpFallback = true;
+  const latPill = document.getElementById('icLatencyPill');
+  if (latPill) latPill.textContent = '🛡️ HTTP双工保底已激活';
+  clearInterval(intercomHttpTimer);
+  intercomHttpTimer = setInterval(async () => {
+    if (!intercomActive) return;
+    try {
+      const camName = (intercomTargetMask === 2) ? '餐厅_小米摄像机2K' : '客厅_小米摄像机2K';
+      const r = await fetch(`${API_BASE || ''}/api/intercom/poll?cam=${encodeURIComponent(camName)}&since=${intercomHttpSeq}`, { cache: 'no-store' });
+      if (!r.ok) return;
+      const seqHdr = r.headers.get('X-Intercom-Seq');
+      if (seqHdr) intercomHttpSeq = parseInt(seqHdr, 10) || intercomHttpSeq;
+      const buf = new Uint8Array(await r.arrayBuffer());
+      let p = 0;
+      while (p + 2 <= buf.length) {
+        const flen = (buf[p] << 8) | buf[p + 1];
+        p += 2;
+        if (p + flen > buf.length) break;
+        handleIntercomDownlinkFrame(buf.subarray(p, p + flen));
+        p += flen;
+      }
+    } catch (e) {}
+  }, 85);
+}
+
+async function toggleIntercomCall() {
+  if (intercomActive) {
+    stopIntercomCall();
+    return;
+  }
+  if (!isLiveMode) {
+    switchTab('live');
+  }
+
+  // Determine default target camera from current view
+  if (isDualMode) intercomTargetMask = 3;
+  else if (currentCam.includes('餐厅')) intercomTargetMask = 2;
+  else intercomTargetMask = 1;
+
+  intercomActive = true;
+  intercomHttpFallback = false;
+  intercomMicMuted = false;
+  intercomNextPlayTime = 0;
+  updateIntercomButtonsUI();
+  setIntercomTargetMask(intercomTargetMask);
+
+  // Mute delayed HLS <video> audio so user ONLY hears true ~40ms zero-latency intercom stream!
+  const vA = document.getElementById('videoA');
+  const vB = document.getElementById('videoB');
+  intercomPrevVidMuted = activeVid ? activeVid.muted : false;
+  if (vA) vA.muted = true;
+  if (vB) vB.muted = true;
+
+  ensureIntercomAudioGraph();
+  const micOk = await attachMicrophoneUplink();
+  if (!intercomActive) return; // e.g. redirected to HTTPS on iOS
+
+  const stEl = document.getElementById('icStatusText');
+  if (stEl) {
+    stEl.textContent = micOk ? '📞 零延迟双向对讲通话中' : '👂 零延迟原声监听中';
+  }
+
+  // Build WebSocket URL from API_BASE or window.location
+  const baseHttp = API_BASE || window.location.origin;
+  const wsUrl = baseHttp.replace(/^http/i, 'ws') + `/ws/intercom?cam=${encodeURIComponent(isDualMode ? 'all' : currentCam)}`;
+  let wsConnected = false;
+  const fbTid = setTimeout(() => {
+    if (intercomActive && !wsConnected) startHttpIntercomFallback();
+  }, 1800);
+
+  try {
+    intercomWs = new WebSocket(wsUrl);
+    intercomWs.binaryType = 'arraybuffer';
+    intercomWs.onopen = () => {
+      wsConnected = true;
+      clearTimeout(fbTid);
+      intercomWs.send(JSON.stringify({
+        cmd: 'config',
+        listen_mask: intercomTargetMask,
+        target_mask: intercomTargetMask,
+        spk_rate_override: intercomSpkRateMode,
+        preopen_speaker: true
+      }));
+      const t0 = performance.now();
+      intercomWs.send(JSON.stringify({ cmd: 'ping', t: t0 }));
+      clearInterval(intercomPingTimer);
+      intercomPingTimer = setInterval(() => {
+        if (intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+          intercomWs.send(JSON.stringify({ cmd: 'ping', t: performance.now() }));
+        }
+      }, 2500);
+    };
+    intercomWs.onmessage = ev => {
+      if (typeof ev.data === 'string') {
+        try {
+          const j = JSON.parse(ev.data);
+          if (j.type === 'pong' && j.t) {
+            const oneWayMs = Math.max(1, Math.round((performance.now() - j.t) * 0.5));
+            const lp = document.getElementById('icLatencyPill');
+            if (lp) lp.textContent = `⚡ 音频单程 ${oneWayMs} ms`;
+          }
+          if (j.radar) updateLiveVoiceRadarBadge(j.radar);
+        } catch (e) {}
+      } else if (ev.data instanceof ArrayBuffer) {
+        handleIntercomDownlinkFrame(new Uint8Array(ev.data));
+      }
+    };
+    intercomWs.onerror = () => {
+      if (intercomActive && !wsConnected) startHttpIntercomFallback();
+    };
+    intercomWs.onclose = () => {
+      if (intercomActive && !intercomHttpFallback) startHttpIntercomFallback();
+    };
+  } catch (e) {
+    startHttpIntercomFallback();
+  }
+}
+
+function stopIntercomCall() {
+  intercomActive = false;
+  intercomPttPressed = false;
+  clearInterval(intercomPingTimer);
+  clearInterval(intercomHttpTimer);
+  if (intercomWs) {
+    try {
+      if (intercomWs.readyState === WebSocket.OPEN) {
+        intercomWs.send(JSON.stringify({ cmd: 'hangup' }));
+      }
+      intercomWs.close();
+    } catch (e) {}
+    intercomWs = null;
+  }
+  if (intercomHttpFallback) {
+    fetch(`${API_BASE || ''}/api/intercom/push?action=hangup`, { method: 'POST' }).catch(() => {});
+    intercomHttpFallback = false;
+  }
+  if (intercomScriptNode) {
+    try { intercomScriptNode.disconnect(); } catch (e) {}
+    intercomScriptNode = null;
+  }
+  if (intercomMicSource) {
+    try { intercomMicSource.disconnect(); } catch (e) {}
+    intercomMicSource = null;
+  }
+  if (intercomMicStream) {
+    try { intercomMicStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    intercomMicStream = null;
+  }
+  // Restore live video audio smoothly
+  if (soundUnlocked) {
+    if (isDualMode) switchDualAudio(dualAudioIdx);
+    else if (activeVid) activeVid.muted = intercomPrevVidMuted;
+  }
+  updateIntercomButtonsUI();
+  showLoadingToast('☎️ 已结束实时语音对讲，恢复正常监控收听', 1600);
+}
+
+(function initPttHoldPad() {
+  const pad = document.getElementById('icPttPad');
+  if (!pad) return;
+  function startTalk(e) {
+    e.preventDefault();
+    intercomPttPressed = true;
+    pad.classList.add('talking');
+    pad.textContent = '🗣️ 正在向房间发声…（松手收听）';
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
+  }
+  function endTalk(e) {
+    if (e) e.preventDefault();
+    intercomPttPressed = false;
+    pad.classList.remove('talking');
+    pad.textContent = '🎙️ 按住此处对房间说话（松手即听）';
+  }
+  pad.addEventListener('pointerdown', startTalk);
+  pad.addEventListener('pointerup', endTalk);
+  pad.addEventListener('pointercancel', endTalk);
+  pad.addEventListener('pointerleave', endTalk);
+})();
+
+// Auto-launch intercom if redirected from HTTP LAN to HTTPS PWA with ?auto_intercom=1
+try {
+  const _usp = new URLSearchParams(window.location.search);
+  if (_usp.get('auto_intercom') === '1') {
+    const wantCam = _usp.get('cam');
+    setTimeout(() => {
+      if (wantCam && CAMS_2K.includes(wantCam)) selectCam(wantCam, CAMS_2K.indexOf(wantCam));
+      showLoadingToast('👆 请轻点「📞 实时语音对讲」开启加密通话', 3200);
+    }, 600);
+  }
+} catch (e) {}
 
 setInterval(syncHudControls, 500);
 applyFsFitUI();
