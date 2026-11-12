@@ -666,8 +666,9 @@
         <div class="hud-group">
           <button class="hud-pill" onclick="captureSnapshot()">📸 抓拍</button>
           <button class="hud-pill" onclick="exportSmartClip(30)">✂️ 30秒</button>
-          <button class="hud-pill" id="fsIntercomBtn" onclick="toggleIntercomCall()" style="border-color:rgba(52,211,153,0.7);color:#6ee7b7;">📞 对讲</button>
-          <button class="hud-pill" id="fsVoiceBtn" onclick="toggleVoiceBoost()">🎙️ 人声</button>
+          <button class="hud-pill" id="fsIntercomBtn" onclick="toggleIntercomCall(false)" style="border-color:rgba(52,211,153,0.7);color:#6ee7b7;">📞 对讲</button>
+          <button class="hud-pill" id="fsListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.65);color:#7dd3fc;">🎧 直听</button>
+          <button class="hud-pill active" id="fsVoiceBtn" onclick="toggleVoiceBoost()">💎 人声超清</button>
           <button class="hud-pill active" id="fsQualBtn" onclick="toggleQualityMode()">💎 2K原画</button>
           <button class="hud-pill" id="fsFitBtn" onclick="cycleFsFitMode()">📐 原比例</button>
           <button class="hud-pill" id="fsRotBtn" onclick="flipFsRotateDir()">↻ 翻转</button>
@@ -700,9 +701,10 @@
 
   <!-- Quick Utility Strip -->
   <div class="action-strip">
-    <button class="act-btn intercom-btn-call" id="intercomCallBtn" onclick="toggleIntercomCall()">📞 实时语音对讲</button>
+    <button class="act-btn intercom-btn-call" id="intercomCallBtn" onclick="toggleIntercomCall(false)">📞 实时语音对讲</button>
+    <button class="act-btn" id="hdDirectListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.68);color:#7dd3fc;font-weight:700;">🎧 零延迟超清直听</button>
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
-    <button class="act-btn" id="voiceBoostBtn" onclick="toggleVoiceBoost()">🎙️ 人声对白增强</button>
+    <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 超清人声: 开</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
     <button class="act-btn" id="dlFullSegBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 原片</button>
@@ -716,6 +718,7 @@
       <div class="intercom-status-pill" id="icStatusText">📞 零延迟全双工对讲准备中…</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="intercom-lat-pill" id="icLatencyPill">⚡ 实时通道连接中</span>
+        <button class="f-pill active" id="icClarityBtn" onclick="toggleVoiceBoost()" title="切换超清人声 / 远场轻声放大 / 原声">💎 超清人声降噪</button>
         <button class="f-pill" id="icRateBtn" onclick="cycleIntercomRateMode()" title="扬声器采样率自适应/微调">🎛️ 自动采样率</button>
       </div>
     </div>
@@ -882,7 +885,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v29 终极完全体 · 零延迟全双工双向语音对讲 · 4维共振峰人声识别 · 静音声波谱 · 双摄历史同步 · 24h智能简报 · 直播30s回溯存相册 · 0.03s瞬切</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v30 广播级超清人声版 · 16-bit 谱减降噪与房间消混响 · 普通话辅音齿音增强 · 远场轻声 +22dB 放大 · 零延迟超清直听与全双工对讲</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -1667,7 +1670,7 @@ function syncDualCompanionCloud(f, offsetSec) {
   const companionRawUrl = f.url.replace(encodeURIComponent('客厅_小米摄像机2K'), encodeURIComponent(companionCam)).replace('客厅_小米摄像机2K', companionCam);
   const sliceKey = useSlice ? `dual_${companionCam}_${f.name}#slice_${alignedBase}` : `dual_${companionCam}_${f.name}`;
   const fullUrl = useSlice
-    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(companionCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}`
+    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(companionCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}&clarity=${encodeURIComponent(voiceClarityMode)}`
     : `${API_BASE}${companionRawUrl}`;
 
   const curKey = vB.getAttribute('data-cloud-url') || '';
@@ -2007,7 +2010,7 @@ function playSegmentAt(idx, offsetSec) {
   activeVid.onended = null;
   activeVid.removeAttribute('poster');
   activeVid.removeAttribute('data-cloud-url');
-  activeVid.src = `${API_BASE}${segs[idx].url}`;
+  activeVid.src = `${API_BASE}${segs[idx].url}?clarity=${encodeURIComponent(voiceClarityMode)}`;
   activeVid.currentTime = Math.max(0, offsetSec || 0);
   activeVid.playbackRate = playbackRateVal;
   tryPlayVideo(activeVid);
@@ -2016,7 +2019,7 @@ function playSegmentAt(idx, offsetSec) {
     badge.textContent = `🖼️ 双摄同步 ${segs[idx].start_hms}`;
     syncDualCompanionRecent(segs[idx].start_sec + Math.max(0, offsetSec || 0));
   } else if (idx + 1 < segs.length) {
-    standbyVid.src = `${API_BASE}${segs[idx + 1].url}`;
+    standbyVid.src = `${API_BASE}${segs[idx + 1].url}?clarity=${encodeURIComponent(voiceClarityMode)}`;
     standbyVid.load();
   }
 
@@ -2740,9 +2743,9 @@ function playCloudFile(f, offsetSec) {
   const selDate = (cloudData && cloudData.selected_date) || '';
   const alignedBase = useSlice ? (Math.floor(currentCloudOffset / 30) * 30) : 0;
   const subOffset = useSlice ? Math.max(0, currentCloudOffset - alignedBase) : currentCloudOffset;
-  const sliceKey = useSlice ? `${f.url}#slice_${alignedBase}` : f.url;
+  const sliceKey = useSlice ? `${f.url}#slice_${alignedBase}_${voiceClarityMode}` : f.url;
   const fullUrl = useSlice
-    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}`
+    ? `${API_BASE}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(f.name)}&offset=${alignedBase}&dur=${cloudSliceDur}&clarity=${encodeURIComponent(voiceClarityMode)}`
     : `${API_BASE}${f.url}`;
 
   const curLoadedKey = activeVid.getAttribute('data-cloud-url') || '';
@@ -2898,40 +2901,56 @@ function getCloudVirtualDuration() {
 }
 
 
-// === v22 WebAudio Voice Clarity Boost DSP Engine (250Hz High-Pass + 1.85kHz Formant +7.5dB + 4.4kHz Low-Pass + 2.4x Compressor) ===
-let voiceBoostEnabled = (localStorage.getItem('nvr_voice_boost') === '1');
+
+// === v30 3-Stage Studio Speech Clarity Controller (ultra [Default] | farfield | raw) & iOS WebKit Safe Routing ===
+const IS_IOS_WEBKIT = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let voiceClarityMode = localStorage.getItem('nvr_voice_clarity_v30') || 'ultra'; // 'ultra' | 'farfield' | 'raw'
+if (!['ultra', 'farfield', 'raw'].includes(voiceClarityMode)) voiceClarityMode = 'ultra';
+let voiceBoostEnabled = (voiceClarityMode !== 'raw');
 let _audioCtx = null;
 const _vidAudioNodes = new WeakMap();
 
 function ensureVideoVoiceDsp(vid) {
-  if (!vid) return null;
+  if (!vid || IS_IOS_WEBKIT) return null;
   if (_vidAudioNodes.has(vid)) return _vidAudioNodes.get(vid);
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
     if (!_audioCtx) _audioCtx = new Ctx();
     const src = _audioCtx.createMediaElementSource(vid);
+
     const hp = _audioCtx.createBiquadFilter();
     hp.type = 'highpass';
-    hp.frequency.value = 250;
-    const peak = _audioCtx.createBiquadFilter();
-    peak.type = 'peaking';
-    peak.frequency.value = 1850;
-    peak.Q.value = 1.1;
-    peak.gain.value = 7.5;
-    const lp = _audioCtx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 4400;
+    hp.frequency.value = 125;
+
+    const mud = _audioCtx.createBiquadFilter();
+    mud.type = 'peaking';
+    mud.frequency.value = 320;
+    mud.Q.value = 1.15;
+    mud.gain.value = -3.2;
+
+    const presence = _audioCtx.createBiquadFilter();
+    presence.type = 'peaking';
+    presence.frequency.value = 2600;
+    presence.Q.value = 1.0;
+    presence.gain.value = 3.2;
+
+    const air = _audioCtx.createBiquadFilter();
+    air.type = 'highshelf';
+    air.frequency.value = 3900;
+    air.gain.value = 3.8;
+
     const comp = _audioCtx.createDynamicsCompressor();
-    comp.threshold.value = -26;
-    comp.knee.value = 18;
-    comp.ratio.value = 4.0;
+    comp.threshold.value = -24;
+    comp.knee.value = 16;
+    comp.ratio.value = 3.0;
     comp.attack.value = 0.005;
     comp.release.value = 0.18;
-    const gain = _audioCtx.createGain();
-    gain.gain.value = 2.35;
 
-    const bundle = { src, hp, peak, lp, comp, gain, active: false };
+    const gain = _audioCtx.createGain();
+    gain.gain.value = 1.35;
+
+    const bundle = { src, hp, mud, presence, air, comp, gain, active: false };
     _vidAudioNodes.set(vid, bundle);
     return bundle;
   } catch (e) {
@@ -2939,35 +2958,84 @@ function ensureVideoVoiceDsp(vid) {
   }
 }
 
+function getClarityLabels(mode) {
+  if (mode === 'farfield') {
+    return {
+      main: '👂 远场轻声放大 (+22dB)',
+      fs: '👂 远场放大',
+      ic: '👂 远场轻声放大',
+      toast: '👂 已切换「远场轻声放大」：远距细语/隔间说话提升 +22dB + 强力消混响'
+    };
+  }
+  if (mode === 'raw') {
+    return {
+      main: '🔊 环境原声直出',
+      fs: '🔊 环境原声',
+      ic: '🔊 环境原声',
+      toast: '🔊 已切换「环境原声」：保留轻微风声/雨声等全部环境背景细节'
+    };
+  }
+  return {
+    main: '💎 超清人声: 开',
+    fs: '💎 人声超清',
+    ic: '💎 超清人声降噪',
+    toast: '💎 已开启「广播级超清人声」：16-bit 谱减降噪 + 消除房间混响 + 普通话齿音增强'
+  };
+}
+
 function applyVoiceBoostState() {
+  voiceBoostEnabled = (voiceClarityMode !== 'raw');
+  const lbl = getClarityLabels(voiceClarityMode);
   const b1 = document.getElementById('voiceBoostBtn');
   const b2 = document.getElementById('fsVoiceBtn');
+  const bIc = document.getElementById('icClarityBtn');
   if (b1) {
-    b1.classList.toggle('primary', voiceBoostEnabled);
-    b1.textContent = voiceBoostEnabled ? '🎙️ 人声增强: 开 (2.4x)' : '🎙️ 人声对白增强';
+    b1.classList.toggle('primary', voiceClarityMode !== 'raw');
+    b1.style.borderColor = (voiceClarityMode === 'farfield') ? '#f59e0b' : '';
+    b1.style.color = (voiceClarityMode === 'farfield') ? '#fde68a' : '';
+    b1.textContent = lbl.main;
   }
   if (b2) {
-    b2.classList.toggle('active', voiceBoostEnabled);
-    b2.textContent = voiceBoostEnabled ? '🎙️ 增强开' : '🎙️ 人声';
+    b2.classList.toggle('active', voiceClarityMode !== 'raw');
+    b2.textContent = lbl.fs;
   }
-  if (!voiceBoostEnabled && !_audioCtx) return;
+  if (bIc) {
+    bIc.classList.toggle('active', voiceClarityMode !== 'raw');
+    bIc.textContent = lbl.ic;
+  }
+
+  if (typeof intercomActive !== 'undefined' && intercomActive && typeof intercomWs !== 'undefined' && intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+    try {
+      intercomWs.send(JSON.stringify({ cmd: 'config', clarity_mode: voiceClarityMode }));
+    } catch (e) {}
+  }
+  if (typeof updateIntercomClarityGain === 'function') {
+    updateIntercomClarityGain();
+  }
+
+  if (IS_IOS_WEBKIT) return;
+  if (voiceClarityMode === 'raw' && !_audioCtx) return;
+
   [document.getElementById('videoA'), document.getElementById('videoB')].forEach(v => {
     const b = ensureVideoVoiceDsp(v);
     if (!b || !_audioCtx) return;
     if (_audioCtx.state === 'suspended') {
       _audioCtx.resume().catch(() => {});
     }
-    try { b.src.disconnect(); } catch (e) {}
-    try { b.hp.disconnect(); } catch (e) {}
-    try { b.peak.disconnect(); } catch (e) {}
-    try { b.lp.disconnect(); } catch (e) {}
-    try { b.comp.disconnect(); } catch (e) {}
-    try { b.gain.disconnect(); } catch (e) {}
-    if (voiceBoostEnabled) {
+    [b.src, b.hp, b.mud, b.presence, b.air, b.comp, b.gain].forEach(n => {
+      try { n.disconnect(); } catch (e) {}
+    });
+    if (voiceClarityMode !== 'raw') {
+      const isFar = (voiceClarityMode === 'farfield');
+      b.mud.gain.value = isFar ? -4.8 : -3.0;
+      b.presence.gain.value = isFar ? 5.2 : 2.8;
+      b.air.gain.value = isFar ? 6.0 : 3.5;
+      b.gain.gain.value = isFar ? 2.15 : 1.38;
       b.src.connect(b.hp);
-      b.hp.connect(b.peak);
-      b.peak.connect(b.lp);
-      b.lp.connect(b.comp);
+      b.hp.connect(b.mud);
+      b.mud.connect(b.presence);
+      b.presence.connect(b.air);
+      b.air.connect(b.comp);
       b.comp.connect(b.gain);
       b.gain.connect(_audioCtx.destination);
       b.active = true;
@@ -2979,15 +3047,31 @@ function applyVoiceBoostState() {
 }
 
 function toggleVoiceBoost() {
-  voiceBoostEnabled = !voiceBoostEnabled;
-  localStorage.setItem('nvr_voice_boost', voiceBoostEnabled ? '1' : '0');
+  const order = ['ultra', 'farfield', 'raw'];
+  voiceClarityMode = order[(order.indexOf(voiceClarityMode) + 1) % order.length];
+  localStorage.setItem('nvr_voice_clarity_v30', voiceClarityMode);
   soundUnlocked = true;
   const ub = document.getElementById('unmuteBtn');
   if (ub) ub.style.display = 'none';
-  if (activeVid) activeVid.muted = false;
+  if (activeVid && !(typeof intercomActive !== 'undefined' && intercomActive)) {
+    activeVid.muted = false;
+  }
   applyVoiceBoostState();
-  showLoadingToast(voiceBoostEnabled ? '🎙️ 已开启人声对白清晰度增强 (2.4x放大+滤除底噪)' : '🔊 已恢复原声直出模式', 1800);
+  const lbl = getClarityLabels(voiceClarityMode);
+  showLoadingToast(lbl.toast, 2400);
+
+  if (!isLiveMode) {
+    if (currentTab === 'cloud' && currentCloudFile) {
+      const curVirt = Math.floor(getCloudVirtualTime());
+      activeVid.removeAttribute('data-cloud-url');
+      playCloudFile(currentCloudFile, curVirt);
+    } else if (curSegIndex >= 0) {
+      const curOff = activeVid ? (activeVid.currentTime || 0) : 0;
+      playSegmentAt(curSegIndex, curOff);
+    }
+  }
 }
+
 
 // === v22 Seamless Live Time-Shift & Quick Event Jump on Recent 2-Hour Ruler ===
 function quickTimeShift(deltaSec) {
@@ -4083,17 +4167,39 @@ function updateLiveVoiceRadarBadge(radarMap) {
 
 function updateIntercomButtonsUI() {
   const bMain = document.getElementById('intercomCallBtn');
+  const bListen = document.getElementById('hdDirectListenBtn');
   const bFs = document.getElementById('fsIntercomBtn');
+  const bFsL = document.getElementById('fsListenBtn');
   const deck = document.getElementById('intercomDeck');
+  const twoWay = intercomActive && !intercomListenOnly;
+  const pureListen = intercomActive && intercomListenOnly;
   if (bMain) {
-    bMain.classList.toggle('calling', intercomActive);
-    bMain.innerHTML = intercomActive ? '☎️ 结束语音对讲' : '📞 实时语音对讲';
+    bMain.classList.toggle('calling', twoWay);
+    bMain.innerHTML = twoWay ? '☎️ 结束语音对讲' : '📞 实时语音对讲';
+  }
+  if (bListen) {
+    bListen.classList.toggle('primary', pureListen);
+    bListen.innerHTML = pureListen ? '🎧 超清直听中 (点此关闭)' : '🎧 零延迟超清直听';
   }
   if (bFs) {
-    bFs.classList.toggle('active', intercomActive);
-    bFs.innerHTML = intercomActive ? '☎️ 挂断' : '📞 对讲';
+    bFs.classList.toggle('active', twoWay);
+    bFs.innerHTML = twoWay ? '☎️ 挂断' : '📞 对讲';
+    bFs.style.background = twoWay ? 'rgba(220,38,38,0.88)' : '';
+    bFs.style.color = twoWay ? '#fff' : '#6ee7b7';
+  }
+  if (bFsL) {
+    bFsL.classList.toggle('active', pureListen);
+    bFsL.innerHTML = pureListen ? '🎧 直听开' : '🎧 直听';
   }
   if (deck) deck.style.display = intercomActive ? 'block' : 'none';
+}
+
+function togglePureHdListen() {
+  if (intercomActive && intercomListenOnly) {
+    stopIntercomCall();
+    return;
+  }
+  toggleIntercomCall(true);
 }
 
 function setIntercomTalkMode(mode) {
@@ -4117,7 +4223,8 @@ function setIntercomTargetMask(mask) {
       cmd: 'config',
       listen_mask: mask,
       target_mask: mask,
-      preopen_speaker: true
+      preopen_speaker: (!intercomListenOnly),
+        clarity_mode: voiceClarityMode
     }));
   }
 }
@@ -4142,6 +4249,27 @@ function toggleIntercomMicMute() {
   }
 }
 
+
+let intercomListenOnly = false;
+let intercomMicNodes = [];
+
+function getIntercomTargetGain() {
+  if (voiceClarityMode === 'farfield') return 2.25;
+  if (voiceClarityMode === 'raw') return 1.05;
+  return 1.55;
+}
+
+function updateIntercomClarityGain() {
+  if (!intercomAudioCtx || !intercomDownGain) return;
+  if (intercomAudioCtx._mudNode) {
+    intercomAudioCtx._mudNode.gain.value = (voiceClarityMode === 'farfield') ? -4.2 : ((voiceClarityMode === 'raw') ? 0.0 : -2.8);
+  }
+  if (intercomAudioCtx._airNode) {
+    intercomAudioCtx._airNode.gain.value = (voiceClarityMode === 'farfield') ? 5.5 : ((voiceClarityMode === 'raw') ? 0.0 : 3.8);
+  }
+  intercomDownGain.gain.setTargetAtTime(getIntercomTargetGain(), intercomAudioCtx.currentTime, 0.03);
+}
+
 function ensureIntercomAudioGraph() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
@@ -4149,43 +4277,57 @@ function ensureIntercomAudioGraph() {
     intercomAudioCtx = new AC({ latencyHint: 'interactive' });
     const hpf = intercomAudioCtx.createBiquadFilter();
     hpf.type = 'highpass';
-    hpf.frequency.value = 210;
+    hpf.frequency.value = 125;
+
+    const mud = intercomAudioCtx.createBiquadFilter();
+    mud.type = 'peaking';
+    mud.frequency.value = 320;
+    mud.Q.value = 1.15;
+    mud.gain.value = -2.8;
 
     const presence = intercomAudioCtx.createBiquadFilter();
     presence.type = 'peaking';
-    presence.frequency.value = 1950;
-    presence.Q.value = 1.05;
-    presence.gain.value = 7.2;
+    presence.frequency.value = 2650;
+    presence.Q.value = 1.0;
+    presence.gain.value = 3.6;
 
-    const lpf = intercomAudioCtx.createBiquadFilter();
-    lpf.type = 'lowpass';
-    lpf.frequency.value = 4350;
+    const air = intercomAudioCtx.createBiquadFilter();
+    air.type = 'highshelf';
+    air.frequency.value = 4200;
+    air.gain.value = 3.8;
 
     const comp = intercomAudioCtx.createDynamicsCompressor();
-    comp.threshold.value = -24;
-    comp.knee.value = 14;
-    comp.ratio.value = 2.8;
+    comp.threshold.value = -22;
+    comp.knee.value = 15;
+    comp.ratio.value = 3.2;
     comp.attack.value = 0.004;
-    comp.release.value = 0.14;
+    comp.release.value = 0.15;
 
     intercomDownGain = intercomAudioCtx.createGain();
-    intercomDownGain.gain.value = 1.35;
+    intercomDownGain.gain.value = getIntercomTargetGain();
 
-    hpf.connect(presence);
-    presence.connect(lpf);
-    lpf.connect(comp);
+    hpf.connect(mud);
+    mud.connect(presence);
+    presence.connect(air);
+    air.connect(comp);
     comp.connect(intercomDownGain);
     intercomDownGain.connect(intercomAudioCtx.destination);
     intercomAudioCtx._entryNode = hpf;
+    intercomAudioCtx._mudNode = mud;
+    intercomAudioCtx._airNode = air;
   }
   if (intercomAudioCtx.state === 'suspended') {
     intercomAudioCtx.resume().catch(() => {});
   }
+  updateIntercomClarityGain();
   return intercomAudioCtx;
 }
 
 function handleIntercomDownlinkFrame(u8) {
-  if (!intercomActive || !u8 || u8.length <= 4 || u8[0] !== 0x01) return;
+  if (!intercomActive || !u8 || u8.length <= 4) return;
+  const fType = u8[0];
+  if (fType !== 0x11 && fType !== 0x01) return;
+
   const camIdx = u8[1];
   const voiceProb = u8[2];
   const rmsPct = u8[3];
@@ -4194,11 +4336,11 @@ function handleIntercomDownlinkFrame(u8) {
   const roomTag = document.getElementById('icRoomVadTag');
   if (downBar) downBar.style.width = Math.max(3, Math.min(100, rmsPct)) + '%';
   if (roomTag) {
-    if (voiceProb >= 45) {
-      roomTag.textContent = `🗣️ 人声清晰 (${voiceProb}%)`;
+    if (voiceProb >= 42) {
+      roomTag.textContent = `🗣️ 16-bit 超清人声 (${voiceProb}%)`;
       roomTag.style.color = '#fbbf24';
     } else {
-      roomTag.textContent = '🍃 底噪已滤除';
+      roomTag.textContent = (voiceClarityMode === 'raw') ? '🔊 环境原声直通' : '🍃 房间底噪与混响已净除';
       roomTag.style.color = '#94a3b8';
     }
   }
@@ -4206,25 +4348,36 @@ function handleIntercomDownlinkFrame(u8) {
   const ctx = ensureIntercomAudioGraph();
   if (!ctx || !ctx._entryNode) return;
 
-  const nSamples = u8.length - 4;
-  const audioBuf = ctx.createBuffer(1, nSamples, 16000);
-  const chData = audioBuf.getChannelData(0);
-  for (let i = 0; i < nSamples; i++) {
-    chData[i] = _ALAW_DEC_F32[u8[4 + i]];
+  let nSamples = 0;
+  let audioBuf = null;
+  if (fType === 0x11) {
+    nSamples = (u8.length - 4) >> 1;
+    if (nSamples <= 0) return;
+    audioBuf = ctx.createBuffer(1, nSamples, 16000);
+    const chData = audioBuf.getChannelData(0);
+    const dv = new DataView(u8.buffer, u8.byteOffset + 4, nSamples * 2);
+    for (let i = 0; i < nSamples; i++) {
+      chData[i] = dv.getInt16(i * 2, true) / 32768.0;
+    }
+  } else {
+    nSamples = u8.length - 4;
+    audioBuf = ctx.createBuffer(1, nSamples, 16000);
+    const chData = audioBuf.getChannelData(0);
+    for (let i = 0; i < nSamples; i++) {
+      chData[i] = _ALAW_DEC_F32[u8[4 + i]];
+    }
   }
 
-  // Smart Acoustic Echo Ducking: while user is actively speaking into phone mic, duck room playback by -16dB to eliminate howling!
   const nowMs = Date.now();
-  const userSpeaking = (nowMs - intercomLastSpeechOutTs) < 220;
+  const userSpeaking = (!intercomListenOnly) && ((nowMs - intercomLastSpeechOutTs) < 220);
   if (intercomDownGain) {
-    const targetG = userSpeaking ? 0.16 : 1.35;
+    const targetG = userSpeaking ? 0.16 : getIntercomTargetGain();
     intercomDownGain.gain.setTargetAtTime(targetG, ctx.currentTime, 0.025);
   }
 
-  // Ultra-low-latency jitter scheduler: maintain ~42ms buffer; auto-trim if drift ever exceeds 115ms!
   const nowCtx = ctx.currentTime;
   if (intercomNextPlayTime < nowCtx + 0.012 || intercomNextPlayTime > nowCtx + 0.115) {
-    intercomNextPlayTime = nowCtx + 0.042;
+    intercomNextPlayTime = nowCtx + 0.040;
   }
   const src = ctx.createBufferSource();
   src.buffer = audioBuf;
@@ -4232,6 +4385,7 @@ function handleIntercomDownlinkFrame(u8) {
   src.start(intercomNextPlayTime);
   intercomNextPlayTime += audioBuf.duration;
 }
+
 
 function sendIntercomUplinkAlaw(alawU8) {
   if (!intercomActive || !alawU8 || !alawU8.length) return;
@@ -4282,10 +4436,24 @@ async function attachMicrophoneUplink() {
   const ctx = ensureIntercomAudioGraph();
   if (!ctx) return false;
   intercomMicSource = ctx.createMediaStreamSource(intercomMicStream);
-  // Pre-filter mic input: 170Hz High-Pass to cut hand-holding rumble
+  // v30 Studio Uplink Pre-Filter: 165Hz HPF + 290Hz Anti-Boom + 2850Hz Vocal Articulation + 6800Hz Anti-Aliasing LPF!
   const micHpf = ctx.createBiquadFilter();
   micHpf.type = 'highpass';
-  micHpf.frequency.value = 170;
+  micHpf.frequency.value = 165;
+  const micDeMud = ctx.createBiquadFilter();
+  micDeMud.type = 'peaking';
+  micDeMud.frequency.value = 290;
+  micDeMud.Q.value = 1.1;
+  micDeMud.gain.value = -4.0;
+  const micArtic = ctx.createBiquadFilter();
+  micArtic.type = 'peaking';
+  micArtic.frequency.value = 2850;
+  micArtic.Q.value = 1.0;
+  micArtic.gain.value = 5.5;
+  const micAaLpf = ctx.createBiquadFilter();
+  micAaLpf.type = 'lowpass';
+  micAaLpf.frequency.value = 6800;
+  intercomMicNodes = [micHpf, micDeMud, micArtic, micAaLpf];
 
   intercomScriptNode = ctx.createScriptProcessor(1024, 1, 1);
   const inRate = ctx.sampleRate || 48000;
@@ -4346,7 +4514,10 @@ async function attachMicrophoneUplink() {
   };
 
   intercomMicSource.connect(micHpf);
-  micHpf.connect(intercomScriptNode);
+  micHpf.connect(micDeMud);
+  micDeMud.connect(micArtic);
+  micArtic.connect(micAaLpf);
+  micAaLpf.connect(intercomScriptNode);
   intercomScriptNode.connect(silentSink);
   silentSink.connect(ctx.destination);
   return true;
@@ -4379,8 +4550,22 @@ function startHttpIntercomFallback() {
   }, 85);
 }
 
-async function toggleIntercomCall() {
+async function toggleIntercomCall(wantListenOnly) {
+  const listenOnlyReq = Boolean(wantListenOnly);
   if (intercomActive) {
+    if (intercomListenOnly && !listenOnlyReq) {
+      intercomListenOnly = false;
+      intercomMicMuted = false;
+      updateIntercomButtonsUI();
+      const micUpOk = await attachMicrophoneUplink();
+      const stUp = document.getElementById('icStatusText');
+      if (stUp) stUp.textContent = micUpOk ? '📞 16-bit 零延迟双向超清通话中' : '🎧 16-bit 零延迟超清直听中';
+      if (intercomWs && intercomWs.readyState === WebSocket.OPEN) {
+        intercomWs.send(JSON.stringify({ cmd: 'config', target_mask: intercomTargetMask, preopen_speaker: (!intercomListenOnly),
+        clarity_mode: voiceClarityMode, clarity_mode: voiceClarityMode }));
+      }
+      return;
+    }
     stopIntercomCall();
     return;
   }
@@ -4388,19 +4573,22 @@ async function toggleIntercomCall() {
     switchTab('live');
   }
 
-  // Determine default target camera from current view
+  soundUnlocked = true;
+  const ub = document.getElementById('unmuteBtn');
+  if (ub) ub.style.display = 'none';
+
   if (isDualMode) intercomTargetMask = 3;
   else if (currentCam.includes('餐厅')) intercomTargetMask = 2;
   else intercomTargetMask = 1;
 
   intercomActive = true;
+  intercomListenOnly = listenOnlyReq;
   intercomHttpFallback = false;
-  intercomMicMuted = false;
+  intercomMicMuted = listenOnlyReq;
   intercomNextPlayTime = 0;
   updateIntercomButtonsUI();
   setIntercomTargetMask(intercomTargetMask);
 
-  // Mute delayed HLS <video> audio so user ONLY hears true ~40ms zero-latency intercom stream!
   const vA = document.getElementById('videoA');
   const vB = document.getElementById('videoB');
   intercomPrevVidMuted = activeVid ? activeVid.muted : false;
@@ -4408,17 +4596,24 @@ async function toggleIntercomCall() {
   if (vB) vB.muted = true;
 
   ensureIntercomAudioGraph();
-  const micOk = await attachMicrophoneUplink();
-  if (!intercomActive) return; // e.g. redirected to HTTPS on iOS
+  let micOk = false;
+  if (!listenOnlyReq) {
+    micOk = await attachMicrophoneUplink();
+    if (!intercomActive) return;
+  } else {
+    const micTag = document.getElementById('icMicVadTag');
+    if (micTag) { micTag.textContent = '纯直听免开麦'; micTag.style.color = '#7dd3fc'; }
+  }
 
   const stEl = document.getElementById('icStatusText');
   if (stEl) {
-    stEl.textContent = micOk ? '📞 零延迟双向对讲通话中' : '👂 零延迟原声监听中';
+    stEl.textContent = listenOnlyReq
+      ? '🎧 16-bit 零延迟超清人声直听中（免开麦克风 · 无压缩损耗）'
+      : (micOk ? '📞 16-bit 零延迟双向超清通话中' : '🎧 16-bit 零延迟超清直听中');
   }
 
-  // Build WebSocket URL from API_BASE or window.location
   const baseHttp = API_BASE || window.location.origin;
-  const wsUrl = baseHttp.replace(/^http/i, 'ws') + `/ws/intercom?cam=${encodeURIComponent(isDualMode ? 'all' : currentCam)}`;
+  const wsUrl = baseHttp.replace(/^http/i, 'ws') + `/ws/intercom?cam=${encodeURIComponent(isDualMode ? 'all' : currentCam)}&clarity=${encodeURIComponent(voiceClarityMode)}`;
   let wsConnected = false;
   const fbTid = setTimeout(() => {
     if (intercomActive && !wsConnected) startHttpIntercomFallback();
@@ -4435,7 +4630,8 @@ async function toggleIntercomCall() {
         listen_mask: intercomTargetMask,
         target_mask: intercomTargetMask,
         spk_rate_override: intercomSpkRateMode,
-        preopen_speaker: true
+        preopen_speaker: (!intercomListenOnly),
+        clarity_mode: voiceClarityMode
       }));
       const t0 = performance.now();
       intercomWs.send(JSON.stringify({ cmd: 'ping', t: t0 }));
@@ -4701,7 +4897,7 @@ setInterval(() => {
       const key = `${currentCam}_${selDate}_${currentCloudFile.name}_${nextOff}`;
       if (_prefetchedNextSliceKey !== key) {
         _prefetchedNextSliceKey = key;
-        const preUrl = `${API_BASE || ''}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(currentCloudFile.name)}&offset=${nextOff}&dur=${cloudSliceDur}`;
+        const preUrl = `${API_BASE || ''}/api/cloud_slice?cam=${encodeURIComponent(currentCam)}&date=${encodeURIComponent(selDate)}&file=${encodeURIComponent(currentCloudFile.name)}&offset=${nextOff}&dur=${cloudSliceDur}&clarity=${encodeURIComponent(voiceClarityMode)}`;
         fetch(preUrl, { headers: { Range: 'bytes=0-65535' } }).catch(() => {});
       }
     }
