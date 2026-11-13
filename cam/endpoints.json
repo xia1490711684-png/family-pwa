@@ -1,11 +1,11 @@
 {
-  "tunnel": "https://translator-density-prompt-yacht.trycloudflare.com",
+  "tunnel": "https://trails-texts-feels-crafts.trycloudflare.com",
   "lan_wifi": "http://192.168.1.138:15443",
   "lan_hotspot": "http://192.168.137.1:15443",
   "lan_gateway": "http://1999.config.com:15443",
-  "ipv6_direct": "http://[240e:363:3d51:af00:168d:50d:f256:dae7]:47822",
+  "ipv6_direct": "http://[240e:363:3d3b:da00:448c:ab2d:3f22:9938]:47822",
   "permanent_pwa": "https://xia1490711684-png.github.io/family-pwa/cam/",
-  "updated": "2026-11-13 08:23:37",
-  "cn_ipv4_direct": "http://117.65.227.59:15443",
-  "cn_ipv6_15443": "http://[240e:363:3d51:af00:168d:50d:f256:dae7]:15443"
+  "updated": "2026-11-13 15:26:16",
+  "cn_ipv4_direct": "http://117.65.154.17:15443",
+  "cn_ipv6_15443": "http://[240e:363:3d3b:da00:448c:ab2d:3f22:9938]:15443"
 }
