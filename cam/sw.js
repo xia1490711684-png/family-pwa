@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mihome-cam-shell-v38';
+const CACHE_NAME = 'mihome-cam-shell-orig-clean-v42';
 const SHELL_ASSETS = ['./', './index.html', './apple-touch-icon.png'];
 
 self.addEventListener('install', event => {
