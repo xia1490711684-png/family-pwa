@@ -709,7 +709,7 @@
     <button class="act-btn" id="hdDirectListenBtn" onclick="togglePureHdListen()" style="border-color:rgba(56,189,248,0.68);color:#7dd3fc;font-weight:700;">🎧 零延迟超清直听</button>
     <button class="act-btn primary" onclick="captureSnapshot()">📸 2K原画抓拍存相册</button>
     <button class="act-btn primary" id="xiaoaiStatusPill" onclick="showXiaoaiBridgeInfo()" style="border-color:rgba(16,185,129,0.45);color:#a7f3d0;">🎙️ 小爱Pro通道待命(:4399)</button>
-    <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 AI神经人声+双摄追声</button>
+    <button class="act-btn primary" id="voiceBoostBtn" onclick="toggleVoiceBoost()">💎 纯净柔音人声: 开</button>
     <button class="act-btn" onclick="togglePictureInPicture()">📺 小窗画中画</button>
     <button class="act-btn" id="dlClipBtn" onclick="exportSmartClip(30)">✂️ 回溯30秒存相册</button>
     <button class="act-btn" id="dlFullSegBtn" style="display:none;" onclick="downloadCurrentVideo()">⬇️ 原片</button>
@@ -890,7 +890,7 @@
   </div>
 
   <div class="ios-tip">
-    🚀 <b>超越米家极速引擎 v38 AI神经人声增强与超低延迟版 · GTCRN流式降噪去混响 + A-law反量化 + 客餐厅双摄智能追声 + 2.5s贴边直播</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
+    🚀 <b>超越米家极速引擎 v37 超低延迟锁时版 · 消除22秒累积漂移 · 墙钟帧率自适应对齐与1.04x无感追帧</b>：双硬件解码器后台常驻预热（客厅⇄餐厅 <b>0.03秒</b> 零黑屏瞬切，支持画面左右轻滑切换） · 1.06x 无感追帧准实时 · 20TB 云盘全量免费回放（无 9 秒限制）！
   </div>
 
 <script>
@@ -2968,25 +2968,25 @@ function ensureVideoVoiceDsp(vid) {
 function getClarityLabels(mode) {
   if (mode === 'farfield') {
     return {
-      main: '👂 AI远场超距追声',
-      fs: '👂 AI远场追声',
-      ic: '👂 AI远场超距追声',
-      toast: '👂 已切换「AI 远场超距追声」：GTCRN神经提纯 + 客餐厅双摄跨室强力借音放大'
+      main: '👂 远场轻声放大',
+      fs: '👂 远场放大',
+      ic: '👂 远场轻声放大',
+      toast: '👂 已切换「远场轻声放大」：柔滑提升远距细语，同时压低放东西/磕碰声'
     };
   }
   if (mode === 'raw') {
     return {
-      main: '🔊 摄像头原声直通',
-      fs: '🔊 原声直通',
-      ic: '🔊 摄像头原声',
-      toast: '🔊 已切换「摄像头原声直通」：关闭AI降噪与双摄追声，直出原始环境声'
+      main: '🔊 环境原声直出',
+      fs: '🔊 环境原声',
+      ic: '🔊 环境原声',
+      toast: '🔊 已切换「环境原声」：保留摄像头原始环境声直出'
     };
   }
   return {
-    main: '💎 AI神经人声+双摄追声',
-    fs: '💎 AI神经人声',
-    ic: '💎 GTCRN神经人声',
-    toast: '💎 已开启「GTCRN 神经网络人声 + 双摄追声」：A-law反量化除毛刺 · 深度剥离底噪混响 · 客餐厅自动追声'
+    main: '💎 纯净柔音人声: 开',
+    fs: '💎 纯净人声',
+    ic: '💎 纯净柔音人声',
+    toast: '💎 已开启「纯净柔音人声」：零门控无损连续人声 · 柔化放东西与磕碰声'
   };
 }
 
