@@ -897,7 +897,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   const _hadSwCtrl = Boolean(navigator.serviceWorker.controller);
-  navigator.serviceWorker.register('sw.js?v=47', { updateViaCache: 'none' }).then(r => {
+  navigator.serviceWorker.register('sw.js?v=50', { updateViaCache: 'none' }).then(r => {
     try { r.update(); } catch (e) {}
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -911,7 +911,7 @@ if ('serviceWorker' in navigator) {
 const CAMS_2K = ['客厅_小米摄像机2K', '餐厅_小米摄像机2K'];
 const IS_CLOUD_SHELL = window.location.hostname.endsWith('github.io');
 const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const EMBEDDED_TUNNEL = 'https://automation-schedules-collaboration-adjust.trycloudflare.com';
+const EMBEDDED_TUNNEL = 'https://ought-answering-treating-matched.trycloudflare.com';
 const EMBEDDED_IPV6 = 'http://[240e:363:3d3b:da00:ed80:b0e2:9a6d:8ea4]:47822';
 const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
@@ -1081,21 +1081,21 @@ function updateQualBadge() {
   const effFast = isEffectiveFastStream();
   if (qb) {
     if (!effFast) {
-      qb.textContent = '💎 2K原画直出 (点切流畅)';
+      qb.textContent = '💎 2K无损原片 (1.7M直出)';
       qb.style.color = '#38bdf8';
       qb.style.borderColor = '#38bdf8';
     } else {
-      qb.textContent = '⚡ 720P流畅 (点切2K原画)';
+      qb.textContent = '💎 2K超清极速 (HEVC直出)';
       qb.style.color = '#10b981';
       qb.style.borderColor = '#10b981';
     }
   }
   if (fsq) {
-    fsq.textContent = effFast ? '⚡ 720P流畅' : '💎 2K原画';
+    fsq.textContent = effFast ? '💎 2K极速' : '💎 2K原片';
     fsq.classList.toggle('active', !effFast);
   }
   if (cp && isLiveMode) {
-    cp.textContent = effFast ? '720P流畅 · 准实时' : '2K原画 · 准实时';
+    cp.textContent = effFast ? '2K超清 · 准实时' : '2K原片 · 准实时';
   }
 }
 
@@ -2432,6 +2432,61 @@ async function startLiveMode() {
   const hlsUrl = `${API_BASE}/${hlsPref}/${encodeURIComponent(currentCam)}/live.m3u8`;
   activeVid.playbackRate = 1.0;
   activeVid.removeAttribute('data-cloud-url');
+
+  // 1-RTT Instant 2K Boot on Tunnel: play standalone PTS=0 2304x1296 2K MP4 immediately on activeVid (~1.0s moving 2K!),
+  // while prebuffering continuous 2K HLS silently on standbyVid and swapping in 0.00ms once ready!
+  if (isRemoteTunnelLink() && standbyVid && isEffectiveFastStream()) {
+    const launchCam = currentCam;
+    const bootToken = lastLiveStartTs;
+    if (standbyHls) { try { standbyHls.destroy(); } catch (e) {} standbyHls = null; }
+    hotStandbyCam = '';
+    hotStandbyReady = false;
+    updateHotDots();
+
+    activeVid.onloadeddata = () => syncLivePosterOverlay();
+    activeVid.onplaying = () => syncLivePosterOverlay();
+    activeVid.ontimeupdate = () => { if (activeVid.videoWidth > 0) syncLivePosterOverlay(); };
+    activeVid.onended = () => {
+      if (isLiveMode && !isDualMode && currentCam === launchCam && lastLiveStartTs === bootToken) {
+        activeVid.src = `${API_BASE}/api/instant_live.mp4?cam=${encodeURIComponent(launchCam)}&t=${Date.now()}`;
+        tryPlayVideo(activeVid);
+      }
+    };
+    activeVid.src = `${API_BASE}/api/instant_live.mp4?cam=${encodeURIComponent(launchCam)}&t=${Date.now()}`;
+    tryPlayVideo(activeVid);
+
+    let swapped = false;
+    const completeHlsSwap = () => {
+      if (swapped || !isLiveMode || isDualMode || currentCam !== launchCam || lastLiveStartTs !== bootToken) return;
+      if (standbyVid.readyState < 3 || !standbyVid.videoWidth) return;
+      swapped = true;
+      const oldFront = activeVid;
+      const newFront = standbyVid;
+      newFront.muted = !soundUnlocked;
+      oldFront.muted = true;
+      oldFront.onended = null;
+      setVideoRoles(newFront, oldFront);
+      activeHls = standbyHls;
+      standbyHls = null;
+      newFront.play().catch(() => {});
+      syncLivePosterOverlay();
+      setTimeout(() => {
+        if (standbyVid === oldFront && !isDualMode) {
+          oldFront.pause();
+          oldFront.removeAttribute('src');
+        }
+        scheduleSiblingHotPreload();
+      }, 120);
+    };
+
+    standbyVid.ontimeupdate = () => { if (!swapped && standbyVid.readyState >= 3 && standbyVid.videoWidth > 0) completeHlsSwap(); };
+    standbyHls = attachHlsToVideo(standbyVid, hlsUrl, true, () => {
+      if (standbyVid.readyState >= 3 && standbyVid.videoWidth > 0) completeHlsSwap();
+      else standbyVid.onplaying = completeHlsSwap;
+    });
+    return;
+  }
+
   activeHls = attachHlsToVideo(activeVid, hlsUrl, false, () => {
     scheduleSiblingHotPreload();
   });
