@@ -1,12 +1,12 @@
 {
-  "tunnel": "https://dealtime-hawaii-metres-hamilton.trycloudflare.com",
+  "tunnel": "https://mine-behalf-finance-fluid.trycloudflare.com",
   "lan_wifi": "http://192.168.1.138:15443",
   "lan_hotspot": "http://192.168.137.1:15443",
   "lan_gateway": "http://1999.config.com:15443",
-  "ipv6_direct": "http://[240e:363:3d3b:da00:ed80:b0e2:9a6d:8ea4]:47822",
+  "ipv6_direct": "http://[240e:363:3d3b:da00:45b9:2efe:357a:ccce]:47822",
   "permanent_pwa": "https://xia1490711684-png.github.io/family-pwa/cam/",
-  "updated": "2026-11-14 23:02:56",
+  "updated": "2026-11-15 00:10:08",
   "gw_wan_ipv6_15443": "http://[240e:360:3c06:13a2:3a9e:80ff:feda:67e7]:15443",
   "cn_ipv4_direct": "http://117.65.154.17:15443",
-  "cn_ipv6_15443": "http://[240e:363:3d3b:da00:ed80:b0e2:9a6d:8ea4]:15443"
+  "cn_ipv6_15443": "http://[240e:363:3d3b:da00:45b9:2efe:357a:ccce]:15443"
 }
