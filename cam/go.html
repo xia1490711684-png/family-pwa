@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>正在为您刷新监控最新版本...</title>
+<style>
+  body { background:#0b1120; color:#f8fafc; font-family:-apple-system,sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; text-align:center; padding:20px; }
+  .box { background:#1e293b; border:1px solid #334155; border-radius:14px; padding:24px 20px; max-width:340px; }
+  .t { font-size:16px; font-weight:700; margin-bottom:8px; }
+  .s { font-size:13px; color:#94a3b8; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="t">🔄 正在清除旧版缓存并同步最新界面...</div>
+  <div class="s" id="msg">请稍候 1 秒，即将自动进入监控台</div>
+</div>
+<script>
+(async function() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) { try { await r.unregister(); } catch (e) {} }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) { try { await caches.delete(k); } catch (e) {} }
+    }
+    localStorage.removeItem('nvr_last_endpoint');
+  } catch (e) {}
+  setTimeout(function() {
+    window.location.replace('./index.html?fresh=' + Date.now());
+  }, 400);
+})();
+</script>
+</body>
+</html>

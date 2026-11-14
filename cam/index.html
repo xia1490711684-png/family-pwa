@@ -342,7 +342,7 @@ if ('caches' in window) {
 }
 if ('serviceWorker' in navigator) {
   const _hadSwCtrl = Boolean(navigator.serviceWorker.controller);
-  navigator.serviceWorker.register('sw.js?v=42', { updateViaCache: 'none' }).then(r => {
+  navigator.serviceWorker.register('sw.js?v=43', { updateViaCache: 'none' }).then(r => {
     try { r.update(); } catch (e) {}
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
