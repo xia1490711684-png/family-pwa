@@ -896,7 +896,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   const _hadSwCtrl = Boolean(navigator.serviceWorker.controller);
-  navigator.serviceWorker.register('sw.js?v=44', { updateViaCache: 'none' }).then(r => {
+  navigator.serviceWorker.register('sw.js?v=45', { updateViaCache: 'none' }).then(r => {
     try { r.update(); } catch (e) {}
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -916,7 +916,9 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
-let qualityMode = localStorage.getItem('nvr_qual_mode_2k_v5') || '2k';
+let qualityMode = localStorage.getItem('nvr_qual_mode_pro_v45') || 'auto';
+let _tunnelVerifiedOk = false;
+let _lastRemoteRadarPollTs = 0;
 let detectedLanUrl = '';
 let directFailStreak = 0;
 let currentCam = '客厅_小米摄像机2K';
@@ -1052,7 +1054,7 @@ function isEffectiveFastStream() {
 }
 
 function getHlsPrefix() {
-  return isEffectiveFastStream() ? 'hls_fast' : 'hls';
+  return isEffectiveFastStream() ? 'hls_fast' : 'hls_2k';
 }
 
 function updateQualBadge() {
@@ -1087,7 +1089,7 @@ function updateQualBadge() {
 function toggleQualityMode() {
   const order = ['auto', '2k', 'fast'];
   qualityMode = order[(order.indexOf(qualityMode) + 1) % order.length] || 'auto';
-  localStorage.setItem('nvr_qual_mode_2k_v5', qualityMode);
+  localStorage.setItem('nvr_qual_mode_pro_v45', qualityMode);
   updateQualBadge();
   if (isLiveMode) {
     destroyAllHls();
@@ -1142,7 +1144,7 @@ function probeLanFast(extraIpv6) {
   const candidates = [
     'http://192.168.1.138:15443',
     'http://192.168.137.1:15443',
-    'http://1999.config.com:15443', 'http://117.65.227.59:15443'
+    'http://1999.config.com:15443', (window._epCnIpv4 || 'http://117.65.154.17:15443')
   ];
   const v6 = extraIpv6 || ((EMBEDDED_IPV6 && !EMBEDDED_IPV6.startsWith('__')) ? EMBEDDED_IPV6 : (localStorage.getItem('nvr_ipv6_direct') || ''));
   if (v6 && v6.startsWith('http://[')) {
@@ -1206,7 +1208,7 @@ function ingestStatePayload(st) {
 async function runBootstrap() {
   if (IS_CLOUD_SHELL && !API_BASE) return false;
   try {
-    const r = await fetchWithTimeout(`${API_BASE}/api/bootstrap?t=` + Date.now(), 3200);
+    const r = await fetchWithTimeout(`${API_BASE}/api/bootstrap?t=` + Date.now(), IS_CLOUD_SHELL ? 8500 : 3500);
     if (!r.ok) return false;
     const b = await r.json();
     if (b.posters) {
@@ -1253,16 +1255,19 @@ async function discoverApiBase(forceRediscover) {
     return true;
   }
 
-  const epPromise = fetchWithTimeout('./endpoints.json?t=' + Date.now(), 2500)
+  const epPromise = fetchWithTimeout('./endpoints.json?t=' + Date.now(), 4000)
     .then(r => r.ok ? r.json() : null).catch(() => null);
-  const bootPromise = (API_BASE && !forceRediscover)
+  const bootPromise = (API_BASE && _tunnelVerifiedOk && !forceRediscover)
     ? Promise.resolve(true)
     : (API_BASE
-        ? fetchWithTimeout(API_BASE + '/api/live_info?t=' + Date.now(), 4500).then(r => r.ok).catch(() => false)
+        ? fetchWithTimeout(API_BASE + '/api/live_info?t=' + Date.now(), 6500).then(r => r.ok).catch(() => false)
         : Promise.resolve(false));
 
   const [epJson, bootOk] = await Promise.all([epPromise, bootPromise]);
-  if (epJson && epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
+  if (epJson) {
+    if (epJson.cn_ipv4_direct) window._epCnIpv4 = epJson.cn_ipv4_direct;
+    if (epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
+  }
 
   if (epJson && epJson.tunnel && epJson.tunnel.startsWith('https://') && epJson.tunnel !== API_BASE) {
     applyNewBase(epJson.tunnel, epJson.ipv6_direct);
@@ -1270,7 +1275,9 @@ async function discoverApiBase(forceRediscover) {
   }
 
   if (bootOk) {
+    _tunnelVerifiedOk = true;
     localStorage.setItem('nvr_api_base', API_BASE);
+    if (!stateData) fetchState();
     const badge = document.getElementById('netBadge');
     if (!detectedLanUrl) {
       badge.textContent = '🌐 5G / Wi-Fi 极速已连接';
@@ -1442,6 +1449,22 @@ function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
       vid.play().catch(() => {});
     } else {
       tryPlayVideo(vid);
+      clearTimeout(vid._stallGuardTid);
+      vid._stallGuardTid = setTimeout(() => {
+        if (isLiveMode && vid === activeVid && vid.readyState < 2) {
+          if (IS_CLOUD_SHELL && qualityMode === '2k') {
+            qualityMode = 'auto';
+            localStorage.setItem('nvr_qual_mode_pro_v45', 'auto');
+            updateQualBadge();
+            showLoadingToast('⚡ 5G带宽受限，已智能切至720P超清秒开流', 2800);
+            startLiveMode();
+          } else {
+            discoverApiBase(true);
+            vid.src = hlsUrl + '?t=' + Date.now();
+            tryPlayVideo(vid);
+          }
+        }
+      }, 6800);
     }
     return null;
   }
@@ -1819,12 +1842,13 @@ function selectDualLive() {
 async function fetchState() {
   if (IS_CLOUD_SHELL && !API_BASE) return;
   try {
-    const r = await fetchWithTimeout(`${API_BASE}/api/state?t=` + Date.now(), 4000);
+    const r = await fetchWithTimeout(`${API_BASE}/api/state?t=` + Date.now(), IS_CLOUD_SHELL ? 9000 : 5000);
     if (!r.ok) {
       discoverApiBase(false);
       return;
     }
     directFailStreak = 0;
+    _tunnelVerifiedOk = true;
     const st = await r.json();
     ingestStatePayload(st);
   } catch (e) {
@@ -3457,7 +3481,8 @@ if (!IS_CLOUD_SHELL) {
   runBootstrap();
 } else if (API_BASE) {
   startLiveMode();
-  setTimeout(fetchState, 2600);
+  setTimeout(fetchState, 650);
+  setTimeout(() => { if (!stateData) fetchState(); }, 3600);
 }
 discoverApiBase(false);
 
@@ -4867,7 +4892,12 @@ setInterval(async () => {
   if (document.hidden || !isLiveMode || currentCam === '大门_小米智能门铃4Pro' || intercomActive) return;
   if (IS_CLOUD_SHELL && !API_BASE) return;
   try {
-    const r = await fetchWithTimeout(`${API_BASE || ''}/api/intercom/status`, 1100);
+    if (IS_CLOUD_SHELL) {
+      if (!intercomActive && (!activeVid || activeVid.readyState < 2)) return;
+      if (!intercomActive && (Date.now() - _lastRemoteRadarPollTs < 6000)) return;
+      _lastRemoteRadarPollTs = Date.now();
+    }
+    const r = await fetchWithTimeout(`${API_BASE}/api/intercom/status`, IS_CLOUD_SHELL ? 3500 : 1100);
     if (!r.ok) return;
     const j = await r.json();
     if (j && j.cameras) {
@@ -4935,6 +4965,7 @@ setInterval(syncHudControls, 500);
 
 let _lastXiaoaiBridgeInfo = null;
 async function pollXiaoaiBridgeStatus() {
+  if (IS_CLOUD_SHELL && (!activeVid || activeVid.readyState < 2)) return;
   try {
     const r = await fetch(`${API_BASE}/api/intercom/status`, { cache: 'no-store' });
     if (!r.ok) return;
