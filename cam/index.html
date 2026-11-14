@@ -1151,6 +1151,7 @@ function probeLanFast(extraIpv6) {
     candidates.push(v6);
     if (v6.endsWith(':47822')) candidates.push(v6.replace(':47822', ':15443'));
   }
+  if (window._epGwWanV6 && window._epGwWanV6.startsWith('http://[')) candidates.push(window._epGwWanV6);
 
   candidates.forEach(lanCandidate => {
     try {
@@ -1270,6 +1271,7 @@ async function discoverApiBase(forceRediscover) {
   const [epJson, bootOk] = await Promise.all([epPromise, bootPromise]);
   if (epJson) {
     if (epJson.cn_ipv4_direct) window._epCnIpv4 = epJson.cn_ipv4_direct;
+    if (epJson.gw_wan_ipv6_15443) window._epGwWanV6 = epJson.gw_wan_ipv6_15443;
     if (epJson.ipv6_direct) probeLanFast(epJson.ipv6_direct);
   }
 
