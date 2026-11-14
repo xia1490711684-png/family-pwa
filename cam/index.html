@@ -1158,15 +1158,19 @@ function probeLanFast(extraIpv6) {
       img.onload = () => {
         if (!detectedLanUrl || lanCandidate.includes('192.168.')) detectedLanUrl = lanCandidate;
         const isV6 = detectedLanUrl.includes('[');
-        badge.textContent = isV6 ? '⚡ 5G IPv6国内直连可用 (点此秒开)' : '⚡ 局域网 0ms 直连可用 (点此秒开)';
+        badge.textContent = isV6 ? '⚡ 5G IPv6国内直连可用 (点此秒开)' : '⚡ 国内/局域网直连可用 (点此秒开)';
         badge.style.color = '#10b981';
         badge.style.borderColor = '#10b981';
         const tb = document.getElementById('turboDirectBanner');
         if (tb) {
           tb.textContent = isV6
-            ? '🚀 检测到电信 IPv6 国内 14ms 直连可用 — 点此绕开外网隧道，0.2 秒秒开 2K 原画！'
-            : '🚀 检测到家里 Wi-Fi 局域网 0.5ms 直连可用 — 点此绕开外网隧道，0.1 秒秒开 2K 原画！';
+            ? '🚀 检测到电信 IPv6 国内 14ms 直连可用 — 正在自动切入国内直连 2K 原画...'
+            : '🚀 检测到国内/局域网高速直连可用 — 正在自动切入直连 2K 原画...';
           tb.style.display = 'block';
+        }
+        if (IS_CLOUD_SHELL && !window.location.search.includes('stay_cloud=1') && !window._autoJumpedDomestic) {
+          window._autoJumpedDomestic = true;
+          window.location.replace(detectedLanUrl + '/');
         }
       };
       img.src = lanCandidate + '/apple-touch-icon.png?t=' + Date.now();
