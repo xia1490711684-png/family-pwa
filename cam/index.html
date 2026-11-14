@@ -651,8 +651,9 @@
     <div class="hold-speed-badge" id="holdSpeedBadge">⏩ 2.5x 倍速快进中 · 松手恢复</div>
     <button class="btn-unmute" id="unmuteBtn" onclick="enableSound()" style="display:none;">🔊 点击开启声音</button>
     <div class="video-stage" id="videoStage">
-      <video id="videoA" autoplay playsinline webkit-playsinline crossorigin="anonymous" style="z-index:2;opacity:1;"></video>
-      <video id="videoB" playsinline webkit-playsinline crossorigin="anonymous" style="z-index:1;opacity:0;pointer-events:none;"></video>
+      <img id="livePosterOverlay" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:3;pointer-events:none;display:none;background:#000;transition:opacity 0.2s ease;">
+      <video id="videoA" autoplay muted playsinline webkit-playsinline style="z-index:2;opacity:1;"></video>
+      <video id="videoB" muted playsinline webkit-playsinline style="z-index:1;opacity:0;pointer-events:none;"></video>
     </div>
     <div class="dual-badges" id="dualBadges">
       <button class="dual-cam-pill audio-on" id="dualPillA" onclick="switchDualAudio(0)">🛋️ 客厅 2K · 🔊 正在收听</button>
@@ -896,7 +897,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   const _hadSwCtrl = Boolean(navigator.serviceWorker.controller);
-  navigator.serviceWorker.register('sw.js?v=46', { updateViaCache: 'none' }).then(r => {
+  navigator.serviceWorker.register('sw.js?v=47', { updateViaCache: 'none' }).then(r => {
     try { r.update(); } catch (e) {}
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -916,7 +917,14 @@ const NTFY_TOPIC = 'xia_mihome_2k_nvr_dd39c79a';
 let API_BASE = IS_CLOUD_SHELL
   ? ((EMBEDDED_TUNNEL && !EMBEDDED_TUNNEL.startsWith('__')) ? EMBEDDED_TUNNEL : (localStorage.getItem('nvr_api_base') || ''))
   : '';
-let qualityMode = localStorage.getItem('nvr_qual_mode_2k_v46') || '2k';
+let qualityMode = localStorage.getItem('nvr_qual_mode_lan_v47') || '2k';
+let tunnelForceMode = '';
+if (!IS_CLOUD_SHELL && !window.location.hostname.includes('trycloudflare.com')) {
+  try {
+    document.getElementById('videoA').crossOrigin = 'anonymous';
+    document.getElementById('videoB').crossOrigin = 'anonymous';
+  } catch (e) {}
+}
 let _tunnelVerifiedOk = false;
 let _lastRemoteRadarPollTs = 0;
 let detectedLanUrl = '';
@@ -1047,12 +1055,23 @@ function cyclePlaybackSpeed() {
   bumpHudTimer();
 }
 
+function isRemoteTunnelLink() {
+  return Boolean(
+    IS_CLOUD_SHELL ||
+    window.location.hostname.includes('trycloudflare.com') ||
+    (API_BASE && API_BASE.includes('trycloudflare.com'))
+  );
+}
+
 function isEffectiveFastStream() {
+  if (isRemoteTunnelLink()) {
+    return tunnelForceMode ? (tunnelForceMode === 'fast') : true;
+  }
   return qualityMode === 'fast';
 }
 
 function getHlsPrefix() {
-  return isEffectiveFastStream() ? 'hls_fast' : 'hls';
+  return isEffectiveFastStream() ? 'hls_fast' : 'hls_2k';
 }
 
 function updateQualBadge() {
@@ -1081,8 +1100,14 @@ function updateQualBadge() {
 }
 
 function toggleQualityMode() {
-  qualityMode = (qualityMode === 'fast') ? '2k' : 'fast';
-  localStorage.setItem('nvr_qual_mode_2k_v46', qualityMode);
+  if (isRemoteTunnelLink()) {
+    const curFast = isEffectiveFastStream();
+    tunnelForceMode = curFast ? '2k' : 'fast';
+    showLoadingToast(tunnelForceMode === '2k' ? '💎 已切换 2K 原画（公网隧道带宽较高，缓冲约需3~6秒）' : '⚡ 已切回 5G 极速流畅通道', 2600);
+  } else {
+    qualityMode = (qualityMode === 'fast') ? '2k' : 'fast';
+    localStorage.setItem('nvr_qual_mode_lan_v47', qualityMode);
+  }
   updateQualBadge();
   if (isLiveMode) {
     destroyAllHls();
@@ -1090,14 +1115,36 @@ function toggleQualityMode() {
   }
 }
 
+function syncLivePosterOverlay() {
+  const ov = document.getElementById('livePosterOverlay');
+  if (!ov) return;
+  const videoReady = Boolean(activeVid && activeVid.readyState >= 2 && activeVid.videoWidth > 0);
+  if (!isLiveMode || isDualMode || currentCam === '大门_小米智能门铃4Pro' || videoReady) {
+    ov.style.opacity = '0';
+    ov.style.display = 'none';
+    if (videoReady && isLiveMode) hideLoadingToast();
+  }
+}
+
 function applyInstantPoster(vid, camName) {
   if (!vid) return;
-  if (cachedPosters[camName]) {
-    vid.poster = cachedPosters[camName];
-    return;
-  }
   if (IS_CLOUD_SHELL && !API_BASE) return;
-  vid.poster = `${API_BASE}/api/poster?cam=${encodeURIComponent(camName)}&t=${Math.floor(Date.now() / 4000)}`;
+  const fastFlag = isRemoteTunnelLink() ? '&fast=1' : '';
+  const pUrl = cachedPosters[camName] || `${API_BASE}/api/poster?cam=${encodeURIComponent(camName)}${fastFlag}&t=${Math.floor(Date.now() / 4000)}`;
+  vid.poster = pUrl;
+  if (vid === activeVid && isLiveMode && !isDualMode && camName !== '大门_小米智能门铃4Pro') {
+    const ov = document.getElementById('livePosterOverlay');
+    if (ov && (vid.readyState < 2 || !vid.videoWidth)) {
+      ov.onload = () => {
+        if (isLiveMode && !isDualMode && (activeVid.readyState < 2 || !activeVid.videoWidth)) {
+          ov.style.display = 'block';
+          ov.style.opacity = '1';
+        }
+      };
+      ov.src = pUrl;
+      showLoadingToast('⚡ 正在秒连实时监控流...', 4500);
+    }
+  }
 }
 
 function onNetBadgeClick() {
@@ -1136,8 +1183,7 @@ function probeLanFast(extraIpv6) {
   }
   const candidates = [
     'http://192.168.1.138:15443',
-    'http://192.168.137.1:15443',
-    'http://1999.config.com:15443', (window._epCnIpv4 || 'http://117.65.154.17:15443')
+    'http://192.168.137.1:15443'
   ];
   const v6 = extraIpv6 || ((EMBEDDED_IPV6 && !EMBEDDED_IPV6.startsWith('__')) ? EMBEDDED_IPV6 : (localStorage.getItem('nvr_ipv6_direct') || ''));
   if (v6 && v6.startsWith('http://[')) {
@@ -1162,10 +1208,7 @@ function probeLanFast(extraIpv6) {
             : '🚀 检测到国内/局域网高速直连可用 — 正在自动切入直连 2K 原画...';
           tb.style.display = 'block';
         }
-        if (IS_CLOUD_SHELL && !window.location.search.includes('stay_cloud=1') && !window._autoJumpedDomestic) {
-          window._autoJumpedDomestic = true;
-          window.location.replace(detectedLanUrl + '/');
-        }
+        // Per handover rule: never auto-redirect HTTPS PWA to HTTP LAN/IPv6 on mobile; user taps green banner if desired.
       };
       img.src = lanCandidate + '/apple-touch-icon.png?t=' + Date.now();
     } catch (e) {}
@@ -1330,14 +1373,16 @@ function enableSound() {
 
 function tryPlayVideo(vid) {
   vid.muted = !soundUnlocked;
+  if (vid.muted) document.getElementById('unmuteBtn').style.display = 'block';
   const p = vid.play();
   if (p !== undefined) {
     p.then(() => {
+      syncLivePosterOverlay();
       if (vid.muted) document.getElementById('unmuteBtn').style.display = 'block';
     }).catch(() => {
       vid.muted = true;
       document.getElementById('unmuteBtn').style.display = 'block';
-      vid.play().catch(() => {});
+      vid.play().then(() => syncLivePosterOverlay()).catch(() => {});
     });
   }
 }
@@ -1424,20 +1469,49 @@ function ensureHlsScriptLoaded() {
 function attachHlsToVideo(vid, hlsUrl, isBackgroundPreload, onReadyCb) {
   vid.onended = null;
   vid.onloadedmetadata = null;
+  clearTimeout(vid._iosStallTid);
+  const fireReady = () => {
+    clearTimeout(vid._iosStallTid);
+    if (!isBackgroundPreload) syncLivePosterOverlay();
+    if (onReadyCb) { const cb = onReadyCb; onReadyCb = null; cb(); }
+  };
+  vid.onloadeddata = fireReady;
+  vid.onplaying = fireReady;
+  vid.ontimeupdate = () => { if (!isBackgroundPreload && vid.videoWidth > 0) syncLivePosterOverlay(); };
+
   const isAppleNative = (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) && !/Chrome|CriOS|Edg/i.test(navigator.userAgent))
     || (IS_MOBILE && Boolean(vid.canPlayType('application/vnd.apple.mpegurl')));
 
   if (isAppleNative) {
     vid.onerror = () => { if (!isBackgroundPreload) discoverApiBase(false); };
-    vid.oncanplay = () => {
-      if (onReadyCb) onReadyCb();
-    };
-    vid.src = hlsUrl + '?t=' + Date.now();
+    vid.oncanplay = fireReady;
+    vid.src = hlsUrl + (hlsUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+    try { vid.load(); } catch (e) {}
     if (isBackgroundPreload) {
       vid.muted = true;
       vid.play().catch(() => {});
     } else {
       tryPlayVideo(vid);
+      vid._iosStallTid = setTimeout(() => {
+        if (isLiveMode && vid === activeVid && (vid.readyState < 2 || !vid.videoWidth)) {
+          ensureHlsScriptLoaded().then(() => {
+            if (!isLiveMode || vid !== activeVid || (vid.readyState >= 2 && vid.videoWidth > 0)) return;
+            if (window.Hls && Hls.isSupported()) {
+              vid.removeAttribute('src');
+              try { vid.load(); } catch (e) {}
+              const created = new Hls({ enableWorker: true, lowLatencyMode: false, maxBufferLength: 8 });
+              created.loadSource(hlsUrl);
+              created.attachMedia(vid);
+              created.on(Hls.Events.MANIFEST_PARSED, () => { tryPlayVideo(vid); fireReady(); });
+              activeHls = created;
+            } else {
+              vid.src = hlsUrl + (hlsUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+              try { vid.load(); } catch (e) {}
+              tryPlayVideo(vid);
+            }
+          });
+        }
+      }, 6500);
     }
     return null;
   }
@@ -2150,7 +2224,13 @@ async function captureSnapshot() {
       ctx.fillStyle = '#ffffff';
       ctx.fillText(label, 32, cvs.height - 16);
     }
-    const blob = await new Promise(res => cvs.toBlob(res, 'image/jpeg', 0.94));
+    let blob = null;
+    try {
+      blob = await new Promise(res => cvs.toBlob(res, 'image/jpeg', 0.94));
+    } catch (secErr) {
+      const pr = await fetch(`${API_BASE || ''}/api/poster?cam=${encodeURIComponent(currentCam)}&t=${Date.now()}`, { cache: 'no-store' });
+      if (pr.ok) blob = await pr.blob();
+    }
     if (!blob) return;
     const fname = `监控抓拍_${currentCam.slice(0, 2)}_${Date.now()}.jpg`;
     const fileObj = new File([blob], fname, { type: 'image/jpeg' });
@@ -3454,8 +3534,8 @@ if (!IS_CLOUD_SHELL) {
   runBootstrap();
 } else if (API_BASE) {
   startLiveMode();
-  setTimeout(fetchState, 650);
-  setTimeout(() => { if (!stateData) fetchState(); }, 3600);
+  setTimeout(fetchState, 1900);
+  setTimeout(() => { if (!stateData) fetchState(); }, 4500);
 }
 discoverApiBase(false);
 
@@ -3508,6 +3588,7 @@ function snapToLiveEdgeNow(showTip) {
 }
 
 setInterval(() => {
+  syncLivePosterOverlay();
   if (!isLiveMode || !activeVid || (IS_CLOUD_SHELL && !API_BASE)) return;
   const ct = activeVid.currentTime || 0;
   try {
