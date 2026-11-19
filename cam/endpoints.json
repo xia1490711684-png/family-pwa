@@ -1,12 +1,12 @@
 {
-  "tunnel": "https://harmony-modify-enabling-hourly.trycloudflare.com",
+  "tunnel": "https://courier-primarily-alerts-newsletters.trycloudflare.com",
   "lan_wifi": "http://192.168.1.138:15443",
   "lan_hotspot": "http://192.168.137.1:15443",
   "lan_gateway": "http://1999.config.com:15443",
-  "ipv6_direct": "http://[240e:363:3d3b:da00:a936:4c12:47f6:f24]:47822",
+  "ipv6_direct": "http://[240e:363:3d3b:da00:e5ff:5c5:1aa1:e83b]:47822",
   "permanent_pwa": "https://xia1490711684-png.github.io/family-pwa/cam/",
-  "updated": "2026-11-19 20:07:36",
+  "updated": "2026-11-19 22:44:01",
   "gw_wan_ipv6_15443": "http://[240e:360:3c06:13a2:3a9e:80ff:feda:67e7]:15443",
   "cn_ipv4_direct": "http://117.65.154.17:15443",
-  "cn_ipv6_15443": "http://[240e:363:3d3b:da00:a936:4c12:47f6:f24]:15443"
+  "cn_ipv6_15443": "http://[240e:363:3d3b:da00:e5ff:5c5:1aa1:e83b]:15443"
 }
