@@ -1,11 +1,11 @@
 {
-  "tunnel": "https://visitors-bloom-smell-refresh.trycloudflare.com",
+  "tunnel": "https://grip-thousand-resistant-strap.trycloudflare.com",
   "lan_wifi": "http://192.168.1.138:15443",
   "lan_hotspot": "http://192.168.137.1:15443",
   "lan_gateway": "http://1999.config.com:15443",
   "ipv6_direct": "http://[240e:363:3d0c:3100:951c:7371:fc87:1699]:47822",
   "permanent_pwa": "https://xia1490711684-png.github.io/family-pwa/cam/",
-  "updated": "2026-11-20 15:18:07",
+  "updated": "2026-11-20 17:59:38",
   "gw_wan_ipv6_15443": "http://[240e:360:3c06:79f6:3a9e:80ff:feda:67e7]:15443",
   "cn_ipv4_direct": "http://117.65.157.0:15443",
   "cn_ipv6_15443": "http://[240e:363:3d0c:3100:951c:7371:fc87:1699]:15443"
