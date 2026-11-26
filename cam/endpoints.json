@@ -1,12 +1,12 @@
 {
-  "tunnel": "https://philadelphia-home-muscles-moved.trycloudflare.com",
+  "tunnel": "https://towers-sunset-detail-anyone.trycloudflare.com",
   "lan_wifi": "http://192.168.1.138:15443",
   "lan_hotspot": "http://192.168.137.1:15443",
   "lan_gateway": "http://1999.config.com:15443",
-  "ipv6_direct": "http://[240e:363:3d0c:3100:40a6:32ad:22d7:6e1c]:47822",
+  "ipv6_direct": "http://[240e:363:3d0c:3100:7d5a:28f0:1712:dbe3]:47822",
   "permanent_pwa": "https://xia1490711684-png.github.io/family-pwa/cam/",
-  "updated": "2026-11-26 20:54:27",
+  "updated": "2026-11-27 00:13:20",
   "gw_wan_ipv6_15443": "http://[240e:360:3c06:79f6:3a9e:80ff:feda:67e7]:15443",
   "cn_ipv4_direct": "http://117.65.157.0:15443",
-  "cn_ipv6_15443": "http://[240e:363:3d0c:3100:40a6:32ad:22d7:6e1c]:15443"
+  "cn_ipv6_15443": "http://[240e:363:3d0c:3100:7d5a:28f0:1712:dbe3]:15443"
 }
